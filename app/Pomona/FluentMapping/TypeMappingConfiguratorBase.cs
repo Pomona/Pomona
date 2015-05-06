@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,32 @@ namespace Pomona.FluentMapping
 {
     internal abstract class TypeMappingConfiguratorBase<TDeclaring> : ITypeMappingConfigurator<TDeclaring>
     {
+        protected virtual ITypeMappingConfigurator<TDeclaring> OnHasChild<TItem>(Expression<Func<TDeclaring, TItem>> childProperty,
+                                                                                 Expression<Func<TItem, TDeclaring>> parentProperty,
+                                                                                 Func
+                                                                                     <ITypeMappingConfigurator<TItem>,
+                                                                                     ITypeMappingConfigurator<TItem>> typeOptions,
+                                                                                 Func
+                                                                                     <IPropertyOptionsBuilder<TDeclaring, TItem>,
+                                                                                     IPropertyOptionsBuilder<TDeclaring, TItem>>
+                                                                                     propertyOptions)
+        {
+            return this;
+        }
+
+
+        protected virtual ITypeMappingConfigurator<TDeclaring> OnHasChildren<TItem>(
+            Expression<Func<TDeclaring, IEnumerable<TItem>>> property,
+            Expression<Func<TItem, TDeclaring>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+            Func
+                <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
+                IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> AllPropertiesAreExcludedByDefault()
         {
             return this;
@@ -54,7 +80,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual ITypeMappingConfigurator<TDeclaring> ExposedAt(string path)
+        public virtual ITypeMappingConfigurator<TDeclaring> AsAbstract()
         {
             return this;
         }
@@ -68,7 +94,14 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual ITypeMappingConfigurator<TDeclaring> AsChildResourceOf<TParent>(Expression<Func<TDeclaring, TParent>> parentProperty, Expression<Func<TParent, TDeclaring>> childProperty)
+        public virtual ITypeMappingConfigurator<TDeclaring> AsChildResourceOf<TParent>(Expression<Func<TDeclaring, TParent>> parentProperty,
+                                                                                       Expression<Func<TParent, TDeclaring>> childProperty)
+        {
+            return this;
+        }
+
+
+        public virtual ITypeMappingConfigurator<TDeclaring> AsConcrete()
         {
             return this;
         }
@@ -86,6 +119,12 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> AsSingleton()
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> AsUriBaseType()
         {
             return this;
@@ -93,12 +132,6 @@ namespace Pomona.FluentMapping
 
 
         public virtual ITypeMappingConfigurator<TDeclaring> AsValueObject()
-        {
-            return this;
-        }
-
-
-        public virtual ITypeMappingConfigurator<TDeclaring> AsSingleton()
         {
             return this;
         }
@@ -142,51 +175,25 @@ namespace Pomona.FluentMapping
         }
 
 
+        public virtual ITypeMappingConfigurator<TDeclaring> ExposedAt(string path)
+        {
+            return this;
+        }
+
+
         public virtual ITypeMappingConfigurator<TDeclaring> HandledBy<THandler>()
         {
             return this;
         }
 
 
-        public ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(
-            Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty,
-            Expression<Func<TItem, TDeclaring>> parentProperty,
-            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
-            Func
-                <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
-                    IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
-        {
-            if (collectionProperty == null)
-                throw new ArgumentNullException("collectionProperty");
-            if (parentProperty == null)
-                throw new ArgumentNullException("parentProperty");
-            return OnHasChildren(collectionProperty, parentProperty, typeOptions ?? (x => x), propertyOptions ?? (x => x));
-        }
-
-
-        protected virtual ITypeMappingConfigurator<TDeclaring> OnHasChildren<TItem>(
-            Expression<Func<TDeclaring, IEnumerable<TItem>>> property,
-            Expression<Func<TItem, TDeclaring>> parentProperty,
-            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
-            Func
-                <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
-                    IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
-        {
-            return this;
-        }
-
-        protected virtual ITypeMappingConfigurator<TDeclaring> OnHasChild<TItem>(Expression<Func<TDeclaring, TItem>> childProperty,
-            Expression<Func<TItem, TDeclaring>> parentProperty,
-            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
-            Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions)
-        {
-            return this;
-        }
-
         public ITypeMappingConfigurator<TDeclaring> HasChild<TItem>(Expression<Func<TDeclaring, TItem>> childProperty,
-            Expression<Func<TItem, TDeclaring>> parentProperty,
-            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions = null,
-            Func<IPropertyOptionsBuilder<TDeclaring, TItem>, IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions = null)
+                                                                    Expression<Func<TItem, TDeclaring>> parentProperty,
+                                                                    Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>>
+                                                                        typeOptions = null,
+                                                                    Func
+                                                                        <IPropertyOptionsBuilder<TDeclaring, TItem>,
+                                                                        IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions = null)
         {
             if (childProperty == null)
                 throw new ArgumentNullException("childProperty");
@@ -196,7 +203,27 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual ITypeMappingConfigurator<TDeclaring> Include<TPropertyType>(string name, Func<IPropertyOptionsBuilder<TDeclaring, TPropertyType>, IPropertyOptionsBuilder<TDeclaring, TPropertyType>> options)
+        public ITypeMappingConfigurator<TDeclaring> HasChildren<TItem>(
+            Expression<Func<TDeclaring, IEnumerable<TItem>>> collectionProperty,
+            Expression<Func<TItem, TDeclaring>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions,
+            Func
+                <IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>,
+                IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
+        {
+            if (collectionProperty == null)
+                throw new ArgumentNullException("collectionProperty");
+            if (parentProperty == null)
+                throw new ArgumentNullException("parentProperty");
+            return OnHasChildren(collectionProperty, parentProperty, typeOptions ?? (x => x), propertyOptions ?? (x => x));
+        }
+
+
+        public virtual ITypeMappingConfigurator<TDeclaring> Include<TPropertyType>(string name,
+                                                                                   Func
+                                                                                       <IPropertyOptionsBuilder<TDeclaring, TPropertyType>,
+                                                                                       IPropertyOptionsBuilder<TDeclaring, TPropertyType>>
+                                                                                       options)
         {
             return this;
         }
@@ -211,7 +238,11 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual ITypeMappingConfigurator<TDeclaring> IncludeAs<TPropertyType>(Expression<Func<TDeclaring, object>> property, Func<IPropertyOptionsBuilder<TDeclaring, TPropertyType>, IPropertyOptionsBuilder<TDeclaring, TPropertyType>> options = null)
+        public virtual ITypeMappingConfigurator<TDeclaring> IncludeAs<TPropertyType>(Expression<Func<TDeclaring, object>> property,
+                                                                                     Func
+                                                                                         <IPropertyOptionsBuilder<TDeclaring, TPropertyType>,
+                                                                                         IPropertyOptionsBuilder<TDeclaring, TPropertyType>>
+                                                                                         options = null)
         {
             return this;
         }
@@ -266,18 +297,6 @@ namespace Pomona.FluentMapping
 
 
         public virtual ITypeMappingConfigurator<TDeclaring> WithPluralName(string pluralName)
-        {
-            return this;
-        }
-
-
-        public virtual ITypeMappingConfigurator<TDeclaring> AsAbstract()
-        {
-            return this;
-        }
-
-
-        public virtual ITypeMappingConfigurator<TDeclaring> AsConcrete()
         {
             return this;
         }

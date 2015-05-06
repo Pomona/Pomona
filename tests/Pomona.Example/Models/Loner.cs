@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -47,27 +47,27 @@ namespace Pomona.Example.Models
             Occupation = "default boring";
         }
 
-        public DateTime OptionalDate
-        {
-            get { return optionalDate; }
-        }
-
-        public string OptionalInfo
-        {
-            get { return optionalInfo; }
-        }
-
 
         public string Name
         {
-            get { return name; }
+            get { return this.name; }
         }
 
         public string Occupation { get; set; }
 
+        public DateTime OptionalDate
+        {
+            get { return this.optionalDate; }
+        }
+
+        public string OptionalInfo
+        {
+            get { return this.optionalInfo; }
+        }
+
         public int Strength
         {
-            get { return strength; }
+            get { return this.strength; }
         }
     }
 }

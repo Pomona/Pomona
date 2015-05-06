@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,16 +39,6 @@ namespace Pomona.SystemTests.TypeSystem
     [TestFixture]
     public class ClientTypeMapperTests
     {
-        #region Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.clientTypeMapper = new ClientTypeMapper(typeof(ICritter).WrapAsEnumerable());
-        }
-
-        #endregion
-
         private ClientTypeMapper clientTypeMapper;
 
 
@@ -65,5 +55,15 @@ namespace Pomona.SystemTests.TypeSystem
         {
             Assert.That(this.clientTypeMapper.FromType(typeof(CritterLazyProxy)).Type, Is.EqualTo(typeof(ICritter)));
         }
+
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.clientTypeMapper = new ClientTypeMapper(typeof(ICritter).WrapAsEnumerable());
+        }
+
+        #endregion
     }
 }

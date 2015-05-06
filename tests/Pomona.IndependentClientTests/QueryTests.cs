@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@ namespace Pomona.IndependentClientTests
             var musicalCritterId = CritterEntities.OfType<MusicalCritter>().First().Id;
 
             var musicalCritter = ResourceFetcherExtensions.Get<ICritter>(Client, BaseUri + "critters/" + musicalCritterId);
-            
+
             Assert.That(musicalCritter, Is.AssignableTo<IMusicalCritter>());
         }
     }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,15 +30,13 @@ using System;
 using System.IO;
 using System.Text;
 
-using Pomona.Common.TypeSystem;
-
 namespace Pomona.Common.Serialization
 {
     public static class SerializerExtensions
     {
         public static T Deserialize<T>(this ITextDeserializer deserializer,
-            TextReader textReader,
-            DeserializeOptions options = null)
+                                       TextReader textReader,
+                                       DeserializeOptions options = null)
         {
             options = options ?? new DeserializeOptions();
             if (options.ExpectedBaseType == null)
@@ -48,8 +46,8 @@ namespace Pomona.Common.Serialization
 
 
         public static T DeserializeString<T>(this ITextDeserializer deserializer,
-            string serializedObj,
-            DeserializeOptions options = null)
+                                             string serializedObj,
+                                             DeserializeOptions options = null)
         {
             if (deserializer == null)
                 throw new ArgumentNullException("deserializer");
@@ -63,8 +61,8 @@ namespace Pomona.Common.Serialization
 
 
         public static object DeserializeString(this ITextDeserializer deserializer,
-            string serializedObj,
-            DeserializeOptions options = null)
+                                               string serializedObj,
+                                               DeserializeOptions options = null)
         {
             if (deserializer == null)
                 throw new ArgumentNullException("deserializer");
@@ -86,9 +84,9 @@ namespace Pomona.Common.Serialization
         /// <param name="encoding">Text encoding. Optional, UTF-8 by default.</param>
         /// <returns>The serialized byte array.</returns>
         public static byte[] SerializeToBytes(this ITextSerializer serializer,
-            object obj,
-            SerializeOptions options = null,
-            Encoding encoding = null)
+                                              object obj,
+                                              SerializeOptions options = null,
+                                              Encoding encoding = null)
         {
             encoding = encoding ?? new UTF8Encoding(false);
             using (var memStream = new MemoryStream())
@@ -103,8 +101,8 @@ namespace Pomona.Common.Serialization
 
 
         public static string SerializeToString(this ITextSerializer serializer,
-            object obj,
-            SerializeOptions options = null)
+                                               object obj,
+                                               SerializeOptions options = null)
         {
             using (var sw = new StringWriter())
             {

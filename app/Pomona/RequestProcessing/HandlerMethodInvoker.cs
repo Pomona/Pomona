@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -60,17 +60,6 @@ namespace Pomona.RequestProcessing
         public IList<HandlerParameter> Parameters
         {
             get { return Method.Parameters; }
-        }
-
-        public Type ReturnType
-        {
-            get { return Method.ReturnType; }
-        }
-
-
-        public virtual object Invoke(object target, PomonaContext context)
-        {
-            return OnInvoke(target, context, new TInvokeState());
         }
 
 
@@ -156,6 +145,18 @@ namespace Pomona.RequestProcessing
                 statusCode = HttpStatusCode.NoContent;
 
             return new PomonaResponse(context, responseBody, statusCode ?? HttpStatusCode.OK, context.ExpandedPaths);
+        }
+
+
+        public virtual object Invoke(object target, PomonaContext context)
+        {
+            return OnInvoke(target, context, new TInvokeState());
+        }
+
+
+        public Type ReturnType
+        {
+            get { return Method.ReturnType; }
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -48,7 +48,6 @@ namespace Pomona.Common
         where TPostResponseResource : IClientResource
     {
         private readonly ClientBase client;
-
         private readonly IEnumerable<TResource> results;
         private readonly string uri;
 
@@ -63,6 +62,26 @@ namespace Pomona.Common
         }
 
 
+        internal ClientBase Client
+        {
+            get { return this.client; }
+        }
+
+
+        private string GetResourceUri(object id)
+        {
+            return string.Format("{0}/{1}",
+                                 this.uri,
+                                 HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
+        }
+
+
+        public void Delete(TResource resource)
+        {
+            this.client.Delete(resource);
+        }
+
+
         public Type ElementType
         {
             get { return typeof(TResource); }
@@ -71,65 +90,6 @@ namespace Pomona.Common
         public Expression Expression
         {
             get { return Expression.Constant(Query()); }
-        }
-
-        public IQueryProvider Provider
-        {
-            get { return new RestQueryProvider(this.client); }
-        }
-
-        public string Uri
-        {
-            get { return this.uri; }
-        }
-
-        internal ClientBase Client
-        {
-            get { return this.client; }
-        }
-
-
-        public virtual TPostResponseResource Post(IPostForm form)
-        {
-            return (TPostResponseResource)this.client.Post(Uri, (TResource)((object)form), null);
-        }
-
-
-        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
-            where TSubResource : class, TResource
-        {
-            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
-        }
-
-
-        public virtual TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
-            Action<IRequestOptions<TSubResponseResource>> options)
-            where TSubResource : class, TResource
-            where TSubResponseResource : TPostResponseResource
-        {
-            var requestOptions = RequestOptions.Create(options, typeof(TSubResponseResource));
-            return (TSubResponseResource)this.client.Post(Uri, postAction, requestOptions);
-        }
-
-
-        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
-            Action<IRequestOptions<TPostResponseResource>> options) where TSubResource : class, TResource
-        {
-            return
-                (TPostResponseResource)
-                    this.client.Post(Uri, postAction, RequestOptions.Create(options));
-        }
-
-
-        public virtual TPostResponseResource Post(Action<TResource> postAction)
-        {
-            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
-        }
-
-
-        public void Delete(TResource resource)
-        {
-            this.client.Delete(resource);
         }
 
 
@@ -152,8 +112,8 @@ namespace Pomona.Common
 
 
         public TSubResource Patch<TSubResource>(TSubResource resource,
-            Action<TSubResource> patchAction,
-            Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+                                                Action<TSubResource> patchAction,
+                                                Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
         {
             return this.client.Patch(resource, patchAction, options);
         }
@@ -163,6 +123,45 @@ namespace Pomona.Common
             where TSubResource : class, TResource
         {
             return Patch(resource, patchAction, null);
+        }
+
+
+        public virtual TPostResponseResource Post(IPostForm form)
+        {
+            return (TPostResponseResource)this.client.Post(Uri, (TResource)((object)form), null);
+        }
+
+
+        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
+            where TSubResource : class, TResource
+        {
+            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
+        }
+
+
+        public virtual TSubResponseResource Post<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+                                                                                     Action<IRequestOptions<TSubResponseResource>> options)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource
+        {
+            var requestOptions = RequestOptions.Create(options, typeof(TSubResponseResource));
+            return (TSubResponseResource)this.client.Post(Uri, postAction, requestOptions);
+        }
+
+
+        public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction,
+                                                                Action<IRequestOptions<TPostResponseResource>> options)
+            where TSubResource : class, TResource
+        {
+            return
+                (TPostResponseResource)
+                    this.client.Post(Uri, postAction, RequestOptions.Create(options));
+        }
+
+
+        public virtual TPostResponseResource Post(Action<TResource> postAction)
+        {
+            return (TPostResponseResource)this.client.Post(Uri, postAction, null);
         }
 
 
@@ -186,6 +185,12 @@ namespace Pomona.Common
         }
 
 
+        public IQueryProvider Provider
+        {
+            get { return new RestQueryProvider(this.client); }
+        }
+
+
         public IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource
         {
@@ -199,23 +204,21 @@ namespace Pomona.Common
         }
 
 
+        public string Uri
+        {
+            get { return this.uri; }
+        }
+
+
         void IDeletableByIdRepository<TId>.Delete(TId id)
         {
-            client.Delete(GetLazy(id));
+            this.client.Delete(GetLazy(id));
         }
 
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-
-        private string GetResourceUri(object id)
-        {
-            return string.Format("{0}/{1}",
-                this.uri,
-                HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
         }
     }
 }

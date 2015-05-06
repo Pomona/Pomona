@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -53,24 +53,6 @@ namespace Pomona.Routing
         }
 
 
-        public IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
-        {
-            var resourceItemType = route.ResultItemType as ResourceType;
-            if (resourceItemType == null)
-                yield break;
-
-            RouteAction func = null;
-            switch (method)
-            {
-                case HttpMethod.Get:
-                    func = ResolveGet(route, resourceItemType);
-                    break;
-            }
-            if (func != null)
-                yield return func;
-        }
-
-
         protected virtual Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
         {
             if (route.ResultType.IsCollection)
@@ -90,12 +72,12 @@ namespace Pomona.Routing
                     var segmentValue = pr.Node.PathSegment.Parse(idType);
                     return new PomonaResponse(pr,
                                               pr.Node.Parent
-                                                  .Query()
-                                                  .WhereEx(
-                                                      ex =>
-                                                          ex.Apply(idProp.CreateGetterExpression)
-                                                          == Ex.Const(segmentValue, idType))
-                                                  .WrapActionResult(QueryProjection.FirstOrDefault));
+                                                .Query()
+                                                .WhereEx(
+                                                    ex =>
+                                                        ex.Apply(idProp.CreateGetterExpression)
+                                                        == Ex.Const(segmentValue, idType))
+                                                .WrapActionResult(QueryProjection.FirstOrDefault));
                 };
         }
 
@@ -122,15 +104,17 @@ namespace Pomona.Routing
                         // Check existance of parent here, cannot differentiate between an empty collection and not found.
                         var parent = pr.Node.Parent;
                         if (parent.Route.IsSingle)
+                        {
                             if (!parent.Exists)
                                 throw new ResourceNotFoundException("Resource not found.");
-                            
+                        }
+
                         return new PomonaResponse(
                             parent
                                 .Query()
                                 .OfTypeIfRequired(pr.Node.Route.InputType)
                                 .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
-                                .WrapActionResult(defaultPageSize: property.ExposedAsRepository ? (int?)null : int.MaxValue));
+                                .WrapActionResult(defaultPageSize : property.ExposedAsRepository ? (int?)null : int.MaxValue));
                     };
             }
             else
@@ -143,12 +127,12 @@ namespace Pomona.Routing
                             return new PomonaResponse(((IEnumerable)property.GetValue(parentNode.Get())).AsQueryable());
                         return new PomonaResponse(
                             pr.Node.Parent
-                                .Query()
-                                .OfTypeIfRequired(pr.Node.Route.InputType)
-                                .ToListDetectType()
-                                .AsQueryable()
-                                .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
-                                .WrapActionResult(defaultPageSize: property.ExposedAsRepository ? (int?)null : int.MaxValue));
+                              .Query()
+                              .OfTypeIfRequired(pr.Node.Route.InputType)
+                              .ToListDetectType()
+                              .AsQueryable()
+                              .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
+                              .WrapActionResult(defaultPageSize : property.ExposedAsRepository ? (int?)null : int.MaxValue));
                     };
             }
         }
@@ -176,8 +160,26 @@ namespace Pomona.Routing
                 pr =>
                     new PomonaResponse(pr,
                                        pr.Node.Parent.Query()
-                                           .SelectEx(x => x.Apply(property.CreateGetterExpression))
-                                           .WrapActionResult(QueryProjection.FirstOrDefault));
+                                         .SelectEx(x => x.Apply(property.CreateGetterExpression))
+                                         .WrapActionResult(QueryProjection.FirstOrDefault));
+        }
+
+
+        public IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
+        {
+            var resourceItemType = route.ResultItemType as ResourceType;
+            if (resourceItemType == null)
+                yield break;
+
+            RouteAction func = null;
+            switch (method)
+            {
+                case HttpMethod.Get:
+                    func = ResolveGet(route, resourceItemType);
+                    break;
+            }
+            if (func != null)
+                yield return func;
         }
     }
 }

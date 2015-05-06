@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,11 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
+#endregion
+
 using System.Linq;
-using CsQuery.EquationParser.Implementation;
+
 using NUnit.Framework;
+
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
@@ -38,20 +41,21 @@ namespace Pomona.UnitTests.TypeSystem
     public class TypeSystemTests
     {
         [Test]
-        public void TransformedType_RequiredProperties_ReturnsRequiredProperties()
-        {
-            var mapper = new TypeMapper(new CritterPomonaConfiguration());
-            var type = mapper.FromType(typeof (Planet));
-            var requiredProperties = type.RequiredProperties.ToList();
-            Assert.That(requiredProperties.All(x => x.IsRequiredForConstructor), Is.True);
-            Assert.Inconclusive();
-        }
-
-        [Test]
         public void FromEnumType_ReturnsEnumTypeSpec()
         {
             var mapper = new TypeMapper(new CritterPomonaConfiguration());
             Assert.That(mapper.FromType<CustomEnum>(), Is.InstanceOf<EnumTypeSpec>());
+        }
+
+
+        [Test]
+        public void TransformedType_RequiredProperties_ReturnsRequiredProperties()
+        {
+            var mapper = new TypeMapper(new CritterPomonaConfiguration());
+            var type = mapper.FromType(typeof(Planet));
+            var requiredProperties = type.RequiredProperties.ToList();
+            Assert.That(requiredProperties.All(x => x.IsRequiredForConstructor), Is.True);
+            Assert.Inconclusive();
         }
     }
 }

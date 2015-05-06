@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -44,56 +44,7 @@ namespace Pomona.UnitTests.Linq.Queries
     [TestFixture]
     public class QueryExpressionTests
     {
-        public class Dummy
-        {
-            public int Id { get; set; }
-        }
-
-        protected QuerySourceExpression source =
-            (QuerySourceExpression)QueryExpression.Wrap(Enumerable.Empty<Dummy>().AsQueryable().Expression);
-
-        private static List<Type> QueryExpressionTypes
-        {
-            get
-            {
-                return typeof(QueryExpression).Assembly
-                    .GetTypes()
-                    .Where(x => typeof(QueryExpression).IsAssignableFrom(x) && x.IsPublic && !x.IsAbstract)
-                    .ToList();
-            }
-        }
-
-
-        private TQueryExpression WrapAndAssert<TQueryExpression>(Func<IQueryable<Dummy>, IQueryable> queryBuildAction)
-            where TQueryExpression : QueryExpression
-        {
-            if (queryBuildAction == null)
-                throw new ArgumentNullException("queryBuildAction");
-            var queryExpr = queryBuildAction(Enumerable.Empty<Dummy>().AsQueryable()).Expression;
-            var wrapper = QueryExpression.Wrap(queryExpr);
-            Assert.That(wrapper, Is.InstanceOf<TQueryExpression>());
-            return (TQueryExpression)wrapper;
-        }
-
-
-        private string GetNameForMethod(MethodInfo m, ParameterInfo[] parms)
-        {
-            var lamParams =
-                from p in parms.Skip(1).Take(1)
-                where p.ParameterType.IsGenericInstanceOf(typeof(Expression<>))
-                let invokeMethod = p.ParameterType.GetGenericArguments()[0].GetDelegateInvokeMethod()
-                where invokeMethod != null
-                let indexArgParam = invokeMethod.GetParameters().Select(x => x.ParameterType).ElementAtOrDefault(1)
-                where indexArgParam != null
-                select indexArgParam;
-
-            if (lamParams.Any())
-                return m.Name + "Indexed";
-            return m.Name;
-        }
-
-
-        private string queryExpressionCodeTemplate = @"    public class {0}Expression : QueryChainedExpression
+        private readonly string queryExpressionCodeTemplate = @"    public class {0}Expression : QueryChainedExpression
     {{
         private static {0}Factory factory;
 
@@ -155,8 +106,7 @@ namespace Pomona.UnitTests.Linq.Queries
         #endregion
     }}
 ";
-
-        private string queryExpressionCodeTemplate3 = @"    public class {0}Expression : QueryChainedExpression
+        private readonly string queryExpressionCodeTemplate3 = @"    public class {0}Expression : QueryChainedExpression
     {{
         private static {0}Factory factory;
 
@@ -228,14 +178,18 @@ namespace Pomona.UnitTests.Linq.Queries
     }}
 ";
 
+        protected QuerySourceExpression source =
+            (QuerySourceExpression)QueryExpression.Wrap(Enumerable.Empty<Dummy>().AsQueryable().Expression);
 
-        private Type GetExposedTypeTEMP(ParameterInfo pi)
+        private static List<Type> QueryExpressionTypes
         {
-            if (typeof(LambdaExpression).IsAssignableFrom(pi.ParameterType))
-                return typeof(LambdaExpression);
-            if (typeof(IEnumerable<>).IsGenericInstanceOf(pi.ParameterType))
-                return typeof(QueryExpression);
-            return pi.ParameterType;
+            get
+            {
+                return typeof(QueryExpression).Assembly
+                                              .GetTypes()
+                                              .Where(x => typeof(QueryExpression).IsAssignableFrom(x) && x.IsPublic && !x.IsAbstract)
+                                              .ToList();
+            }
         }
 
 
@@ -426,15 +380,15 @@ namespace Pomona.UnitTests.Linq.Queries
         {
             var queryExtMethods = from m in typeof(Queryable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                let p = m.GetParameters()
-                let name = GetNameForMethod(m, p)
-                let exprType = QueryExpressionTypes.FirstOrDefault(x => x.Name == name + "Expression")
-                where
-                    m.ReturnType.IsGenericInstanceOf(typeof(IQueryable<>)) &&
-                    m.HasAttribute<ExtensionAttribute>(false) &&
-                    p.Length == 2 &&
-                    typeof(IQueryable).IsAssignableFrom(p[0].ParameterType)
-                select new { name, method = m, parms = p, exprType };
+                                  let p = m.GetParameters()
+                                  let name = GetNameForMethod(m, p)
+                                  let exprType = QueryExpressionTypes.FirstOrDefault(x => x.Name == name + "Expression")
+                                  where
+                                      m.ReturnType.IsGenericInstanceOf(typeof(IQueryable<>)) &&
+                                      m.HasAttribute<ExtensionAttribute>(false) &&
+                                      p.Length == 2 &&
+                                      typeof(IQueryable).IsAssignableFrom(p[0].ParameterType)
+                                  select new { name, method = m, parms = p, exprType };
 
             foreach (var m in queryExtMethods.Where(x => x.exprType == null))
             {
@@ -456,15 +410,15 @@ namespace Pomona.UnitTests.Linq.Queries
         {
             var queryExtMethods = from m in typeof(Queryable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                let p = m.GetParameters()
-                let name = GetNameForMethod(m, p)
-                let exprType = QueryExpressionTypes.FirstOrDefault(x => x.Name == name + "Expression")
-                where
-                    m.ReturnType.IsGenericInstanceOf(typeof(IQueryable<>)) &&
-                    m.HasAttribute<ExtensionAttribute>(false) &&
-                    p.Length == 1 &&
-                    typeof(IQueryable).IsAssignableFrom(p[0].ParameterType)
-                select new { name, method = m, parms = p, exprType };
+                                  let p = m.GetParameters()
+                                  let name = GetNameForMethod(m, p)
+                                  let exprType = QueryExpressionTypes.FirstOrDefault(x => x.Name == name + "Expression")
+                                  where
+                                      m.ReturnType.IsGenericInstanceOf(typeof(IQueryable<>)) &&
+                                      m.HasAttribute<ExtensionAttribute>(false) &&
+                                      p.Length == 1 &&
+                                      typeof(IQueryable).IsAssignableFrom(p[0].ParameterType)
+                                  select new { name, method = m, parms = p, exprType };
 
             foreach (var m in queryExtMethods.Where(x => x.exprType == null))
                 Console.WriteLine(m.name);
@@ -476,22 +430,22 @@ namespace Pomona.UnitTests.Linq.Queries
         {
             var queryExtMethods = from m in typeof(Queryable)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                let p = m.GetParameters()
-                let name = GetNameForMethod(m, p)
-                let exprType = QueryExpressionTypes.FirstOrDefault(x => x.Name == name + "Expression")
-                where
-                    m.ReturnType.IsGenericInstanceOf(typeof(IQueryable<>)) &&
-                    m.HasAttribute<ExtensionAttribute>(false) &&
-                    p.Length == 3 &&
-                    typeof(IQueryable).IsAssignableFrom(p[0].ParameterType)
-                select new { name, method = m, parms = p, exprType };
+                                  let p = m.GetParameters()
+                                  let name = GetNameForMethod(m, p)
+                                  let exprType = QueryExpressionTypes.FirstOrDefault(x => x.Name == name + "Expression")
+                                  where
+                                      m.ReturnType.IsGenericInstanceOf(typeof(IQueryable<>)) &&
+                                      m.HasAttribute<ExtensionAttribute>(false) &&
+                                      p.Length == 3 &&
+                                      typeof(IQueryable).IsAssignableFrom(p[0].ParameterType)
+                                  select new { name, method = m, parms = p, exprType };
 
             foreach (var m in queryExtMethods.Where(x => x.exprType == null))
             {
                 var mp = (from p in m.parms.Skip(1)
-                    let exposedType = GetExposedTypeTEMP(p)
-                    let propName = p.Name.CapitalizeFirstLetter()
-                    select new { exposedType, propName, par = p }).ToList();
+                          let exposedType = GetExposedTypeTEMP(p)
+                          let propName = p.Name.CapitalizeFirstLetter()
+                          select new { exposedType, propName, par = p }).ToList();
 
                 Console.WriteLine(this.queryExpressionCodeTemplate3,
                                   m.name,
@@ -536,16 +490,16 @@ namespace Pomona.UnitTests.Linq.Queries
 
 
         [Test]
-        public void Wrap_SelectMany_MethodCallExpression_Returns_SelectManyExpression()
+        public void Wrap_Select_MethodCallExpression_Returns_SelectExpression()
         {
-            WrapAndAssert<SelectManyExpression>(q => q.SelectMany(x => Enumerable.Range(0, x.Id)));
+            WrapAndAssert<SelectExpression>(q => q.Select(x => x.Id));
         }
 
 
         [Test]
-        public void Wrap_Select_MethodCallExpression_Returns_SelectExpression()
+        public void Wrap_SelectMany_MethodCallExpression_Returns_SelectManyExpression()
         {
-            WrapAndAssert<SelectExpression>(q => q.Select(x => x.Id));
+            WrapAndAssert<SelectManyExpression>(q => q.SelectMany(x => Enumerable.Range(0, x.Id)));
         }
 
 
@@ -585,6 +539,51 @@ namespace Pomona.UnitTests.Linq.Queries
         public void Wrap_Zip_MethodCallExpression_Returns_ZipExpression()
         {
             WrapAndAssert<ZipExpression>(q => q.Zip(Enumerable.Empty<object>().AsQueryable(), (a, b) => a));
+        }
+
+
+        private Type GetExposedTypeTEMP(ParameterInfo pi)
+        {
+            if (typeof(LambdaExpression).IsAssignableFrom(pi.ParameterType))
+                return typeof(LambdaExpression);
+            if (typeof(IEnumerable<>).IsGenericInstanceOf(pi.ParameterType))
+                return typeof(QueryExpression);
+            return pi.ParameterType;
+        }
+
+
+        private string GetNameForMethod(MethodInfo m, ParameterInfo[] parms)
+        {
+            var lamParams =
+                from p in parms.Skip(1).Take(1)
+                where p.ParameterType.IsGenericInstanceOf(typeof(Expression<>))
+                let invokeMethod = p.ParameterType.GetGenericArguments()[0].GetDelegateInvokeMethod()
+                where invokeMethod != null
+                let indexArgParam = invokeMethod.GetParameters().Select(x => x.ParameterType).ElementAtOrDefault(1)
+                where indexArgParam != null
+                select indexArgParam;
+
+            if (lamParams.Any())
+                return m.Name + "Indexed";
+            return m.Name;
+        }
+
+
+        private TQueryExpression WrapAndAssert<TQueryExpression>(Func<IQueryable<Dummy>, IQueryable> queryBuildAction)
+            where TQueryExpression : QueryExpression
+        {
+            if (queryBuildAction == null)
+                throw new ArgumentNullException("queryBuildAction");
+            var queryExpr = queryBuildAction(Enumerable.Empty<Dummy>().AsQueryable()).Expression;
+            var wrapper = QueryExpression.Wrap(queryExpr);
+            Assert.That(wrapper, Is.InstanceOf<TQueryExpression>());
+            return (TQueryExpression)wrapper;
+        }
+
+
+        public class Dummy
+        {
+            public int Id { get; set; }
         }
     }
 }

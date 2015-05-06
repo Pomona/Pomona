@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -57,21 +57,14 @@ namespace Pomona
         {
             if (node == null)
                 throw new ArgumentNullException("node");
-            this.Node = node;
-            this.Request = request ?? new PomonaRequest(node.RelativePath, node.RelativePath);
-            this.expandedPaths = expandedPaths ?? GetExpandedPathsFromRequest(this.Request.Headers, Query);
+            Node = node;
+            Request = request ?? new PomonaRequest(node.RelativePath, node.RelativePath);
+            this.expandedPaths = expandedPaths ?? GetExpandedPathsFromRequest(Request.Headers, Query);
             this.executeQueryable = executeQueryable;
             this.handleException = handleException;
             this.acceptType = acceptType;
         }
 
-
-        public bool HandleException
-        {
-            get { return this.handleException; }
-        }
-
-        public PomonaRequest Request { get; private set; }
 
         public Type AcceptType
         {
@@ -90,14 +83,19 @@ namespace Pomona
             get { return this.expandedPaths; }
         }
 
+        public bool HandleException
+        {
+            get { return this.handleException; }
+        }
+
         public RequestHeaders Headers
         {
-            get { return this.Request.Headers; }
+            get { return Request.Headers; }
         }
 
         public HttpMethod Method
         {
-            get { return this.Request.Method; }
+            get { return Request.Method; }
         }
 
         public UrlSegment Node { get; set; }
@@ -107,24 +105,26 @@ namespace Pomona
             get { return Request.Query; }
         }
 
+        public PomonaRequest Request { get; private set; }
+
         public Route Route
         {
-            get { return this.Node.Route; }
+            get { return Node.Route; }
         }
 
         public IPomonaSession Session
         {
-            get { return this.Node.Session; }
+            get { return Node.Session; }
         }
 
         public TypeMapper TypeMapper
         {
-            get { return this.Node.Session.TypeMapper; }
+            get { return Node.Session.TypeMapper; }
         }
 
         public string Url
         {
-            get { return this.Request.Url; }
+            get { return Request.Url; }
         }
 
 
@@ -132,14 +132,14 @@ namespace Pomona
         {
             if (this.deserializedBody == null)
             {
-                if (this.Request.Body == null)
+                if (Request.Body == null)
                     throw new InvalidOperationException("No http body to deserialize.");
 
                 if (Method == HttpMethod.Patch)
                 {
                     patchedObject = patchedObject
-                                    ?? Node.Session.Dispatch(new PomonaContext(this.Node, executeQueryable : true))
-                                        .Entity;
+                                    ?? Node.Session.Dispatch(new PomonaContext(Node, executeQueryable : true))
+                                           .Entity;
                     if (patchedObject != null)
                         type = TypeMapper.FromType(patchedObject.GetType());
                 }
@@ -164,29 +164,19 @@ namespace Pomona
         }
 
 
-        private static string GetExpandedPathsFromRequest(RequestHeaders requestHeaders, DynamicDictionary query)
-        {
-            var expansions = requestHeaders["X-Pomona-Expand"];
-            if (query["$expand"].HasValue)
-                expansions = expansions.Append((string)query["$expand"]);
-            var expandedPathsTemp = string.Join(",", expansions);
-            return expandedPathsTemp;
-        }
-
-
         private object Deserialize(StructuredType expectedBaseType, object patchedObject = null)
         {
-            if (!this.Request.Body.CanSeek)
+            if (!Request.Body.CanSeek)
             {
                 var memStream = new MemoryStream();
-                this.Request.Body.CopyTo(memStream);
+                Request.Body.CopyTo(memStream);
                 memStream.Seek(0, SeekOrigin.Begin);
-                this.Request.Body = memStream;
+                Request.Body = memStream;
             }
-            if (this.Request.Body.Position != 0)
-                this.Request.Body.Seek(0, SeekOrigin.Begin);
+            if (Request.Body.Position != 0)
+                Request.Body.Seek(0, SeekOrigin.Begin);
 
-            using (var textReader = new StreamReader(this.Request.Body))
+            using (var textReader = new StreamReader(Request.Body))
             {
                 return Session.GetInstance<ITextDeserializer>().Deserialize(textReader,
                                                                             new DeserializeOptions()
@@ -196,6 +186,16 @@ namespace Pomona
                                                                                 TargetNode = Node
                                                                             });
             }
+        }
+
+
+        private static string GetExpandedPathsFromRequest(RequestHeaders requestHeaders, DynamicDictionary query)
+        {
+            var expansions = requestHeaders["X-Pomona-Expand"];
+            if (query["$expand"].HasValue)
+                expansions = expansions.Append((string)query["$expand"]);
+            var expandedPathsTemp = string.Join(",", expansions);
+            return expandedPathsTemp;
         }
     }
 }

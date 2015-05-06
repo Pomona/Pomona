@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,9 +24,12 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Pomona.Common;
 
 namespace Pomona
@@ -35,11 +40,11 @@ namespace Pomona
         private static readonly HashSet<string> sibilantEndings;
 
         public static Dictionary<string, string> IrregularNouns
-                                                 ;
+            ;
 
         public static Dictionary<string, string> SingularToPluralDict;
 
-        private static string irregularNounsText =
+        private static readonly string irregularNounsText =
             @"mouse	mice
 woman	women
 house	houses
@@ -126,7 +131,7 @@ office	offices
 valley	valleys
 copy	copies";
 
-        private static string singularToPluralsListText =
+        private static readonly string singularToPluralsListText =
             @"mouse	mice
 woman	women
 house	houses
@@ -220,7 +225,7 @@ copy	copies";
             IrregularNouns = CreateDictionaryFromText(irregularNounsText);
 
             consonants = new HashSet<char>("bcdfghjklmnpqrstvxz".ToCharArray());
-            sibilantEndings = new HashSet<string> {"s", "sh", "ch", "x", "z"};
+            sibilantEndings = new HashSet<string> { "s", "sh", "ch", "x", "z" };
         }
 
 
@@ -274,7 +279,7 @@ copy	copies";
         {
             return text
                 .Replace("\r", "")
-                .Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Split("\t ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                 .Where(x => x.Length == 2)
                 .ToDictionary(x => x[0], x => x[1]);

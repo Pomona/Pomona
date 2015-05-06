@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -44,10 +44,6 @@ namespace Pomona.Common.TypeSystem
             this.resourcePropertyDetails = CreateLazy(() => typeResolver.LoadResourcePropertyDetails(this));
         }
 
-        protected virtual ResourcePropertyDetails ResourcePropertyDetails
-        {
-            get { return this.resourcePropertyDetails.Value; }
-        }
 
         public virtual bool ExposedAsRepository
         {
@@ -57,6 +53,11 @@ namespace Pomona.Common.TypeSystem
         public string UriName
         {
             get { return ResourcePropertyDetails.UriName; }
+        }
+
+        protected virtual ResourcePropertyDetails ResourcePropertyDetails
+        {
+            get { return this.resourcePropertyDetails.Value; }
         }
     }
 }

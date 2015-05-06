@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,53 +24,76 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Patch
 {
     public abstract class Delta
     {
-        private bool isDirty;
-        private Delta parent;
-
         protected Delta()
         {
         }
 
+
         protected Delta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
         {
-            if (original == null) throw new ArgumentNullException("original");
-            if (type == null) throw new ArgumentNullException("type");
-            if (typeMapper == null) throw new ArgumentNullException("typeMapper");
+            if (original == null)
+                throw new ArgumentNullException("original");
+            if (type == null)
+                throw new ArgumentNullException("type");
+            if (typeMapper == null)
+                throw new ArgumentNullException("typeMapper");
             Original = original;
             Type = type;
             TypeMapper = typeMapper;
-            this.parent = parent;
+            this.Parent = parent;
         }
 
+
+        public bool IsDirty { get; private set; }
         public object Original { get; internal set; }
-
+        public Delta Parent { get; internal set; }
         public TypeSpec Type { get; internal set; }
-
-        public Delta Parent
-        {
-            get { return parent; }
-            internal set { parent = value; }
-        }
-
         public ITypeResolver TypeMapper { get; internal set; }
+        public abstract void Apply();
 
-        public bool IsDirty
+
+        public virtual void Reset()
         {
-            get { return isDirty; }
+            this.IsDirty = false;
         }
 
-        protected static bool ValueIsDirty(object o)
+
+        public virtual void SetDirty()
         {
-            var delta = o as IDelta;
-            return delta == null || delta.IsDirty;
+            if (this.IsDirty)
+                return;
+
+            this.IsDirty = true;
+            if (this.Parent != null)
+                this.Parent.SetDirty();
         }
+
+
+        protected void ClearDirty()
+        {
+            this.IsDirty = false;
+        }
+
+
+        protected virtual object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyType)
+        {
+            if (propValueType.SerializationMode == TypeSerializationMode.Structured)
+                return new ObjectDelta(propValue, propValueType, TypeMapper, this);
+            if (propValueType.IsCollection)
+                return new CollectionDelta(propValue, propValueType, TypeMapper, this);
+            throw new NotImplementedException();
+        }
+
 
         protected static void DetachFromParent(object oldValue)
         {
@@ -77,42 +102,11 @@ namespace Pomona.Common.Serialization.Patch
                 oldDeltaValue.Parent = null;
         }
 
-        protected virtual object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyType)
+
+        protected static bool ValueIsDirty(object o)
         {
-            if (propValueType.SerializationMode == TypeSerializationMode.Structured)
-            {
-                return new ObjectDelta(propValue, propValueType, TypeMapper, this);
-            }
-            if (propValueType.IsCollection)
-            {
-                return new CollectionDelta(propValue, propValueType, TypeMapper, this);
-            }
-            throw new NotImplementedException();
+            var delta = o as IDelta;
+            return delta == null || delta.IsDirty;
         }
-
-
-        protected void ClearDirty()
-        {
-            isDirty = false;
-        }
-
-        public virtual void SetDirty()
-        {
-            if (isDirty)
-                return;
-
-            isDirty = true;
-            if (parent != null)
-            {
-                parent.SetDirty();
-            }
-        }
-
-        public virtual void Reset()
-        {
-            isDirty = false;
-        }
-
-        public abstract void Apply();
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Pomona.Example.Models;
 using Pomona.Example.Rules;
 
@@ -36,11 +37,6 @@ namespace Pomona.Example
 {
     public class CritterPomonaConfiguration : PomonaConfigurationBase
     {
-        public override IEnumerable<Type> SourceTypes
-        {
-            get { return CritterRepository.GetEntityTypes().Concat(new[] {typeof (GenericBaseClass<int>)}); }
-        }
-
         public override IEnumerable<object> FluentRuleObjects
         {
             get
@@ -51,15 +47,19 @@ namespace Pomona.Example
             }
         }
 
+        public override IEnumerable<Type> HandlerTypes
+        {
+            get { yield return typeof(CritterDataSource); }
+        }
+
+        public override IEnumerable<Type> SourceTypes
+        {
+            get { return CritterRepository.GetEntityTypes().Concat(new[] { typeof(GenericBaseClass<int>) }); }
+        }
 
         public override ITypeMappingFilter TypeMappingFilter
         {
             get { return new CritterTypeMappingFilter(SourceTypes); }
-        }
-
-        public override IEnumerable<Type> HandlerTypes
-        {
-            get { yield return typeof (CritterDataSource); }
         }
     }
 }

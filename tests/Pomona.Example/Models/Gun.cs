@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,8 @@ namespace Pomona.Example.Models
 {
     public class Gun : Weapon
     {
-        public Gun(WeaponModel model) : base(model)
+        public Gun(WeaponModel model)
+            : base(model)
         {
         }
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -80,7 +80,6 @@ namespace Pomona.Common
         }
 
         public bool IsValueObject { get; set; }
-
         public string JsonTypeName { get; set; }
         public Type LazyProxyType { get; set; }
         public Type ParentResourceType { get; set; }
@@ -112,7 +111,7 @@ namespace Pomona.Common
             where TAttribute : Attribute
         {
             return InterfaceType.GetAllInheritedPropertiesFromInterface()
-                .FirstOrDefault(x => x.HasAttribute<TAttribute>(true));
+                                .FirstOrDefault(x => x.HasAttribute<TAttribute>(true));
         }
     }
 }

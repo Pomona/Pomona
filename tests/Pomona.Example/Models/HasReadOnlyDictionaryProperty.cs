@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,15 +34,16 @@ namespace Pomona.Example.Models
     {
         private readonly IDictionary<string, string> map;
 
+
         public HasReadOnlyDictionaryProperty()
         {
-            map = new Dictionary<string, string>();
+            this.map = new Dictionary<string, string>();
         }
 
 
         public IDictionary<string, string> Map
         {
-            get { return map; }
+            get { return this.map; }
         }
     }
 }

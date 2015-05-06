@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,9 @@ namespace Pomona.FluentMapping
 {
     internal class FluentRuleMethod
     {
+        public static readonly MethodInfo getChildRulesMethod =
+            ReflectionHelper.GetMethodDefinition<FluentRuleMethod>(x => x.GetChildRules<object>());
+
         private readonly Type appliesToType;
         private readonly object instance;
         private readonly MethodInfo method;
@@ -66,18 +69,18 @@ namespace Pomona.FluentMapping
         }
 
 
+        public IEnumerable<FluentRuleMethod> GetChildRules()
+        {
+            return
+                (IEnumerable<FluentRuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
+        }
+
+
         public override string ToString()
         {
             var declaringType = this.method.DeclaringType;
             return String.Format("{1}.{2} for {0}", this.appliesToType.Name,
                                  declaringType != null ? declaringType.Name : "?", this.method.Name);
-        }
-
-
-        public IEnumerable<FluentRuleMethod> GetChildRules()
-        {
-            return
-                (IEnumerable<FluentRuleMethod>)getChildRulesMethod.MakeGenericMethod(AppliesToType).Invoke(this, null);
         }
 
 
@@ -88,11 +91,7 @@ namespace Pomona.FluentMapping
             Method.Invoke(Instance, new object[] { nestedScanner });
             return
                 typeConfigDelegates.Select<Delegate, FluentRuleMethod>(x => new FluentRuleMethod(x.Method, x.Target))
-                    .ToList<FluentRuleMethod>();
+                                   .ToList<FluentRuleMethod>();
         }
-
-
-        public static readonly MethodInfo getChildRulesMethod =
-            ReflectionHelper.GetMethodDefinition<FluentRuleMethod>(x => x.GetChildRules<object>());
     }
 }

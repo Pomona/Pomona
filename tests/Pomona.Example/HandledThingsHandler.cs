@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -53,16 +53,6 @@ namespace Pomona.Example
             this.repository.Delete(handledThing);
         }
 
-        public IQueryable<HandledThing> QueryHandledThings(NancyContext nancyContext)
-        {
-            if (nancyContext.Request.Url.Path != "/handled-things")
-                throw new InvalidOperationException("Should not be used for getting resource by id..");
-            return this.repository.Query<HandledThing>().ToList().Select(x =>
-            {
-                x.QueryCounter++;
-                return x;
-            }).AsQueryable();
-        }
 
         public HandledThing Get(int id)
         {
@@ -76,6 +66,17 @@ namespace Pomona.Example
         {
             handledThing.PatchCounter++;
             return this.repository.Save(handledThing);
+        }
+
+
+        public HandledSingleChild Patch(HandledThing parent, HandledSingleChild child)
+        {
+            if (parent == null)
+                throw new ArgumentNullException("parent");
+
+            child.PatchHandlerCalled = true;
+
+            return child;
         }
 
 
@@ -101,14 +102,15 @@ namespace Pomona.Example
         }
 
 
-        public HandledSingleChild Patch(HandledThing parent, HandledSingleChild child)
+        public IQueryable<HandledThing> QueryHandledThings(NancyContext nancyContext)
         {
-            if (parent == null)
-                throw new ArgumentNullException("parent");
-
-            child.PatchHandlerCalled = true;
-
-            return child;
+            if (nancyContext.Request.Url.Path != "/handled-things")
+                throw new InvalidOperationException("Should not be used for getting resource by id..");
+            return this.repository.Query<HandledThing>().ToList().Select(x =>
+            {
+                x.QueryCounter++;
+                return x;
+            }).AsQueryable();
         }
     }
 }

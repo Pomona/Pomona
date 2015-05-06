@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -53,35 +53,36 @@ namespace Pomona
         }
 
 
-        public Route Routes
-        {
-            get { return this.routes; }
-        }
-
-        public TypeMapper TypeMapper
-        {
-            get { return typeMapper; }
-        }
-
-        public IRequestProcessorPipeline Pipeline
-        {
-            get { return pipeline; }
-        }
-
-        public ITextSerializerFactory SerializerFactory
-        {
-            get { return serializerFactory; }
-        }
-
         public IRouteActionResolver ActionResolver
         {
-            get { return actionResolver; }
+            get { return this.actionResolver; }
         }
 
 
         public IPomonaSession CreateSession(IContainer container)
         {
             return new PomonaSession(this, container);
+        }
+
+
+        public IRequestProcessorPipeline Pipeline
+        {
+            get { return this.pipeline; }
+        }
+
+        public Route Routes
+        {
+            get { return this.routes; }
+        }
+
+        public ITextSerializerFactory SerializerFactory
+        {
+            get { return this.serializerFactory; }
+        }
+
+        public TypeMapper TypeMapper
+        {
+            get { return this.typeMapper; }
         }
     }
 }

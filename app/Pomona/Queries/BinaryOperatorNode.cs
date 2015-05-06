@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 
@@ -29,11 +33,13 @@ namespace Pomona.Queries
 {
     internal class BinaryOperatorNode : NodeBase
     {
-        public BinaryOperatorNode(NodeType nodeType, IEnumerable<NodeBase> children) : base(nodeType, children)
+        public BinaryOperatorNode(NodeType nodeType, IEnumerable<NodeBase> children)
+            : base(nodeType, children)
         {
             if (Children.Count != 2)
                 throw new ArgumentException("A binary operator always need to have 2 child nodes", "children");
         }
+
 
         public NodeBase Left
         {
@@ -44,6 +50,7 @@ namespace Pomona.Queries
         {
             get { return Children[1]; }
         }
+
 
         public override string ToString()
         {

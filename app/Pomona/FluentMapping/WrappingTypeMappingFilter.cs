@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,25 +49,26 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual string ApiVersion
-        {
-            get { return this.wrappedFilter.ApiVersion; }
-        }
-
-        public ClientMetadata ClientMetadata
-        {
-            get { return this.wrappedFilter.ClientMetadata; }
-        }
-
         protected virtual ITypeMappingFilter WrappedFilter
         {
             get { return this.wrappedFilter; }
+        }
+
+        public virtual string ApiVersion
+        {
+            get { return this.wrappedFilter.ApiVersion; }
         }
 
 
         public virtual bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
         {
             return this.wrappedFilter.ClientEnumIsGeneratedAsStringEnum(enumType);
+        }
+
+
+        public ClientMetadata ClientMetadata
+        {
+            get { return this.wrappedFilter.ClientMetadata; }
         }
 
 
@@ -98,6 +99,12 @@ namespace Pomona.FluentMapping
         public virtual PropertyInfo GetChildToParentProperty(Type type)
         {
             return this.wrappedFilter.GetChildToParentProperty(type);
+        }
+
+
+        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        {
+            return this.wrappedFilter.GetClientLibraryAttributes(member);
         }
 
 
@@ -137,12 +144,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual string GetUrlRelativePath(Type type)
-        {
-            return this.wrappedFilter.GetUrlRelativePath(type);
-        }
-
-
         public virtual Type GetPostReturnType(Type type)
         {
             return this.wrappedFilter.GetPostReturnType(type);
@@ -155,21 +156,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual bool TypeIsSingletonResource(Type type)
-        {
-            return this.wrappedFilter.TypeIsSingletonResource(type);
-        }
-
-
         public virtual IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo)
         {
             return this.wrappedFilter.GetPropertyAttributes(type, propertyInfo);
-        }
-
-
-        public virtual ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
-        {
-            return this.wrappedFilter.GetPropertyExpandMode(type, propertyInfo);
         }
 
 
@@ -178,6 +167,12 @@ namespace Pomona.FluentMapping
                                                                 ParameterInfo ctorParameterInfo)
         {
             return this.wrappedFilter.GetPropertyCreateMode(type, propertyInfo, ctorParameterInfo);
+        }
+
+
+        public virtual ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo)
+        {
+            return this.wrappedFilter.GetPropertyExpandMode(type, propertyInfo);
         }
 
 
@@ -250,6 +245,12 @@ namespace Pomona.FluentMapping
         public virtual Type GetUriBaseType(Type type)
         {
             return this.wrappedFilter.GetUriBaseType(type);
+        }
+
+
+        public virtual string GetUrlRelativePath(Type type)
+        {
+            return this.wrappedFilter.GetUrlRelativePath(type);
         }
 
 
@@ -337,9 +338,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        public IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member)
+        public virtual bool TypeIsSingletonResource(Type type)
         {
-            return this.wrappedFilter.GetClientLibraryAttributes(member);
+            return this.wrappedFilter.TypeIsSingletonResource(type);
         }
     }
 }

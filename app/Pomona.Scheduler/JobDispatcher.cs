@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,17 @@ namespace Pomona.Scheduler
         }
 
 
+        private void RunJob(IJob job)
+        {
+            var response = this.webClient.Send(new HttpRequest(job.Url, null, job.Method));
+            var statusCode = (int)response.StatusCode;
+            if (statusCode - (statusCode % 100) != 200)
+                throw new NotImplementedException("TODO: Implement error handling and retrying.");
+
+            this.jobStore.Complete(job);
+        }
+
+
         public bool Tick()
         {
             IJob job;
@@ -56,17 +67,6 @@ namespace Pomona.Scheduler
                 return true;
             }
             return false;
-        }
-
-
-        private void RunJob(IJob job)
-        {
-            var response = this.webClient.Send(new HttpRequest(job.Url, null, job.Method));
-            var statusCode = (int)response.StatusCode;
-            if (statusCode - (statusCode % 100) != 200)
-                throw new NotImplementedException("TODO: Implement error handling and retrying.");
-
-            this.jobStore.Complete(job);
         }
     }
 }

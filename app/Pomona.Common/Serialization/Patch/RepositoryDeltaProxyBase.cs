@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 using Pomona.Common.Proxies;
@@ -36,16 +35,9 @@ namespace Pomona.Common.Serialization.Patch
 {
     public class RepositoryDeltaProxyBase<TElement, TRepository> : CollectionDelta<TElement>, IDelta<TRepository>
     {
-
         protected RepositoryDeltaProxyBase()
             : base()
         {
-        }
-
-
-        public new TRepository Original
-        {
-            get { return (TRepository)base.Original; }
         }
 
 
@@ -75,6 +67,12 @@ namespace Pomona.Common.Serialization.Patch
         {
             throw new NotSupportedException("Setting property " + property.Name
                                             + " is not supported through delta proxy.");
+        }
+
+
+        public new TRepository Original
+        {
+            get { return (TRepository)base.Original; }
         }
     }
 }

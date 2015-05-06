@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,6 @@ using System.Reflection;
 
 using NUnit.Framework;
 
-using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.FluentMapping;
 
@@ -42,6 +41,57 @@ namespace Pomona.UnitTests.FluentMapping
 {
     public abstract class FluentMappingTestsBase
     {
+        protected Tuple<TFilterResult, TFilterResult> CheckHowChangeInPropertyRuleAffectsFilter
+            <TProperty, TFilterResult>(
+            Expression<Func<TestEntityBase, TProperty>> propertyExpr,
+            Func<IPropertyOptionsBuilder<TestEntityBase, TProperty>, IPropertyOptionsBuilder<TestEntityBase, TProperty>>
+                propertyOptions,
+            Func<ITypeMappingFilter, PropertyInfo, TFilterResult> filterExecutor,
+            Action<TFilterResult, TFilterResult> origChangedAssertAction)
+        {
+            var property = propertyExpr.ExtractPropertyInfo();
+            Action<ITypeMappingConfigurator<TestEntityBase>> map = x => x.Include(propertyExpr, propertyOptions);
+            var origFilter = GetMappingFilter<TestEntityBase>();
+            var changedFilter = GetMappingFilter(mappingOverride : map);
+            var origValue = filterExecutor(origFilter, property);
+            var changedValue = filterExecutor(changedFilter, property);
+            origChangedAssertAction(origValue, changedValue);
+            return new Tuple<TFilterResult, TFilterResult>(origValue, changedValue);
+        }
+
+
+        protected Tuple<TFilterResult, TFilterResult> CheckHowChangeInTypeRuleAffectsFilter<T, TFilterResult>(
+            Action<ITypeMappingConfigurator<T>>
+                typeConfigurator,
+            Func<ITypeMappingFilter, Type, TFilterResult> filterExecutor,
+            TFilterResult expectedBefore,
+            TFilterResult expectedAfter)
+        {
+            return CheckHowChangeInTypeRuleAffectsFilter(typeConfigurator,
+                                                         filterExecutor,
+                                                         (before, after) =>
+                                                         {
+                                                             Assert.That(before, Is.EqualTo(expectedBefore));
+                                                             Assert.That(after, Is.EqualTo(expectedAfter));
+                                                         });
+        }
+
+
+        protected Tuple<TFilterResult, TFilterResult> CheckHowChangeInTypeRuleAffectsFilter<T, TFilterResult>(
+            Action<ITypeMappingConfigurator<T>>
+                typeConfigurator,
+            Func<ITypeMappingFilter, Type, TFilterResult> filterExecutor,
+            Action<TFilterResult, TFilterResult> origChangedAssertAction)
+        {
+            var origFilter = GetMappingFilter<T>();
+            var changedFilter = GetMappingFilter(mappingOverride : typeConfigurator);
+            var origValue = filterExecutor(origFilter, typeof(T));
+            var changedValue = filterExecutor(changedFilter, typeof(T));
+            origChangedAssertAction(origValue, changedValue);
+            return new Tuple<TFilterResult, TFilterResult>(origValue, changedValue);
+        }
+
+
         protected static FluentTypeMappingFilter GetMappingFilter(
             DefaultPropertyInclusionMode? defaultPropertyInclusionMode = null,
             Action<ITypeMappingConfigurator<TestEntityBase>> mappingOverride = null)
@@ -86,59 +136,6 @@ namespace Pomona.UnitTests.FluentMapping
 
             //return propInfo;
         }
-
-
-        protected Tuple<TFilterResult, TFilterResult> CheckHowChangeInPropertyRuleAffectsFilter
-            <TProperty, TFilterResult>(
-            Expression<Func<TestEntityBase, TProperty>> propertyExpr,
-            Func<IPropertyOptionsBuilder<TestEntityBase, TProperty>, IPropertyOptionsBuilder<TestEntityBase, TProperty>>
-                propertyOptions,
-            Func<ITypeMappingFilter, PropertyInfo, TFilterResult> filterExecutor,
-            Action<TFilterResult, TFilterResult> origChangedAssertAction)
-        {
-            var property = propertyExpr.ExtractPropertyInfo();
-            Action<ITypeMappingConfigurator<TestEntityBase>> map = x => x.Include(propertyExpr, propertyOptions);
-            var origFilter = GetMappingFilter<TestEntityBase>();
-            var changedFilter = GetMappingFilter(mappingOverride : map);
-            var origValue = filterExecutor(origFilter, property);
-            var changedValue = filterExecutor(changedFilter, property);
-            origChangedAssertAction(origValue, changedValue);
-            return new Tuple<TFilterResult, TFilterResult>(origValue, changedValue);
-        }
-
-
-        protected Tuple<TFilterResult, TFilterResult> CheckHowChangeInTypeRuleAffectsFilter<T, TFilterResult>(
-            Action<ITypeMappingConfigurator<T>>
-                typeConfigurator,
-            Func<ITypeMappingFilter, Type, TFilterResult> filterExecutor,
-            TFilterResult expectedBefore,
-            TFilterResult expectedAfter)
-        {
-            return CheckHowChangeInTypeRuleAffectsFilter(typeConfigurator,
-                filterExecutor,
-                (before, after) =>
-                {
-                    Assert.That(before, Is.EqualTo(expectedBefore));
-                    Assert.That(after, Is.EqualTo(expectedAfter));
-                });
-        }
-
-
-        protected Tuple<TFilterResult, TFilterResult> CheckHowChangeInTypeRuleAffectsFilter<T, TFilterResult>(
-            Action<ITypeMappingConfigurator<T>>
-                typeConfigurator,
-            Func<ITypeMappingFilter, Type, TFilterResult> filterExecutor,
-            Action<TFilterResult, TFilterResult> origChangedAssertAction)
-        {
-            var origFilter = GetMappingFilter<T>();
-            var changedFilter = GetMappingFilter(mappingOverride : typeConfigurator);
-            var origValue = filterExecutor(origFilter, typeof(T));
-            var changedValue = filterExecutor(changedFilter, typeof(T));
-            origChangedAssertAction(origValue, changedValue);
-            return new Tuple<TFilterResult, TFilterResult>(origValue, changedValue);
-        }
-
-
 
         #region Nested type: ChildEntity
 
@@ -229,7 +226,7 @@ namespace Pomona.UnitTests.FluentMapping
 
 
             public TestTypeMappingFilter(IEnumerable<Type> sourceTypes,
-                DefaultPropertyInclusionMode? defaultPropertyInclusion = null)
+                                         DefaultPropertyInclusionMode? defaultPropertyInclusion = null)
                 : base(sourceTypes)
             {
                 this.defaultPropertyInclusion = defaultPropertyInclusion;
@@ -251,7 +248,6 @@ namespace Pomona.UnitTests.FluentMapping
         public class Top : TestEntityBase
         {
             private string toBeOverridden;
-
             // ReSharper disable ConvertToAutoProperty
 
             public virtual bool DeserializeHookWasRun { get; set; }

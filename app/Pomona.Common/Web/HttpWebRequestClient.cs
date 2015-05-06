@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -56,6 +56,35 @@ namespace Pomona.Common.Web
             get { return this.defaultHeaders.Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, x.Value)); }
         }
 
+
+        private static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ConvertHeaders(
+            WebHeaderCollection webHeaders)
+        {
+            for (var i = 0; i < webHeaders.Count; i++)
+            {
+                var key = webHeaders.GetKey(i);
+                yield return new KeyValuePair<string, IEnumerable<string>>(key, webHeaders.GetValues(i));
+            }
+        }
+
+
+        private static HttpWebResponse GetResponseNoThrow(HttpWebRequest request, out Exception thrownException)
+        {
+            try
+            {
+                thrownException = null;
+                return (HttpWebResponse)request.GetResponse();
+            }
+            catch (WebException ex)
+            {
+                if (ex.Response == null)
+                    throw;
+                thrownException = ex;
+                return (HttpWebResponse)ex.Response;
+            }
+        }
+
+
         public NetworkCredential Credentials { get; set; }
 
 
@@ -69,7 +98,7 @@ namespace Pomona.Common.Web
                 webRequest.PreAuthenticate = true;
             }
 
-            foreach (var h in request.Headers.Concat(defaultHeaders.EmptyIfNull()))
+            foreach (var h in request.Headers.Concat(this.defaultHeaders.EmptyIfNull()))
             {
                 if (h.Value.Count == 0)
                     continue;
@@ -119,37 +148,9 @@ namespace Pomona.Common.Web
                     var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
 
                     return new HttpResponse((HttpStatusCode)webResponse.StatusCode,
-                                                        responseBytes,
-                                                        new HttpHeaders(ConvertHeaders(webResponse.Headers)), protocolVersion.ToString());
+                                            responseBytes,
+                                            new HttpHeaders(ConvertHeaders(webResponse.Headers)), protocolVersion.ToString());
                 }
-            }
-        }
-
-
-        private static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ConvertHeaders(
-            WebHeaderCollection webHeaders)
-        {
-            for (var i = 0; i < webHeaders.Count; i++)
-            {
-                var key = webHeaders.GetKey(i);
-                yield return new KeyValuePair<string, IEnumerable<string>>(key, webHeaders.GetValues(i));
-            }
-        }
-
-
-        private static HttpWebResponse GetResponseNoThrow(HttpWebRequest request, out Exception thrownException)
-        {
-            try
-            {
-                thrownException = null;
-                return (HttpWebResponse)request.GetResponse();
-            }
-            catch (WebException ex)
-            {
-                if (ex.Response == null)
-                    throw;
-                thrownException = ex;
-                return (HttpWebResponse)ex.Response;
             }
         }
     }

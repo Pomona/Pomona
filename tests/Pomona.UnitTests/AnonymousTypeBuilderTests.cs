@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,9 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
+
 using NUnit.Framework;
+
 using Pomona.CodeGen;
 
 namespace Pomona.UnitTests
@@ -32,74 +38,8 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class AnonymousTypeBuilderTests
     {
-        [SetUp]
-        public void SetUp()
-        {
-            propNames = new[] {"Foo", "Bar"};
-            builder = new AnonymousTypeBuilder(propNames);
-        }
-
-        private struct FixedHash
-        {
-            private readonly int value;
-
-            public FixedHash(int value)
-            {
-                this.value = value;
-            }
-
-            public int Value
-            {
-                get { return value; }
-            }
-
-            private bool Equals(FixedHash other)
-            {
-                return value == other.value;
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(null, obj)) return false;
-                return obj is FixedHash && Equals((FixedHash) obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return value;
-            }
-        }
-
-        private string[] propNames;
         private AnonymousTypeBuilder builder;
-
-
-        private object CreateAnonObject<TFoo, TBar>(TFoo foo, TBar bar)
-        {
-            var type = BuildTypeAndLoad();
-            var typeInstance = type.MakeGenericType(typeof (TFoo), typeof (TBar));
-            var obj = Activator.CreateInstance(typeInstance, foo, bar);
-            return obj;
-        }
-
-
-        private void AssertObjectHasPropWithValue<T>(object obj, string name, T expected)
-        {
-            var type = obj.GetType();
-            var prop = type.GetProperty(name);
-            Assert.That(prop, Is.Not.Null);
-            Assert.That(prop.GetValue(obj, null), Is.EqualTo(expected));
-        }
-
-
-        private Type BuildTypeAndLoad()
-        {
-            var typeDef = builder.BuildAnonymousType();
-            var memStream = new MemoryStream();
-            typeDef.Module.Assembly.Write(memStream);
-            var loadedAsm = AppDomain.CurrentDomain.Load(memStream.ToArray());
-            return loadedAsm.GetType(typeDef.Name);
-        }
+        private string[] propNames;
 
 
         [Test]
@@ -153,6 +93,14 @@ namespace Pomona.UnitTests
         }
 
 
+        [SetUp]
+        public void SetUp()
+        {
+            this.propNames = new[] { "Foo", "Bar" };
+            this.builder = new AnonymousTypeBuilder(this.propNames);
+        }
+
+
         [Test]
         public void ToStringReturnsHasCorrectFormatting()
         {
@@ -166,11 +114,77 @@ namespace Pomona.UnitTests
         [Ignore]
         public void WriteAssemblyToFileForDebugging()
         {
-            var tb = new AnonymousTypeBuilder(new[] {"Foo", "Bar"});
+            var tb = new AnonymousTypeBuilder(new[] { "Foo", "Bar" });
             var def = tb.BuildAnonymousType();
             def.Module.Assembly.Write("tempasm.dll");
 
             Assert.Fail("TODO: Remove me");
+        }
+
+
+        private void AssertObjectHasPropWithValue<T>(object obj, string name, T expected)
+        {
+            var type = obj.GetType();
+            var prop = type.GetProperty(name);
+            Assert.That(prop, Is.Not.Null);
+            Assert.That(prop.GetValue(obj, null), Is.EqualTo(expected));
+        }
+
+
+        private Type BuildTypeAndLoad()
+        {
+            var typeDef = this.builder.BuildAnonymousType();
+            var memStream = new MemoryStream();
+            typeDef.Module.Assembly.Write(memStream);
+            var loadedAsm = AppDomain.CurrentDomain.Load(memStream.ToArray());
+            return loadedAsm.GetType(typeDef.Name);
+        }
+
+
+        private object CreateAnonObject<TFoo, TBar>(TFoo foo, TBar bar)
+        {
+            var type = BuildTypeAndLoad();
+            var typeInstance = type.MakeGenericType(typeof(TFoo), typeof(TBar));
+            var obj = Activator.CreateInstance(typeInstance, foo, bar);
+            return obj;
+        }
+
+
+        private struct FixedHash
+        {
+            private readonly int value;
+
+
+            public FixedHash(int value)
+            {
+                this.value = value;
+            }
+
+
+            public int Value
+            {
+                get { return this.value; }
+            }
+
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj))
+                    return false;
+                return obj is FixedHash && Equals((FixedHash)obj);
+            }
+
+
+            public override int GetHashCode()
+            {
+                return this.value;
+            }
+
+
+            private bool Equals(FixedHash other)
+            {
+                return this.value == other.value;
+            }
         }
     }
 }

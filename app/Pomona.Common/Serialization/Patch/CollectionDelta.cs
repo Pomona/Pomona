@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -66,7 +66,6 @@ namespace Pomona.Common.Serialization.Patch
         private readonly Dictionary<object, Delta> nestedDeltaMap = new Dictionary<object, Delta>();
         private readonly HashSet<object> removed = new HashSet<object>();
         private readonly HashSet<Delta> tracked = new HashSet<Delta>();
-        private bool cleared;
         private bool originalIsLoaded = false;
 
 
@@ -81,24 +80,9 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public IEnumerable<object> AddedItems
-        {
-            get { return this.added.Select(x => x is Delta ? ((Delta)x).Original : x); }
-        }
-
-        public bool Cleared
-        {
-            get { return this.cleared; }
-        }
-
         public int Count
         {
             get { return OriginalCount + this.added.Count - this.removed.Count; }
-        }
-
-        public IEnumerable<Delta> ModifiedItems
-        {
-            get { return this.tracked.Where(x => x.IsDirty); }
         }
 
         public int OriginalCount
@@ -109,11 +93,6 @@ namespace Pomona.Common.Serialization.Patch
         public bool OriginalItemsLoaded
         {
             get { return false; }
-        }
-
-        public IEnumerable<object> RemovedItems
-        {
-            get { return this.removed.Select(x => x is Delta ? ((Delta)x).Original : x); }
         }
 
         protected ISet<Delta> TrackedItems
@@ -127,58 +106,6 @@ namespace Pomona.Common.Serialization.Patch
                 }
                 return this.tracked;
             }
-        }
-
-
-        public override void Apply()
-        {
-            var nonGenericList = Original as IList;
-
-            // Important to cache these, if not a "collection modified during enumeration" exception will be thrown.
-            var removedItems = RemovedItems.ToList();
-            var addedItems = AddedItems.ToList();
-            var modifiedItems = ModifiedItems.ToList();
-            foreach (var item in removedItems)
-            {
-                if (nonGenericList != null)
-                    nonGenericList.Remove(item);
-                else
-                {
-                    removeOriginalItem.MakeGenericMethod(Type.ElementType.Type)
-                        .Invoke(this, new[] { item });
-                }
-            }
-            foreach (var item in addedItems)
-            {
-                if (nonGenericList != null)
-                    nonGenericList.Add(item);
-                else
-                {
-                    addOriginalItem.MakeGenericMethod(Type.ElementType.Type)
-                        .Invoke(this, new[] { item });
-                }
-            }
-            foreach (var item in modifiedItems)
-                item.Apply();
-            if (Parent == null)
-                Reset();
-        }
-
-
-        public override void Reset()
-        {
-            if (!OriginalItemsLoaded)
-            {
-                // No nested deltas possible when original items has not been loaded
-                this.added.Clear();
-                this.tracked.Clear();
-                this.removed.Clear();
-                this.nestedDeltaMap.Clear();
-                this.cleared = false;
-            }
-            else
-                throw new NotImplementedException();
-            base.Reset();
         }
 
 
@@ -199,7 +126,7 @@ namespace Pomona.Common.Serialization.Patch
             {
                 item = GetWrappedItem(item);
                 if (!this.removed.Remove(item))
-                    added.Add(item);
+                    this.added.Add(item);
                 SetDirty();
             }
             else
@@ -212,7 +139,7 @@ namespace Pomona.Common.Serialization.Patch
 
         public void Clear()
         {
-            this.cleared = true;
+            this.Cleared = true;
             SetDirty();
         }
 
@@ -228,7 +155,7 @@ namespace Pomona.Common.Serialization.Patch
             if (IsPersistedItem(item))
             {
                 item = GetWrappedItem(item);
-                if (this.cleared || this.removed.Contains(item))
+                if (this.Cleared || this.removed.Contains(item))
                     return false;
                 if (!this.added.Remove(item))
                     this.removed.Add(item);
@@ -238,6 +165,23 @@ namespace Pomona.Common.Serialization.Patch
 
             // Transient (not in original collection)
             return this.added.Remove(item);
+        }
+
+
+        public override void Reset()
+        {
+            if (!OriginalItemsLoaded)
+            {
+                // No nested deltas possible when original items has not been loaded
+                this.added.Clear();
+                this.tracked.Clear();
+                this.removed.Clear();
+                this.nestedDeltaMap.Clear();
+                this.Cleared = false;
+            }
+            else
+                throw new NotImplementedException();
+            base.Reset();
         }
 
 
@@ -258,13 +202,13 @@ namespace Pomona.Common.Serialization.Patch
 
 
         internal static object CreateTypedCollectionDelta(object original,
-            TypeSpec type,
-            ITypeResolver typeMapper,
-            Delta parent,
-            Type propertyType)
+                                                          TypeSpec type,
+                                                          ITypeResolver typeMapper,
+                                                          Delta parent,
+                                                          Type propertyType)
         {
             var collectionType = typeof(CollectionDelta<,>).MakeGenericType(type.ElementType.Type,
-                type.Type);
+                                                                            type.Type);
             if (!propertyType.IsAssignableFrom(collectionType))
             {
 #if DISABLE_PROXY_GENERATION
@@ -309,19 +253,74 @@ namespace Pomona.Common.Serialization.Patch
                 return delta;
 
             return this.nestedDeltaMap.GetOrCreate(item,
-                () =>
-                {
-                    var origItemType = TypeMapper.FromType(item.GetType());
-                    if (origItemType.SerializationMode == TypeSerializationMode.Structured)
-                        return (Delta)CreateNestedDelta(item, origItemType, Type.ElementType);
-                    throw new InvalidOperationException("Unable to wrap non-complex type in nested delta.");
-                });
+                                                   () =>
+                                                   {
+                                                       var origItemType = TypeMapper.FromType(item.GetType());
+                                                       if (origItemType.SerializationMode == TypeSerializationMode.Structured)
+                                                           return (Delta)CreateNestedDelta(item, origItemType, Type.ElementType);
+                                                       throw new InvalidOperationException(
+                                                           "Unable to wrap non-complex type in nested delta.");
+                                                   });
         }
 
 
         private void RemoveOriginalItem<T>(object item)
         {
             ((ICollection<T>)Original).Remove((T)item);
+        }
+
+
+        public IEnumerable<object> AddedItems
+        {
+            get { return this.added.Select(x => x is Delta ? ((Delta)x).Original : x); }
+        }
+
+
+        public override void Apply()
+        {
+            var nonGenericList = Original as IList;
+
+            // Important to cache these, if not a "collection modified during enumeration" exception will be thrown.
+            var removedItems = RemovedItems.ToList();
+            var addedItems = AddedItems.ToList();
+            var modifiedItems = ModifiedItems.ToList();
+            foreach (var item in removedItems)
+            {
+                if (nonGenericList != null)
+                    nonGenericList.Remove(item);
+                else
+                {
+                    removeOriginalItem.MakeGenericMethod(Type.ElementType.Type)
+                                      .Invoke(this, new[] { item });
+                }
+            }
+            foreach (var item in addedItems)
+            {
+                if (nonGenericList != null)
+                    nonGenericList.Add(item);
+                else
+                {
+                    addOriginalItem.MakeGenericMethod(Type.ElementType.Type)
+                                   .Invoke(this, new[] { item });
+                }
+            }
+            foreach (var item in modifiedItems)
+                item.Apply();
+            if (Parent == null)
+                Reset();
+        }
+
+
+        public bool Cleared { get; private set; }
+
+        public IEnumerable<Delta> ModifiedItems
+        {
+            get { return this.tracked.Where(x => x.IsDirty); }
+        }
+
+        public IEnumerable<object> RemovedItems
+        {
+            get { return this.removed.Select(x => x is Delta ? ((Delta)x).Original : x); }
         }
     }
 
@@ -338,20 +337,9 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public TElement this[int index]
-        {
-            get { return this.Skip(index).First(); }
-            set { throw new NotImplementedException(); }
-        }
-
         public new IEnumerable<TElement> AddedItems
         {
             get { return base.AddedItems.Cast<TElement>(); }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return false; }
         }
 
         public new IEnumerable<TElement> ModifiedItems
@@ -362,6 +350,12 @@ namespace Pomona.Common.Serialization.Patch
         public new IEnumerable<TElement> RemovedItems
         {
             get { return base.RemovedItems.Cast<TElement>(); }
+        }
+
+
+        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyTye)
+        {
+            return ObjectDeltaProxyBase.CreateDeltaProxy(propValue, propValueType, TypeMapper, this, propertyTye);
         }
 
 
@@ -387,7 +381,7 @@ namespace Pomona.Common.Serialization.Patch
 
         public IEnumerator<TElement> GetEnumerator()
         {
-            return base.AddedItems.Concat(base.TrackedItems.Except(base.RemovedItems)).Cast<TElement>().GetEnumerator();
+            return base.AddedItems.Concat(TrackedItems.Except(base.RemovedItems)).Cast<TElement>().GetEnumerator();
         }
 
 
@@ -405,6 +399,18 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
+        public bool IsReadOnly
+        {
+            get { return false; }
+        }
+
+        public TElement this[int index]
+        {
+            get { return this.Skip(index).First(); }
+            set { throw new NotImplementedException(); }
+        }
+
+
         public bool Remove(TElement item)
         {
             return RemoveItem(item);
@@ -416,12 +422,6 @@ namespace Pomona.Common.Serialization.Patch
             var item = this.Skip(index).FirstOrDefault();
             if (item != null)
                 RemoveItem(item);
-        }
-
-
-        protected override object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyTye)
-        {
-            return ObjectDeltaProxyBase.CreateDeltaProxy(propValue, propValueType, TypeMapper, this, propertyTye);
         }
 
 

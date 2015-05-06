@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -220,16 +220,6 @@ namespace Pomona.Common.Internals
             get { return sumDecimalWithSelector; }
         }
 
-        public static MethodInfo ThenBy
-        {
-            get { return thenBy; }
-        }
-
-        public static MethodInfo ThenByDescending
-        {
-            get { return thenByDescending; }
-        }
-
         public static MethodInfo SumDouble
         {
             get { return sumDouble; }
@@ -255,6 +245,16 @@ namespace Pomona.Common.Internals
             get { return take; }
         }
 
+        public static MethodInfo ThenBy
+        {
+            get { return thenBy; }
+        }
+
+        public static MethodInfo ThenByDescending
+        {
+            get { return thenByDescending; }
+        }
+
         public static MethodInfo ToUri
         {
             get { return toUri; }
@@ -270,6 +270,7 @@ namespace Pomona.Common.Internals
         {
             return ReflectionHelper.GetMethodDefinition(expression);
         }
+
 
         private static MethodInfo GetMethodInfo(Expression<Action<IOrderedQueryable<object>>> expression)
         {

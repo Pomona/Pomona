@@ -1,4 +1,5 @@
 ﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
@@ -22,11 +23,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
 #endregion
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -38,8 +39,8 @@ namespace Pomona.Documentation.Xml
 {
     internal class XmlDocMapper
     {
-        private readonly IResourceTypeResolver typeMapper;
         private readonly List<Assembly> assembliesToSearch;
+        private readonly IResourceTypeResolver typeMapper;
 
 
         public XmlDocMapper(IResourceTypeResolver typeMapper)
@@ -105,8 +106,8 @@ namespace Pomona.Documentation.Xml
 
         private TypeSpec ResolveType(string fullName)
         {
-            var t = Type.GetType(fullName) ?? assembliesToSearch.Select(x => x.GetType(fullName)).FirstOrDefault(x => x != null);
-            return t != null ? typeMapper.FromType(t) : null;
+            var t = Type.GetType(fullName) ?? this.assembliesToSearch.Select(x => x.GetType(fullName)).FirstOrDefault(x => x != null);
+            return t != null ? this.typeMapper.FromType(t) : null;
         }
     }
 }

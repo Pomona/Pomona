@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -135,7 +135,7 @@ namespace Pomona.Common.TypeSystem
         {
             if (cases == null)
                 throw new ArgumentNullException("cases");
-            if (!hasValue)
+            if (!this.hasValue)
                 return Maybe<TRet>.Empty;
             return cases(Switch()).EndSwitch();
         }
@@ -175,6 +175,89 @@ namespace Pomona.Common.TypeSystem
         {
             return (object)result == null ? Maybe<TRet>.Empty : new Maybe<TRet>(result);
         }
+
+        #region Nested type: FinishedTypeSwitch
+
+        internal class FinishedTypeSwitch<TRet> : ITypeSwitch<TRet>
+        {
+            private readonly Maybe<TRet> result;
+
+
+            public FinishedTypeSwitch(Maybe<TRet> result)
+            {
+                this.result = result;
+            }
+
+
+            public ICaseThen<TCast, TRet> Case<TCast>()
+            {
+                return new PassthroughCaseThen<TCast, TRet>(this);
+            }
+
+
+            public ICaseThen<TCast, TRet> Case<TCast>(Func<TCast, bool> predicate)
+            {
+                return new PassthroughCaseThen<TCast, TRet>(this);
+            }
+
+
+            public ICaseThen<T, TRet> Case(Func<T, bool> predicate)
+            {
+                return new PassthroughCaseThen<T, TRet>(this);
+            }
+
+
+            public Maybe<TRet> EndSwitch()
+            {
+                return this.result;
+            }
+        }
+
+        #endregion
+
+        #region Nested type: NonMatchingCaseThen
+
+        internal class NonMatchingCaseThen<TIn> : ICaseThen<TIn>
+        {
+            private readonly Maybe<T> value;
+
+
+            public NonMatchingCaseThen(Maybe<T> value)
+            {
+                this.value = value;
+            }
+
+
+            public ITypeSwitch<TRet> Then<TRet>(Func<TIn, TRet> thenFunc)
+            {
+                if (this.value.HasValue)
+                    return new TypeSwitch<TRet>(this.value.Value);
+                return new FinishedTypeSwitch<TRet>(Maybe<TRet>.Empty);
+            }
+        }
+
+        #endregion
+
+        #region Nested type: PassthroughCaseThen
+
+        internal class PassthroughCaseThen<TIn, TRet> : ICaseThen<TIn, TRet>
+        {
+            private readonly ITypeSwitch<TRet> passedSwitch;
+
+
+            public PassthroughCaseThen(ITypeSwitch<TRet> passedSwitch)
+            {
+                this.passedSwitch = passedSwitch;
+            }
+
+
+            public ITypeSwitch<TRet> Then(Func<TIn, TRet> thenFunc)
+            {
+                return this.passedSwitch;
+            }
+        }
+
+        #endregion
 
         #region Operators
 
@@ -251,45 +334,6 @@ namespace Pomona.Common.TypeSystem
 
         #endregion
 
-        #region Nested type: FinishedTypeSwitch
-
-        internal class FinishedTypeSwitch<TRet> : ITypeSwitch<TRet>
-        {
-            private readonly Maybe<TRet> result;
-
-
-            public FinishedTypeSwitch(Maybe<TRet> result)
-            {
-                this.result = result;
-            }
-
-
-            public ICaseThen<TCast, TRet> Case<TCast>()
-            {
-                return new PassthroughCaseThen<TCast, TRet>(this);
-            }
-
-
-            public ICaseThen<TCast, TRet> Case<TCast>(Func<TCast, bool> predicate)
-            {
-                return new PassthroughCaseThen<TCast, TRet>(this);
-            }
-
-
-            public ICaseThen<T, TRet> Case(Func<T, bool> predicate)
-            {
-                return new PassthroughCaseThen<T, TRet>(this);
-            }
-
-
-            public Maybe<TRet> EndSwitch()
-            {
-                return this.result;
-            }
-        }
-
-        #endregion
-
         #region Nested type: ICaseThen
 
         public interface ICaseThen<TIn>
@@ -360,50 +404,6 @@ namespace Pomona.Common.TypeSystem
                 if (thenFunc == null)
                     throw new ArgumentNullException("thenFunc");
                 return new FinishedTypeSwitch<TRet>(new Maybe<TRet>(thenFunc(this.value)));
-            }
-        }
-
-        #endregion
-
-        #region Nested type: NonMatchingCaseThen
-
-        internal class NonMatchingCaseThen<TIn> : ICaseThen<TIn>
-        {
-            private readonly Maybe<T> value;
-
-
-            public NonMatchingCaseThen(Maybe<T> value)
-            {
-                this.value = value;
-            }
-
-
-            public ITypeSwitch<TRet> Then<TRet>(Func<TIn, TRet> thenFunc)
-            {
-                if (this.value.HasValue)
-                    return new TypeSwitch<TRet>(this.value.Value);
-                return new FinishedTypeSwitch<TRet>(Maybe<TRet>.Empty);
-            }
-        }
-
-        #endregion
-
-        #region Nested type: PassthroughCaseThen
-
-        internal class PassthroughCaseThen<TIn, TRet> : ICaseThen<TIn, TRet>
-        {
-            private readonly ITypeSwitch<TRet> passedSwitch;
-
-
-            public PassthroughCaseThen(ITypeSwitch<TRet> passedSwitch)
-            {
-                this.passedSwitch = passedSwitch;
-            }
-
-
-            public ITypeSwitch<TRet> Then(Func<TIn, TRet> thenFunc)
-            {
-                return this.passedSwitch;
             }
         }
 

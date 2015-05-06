@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -48,8 +48,8 @@ namespace Pomona.Common.TypeSystem
 
 
         protected PropertySpec(ITypeResolver typeResolver,
-            PropertyInfo propertyInfo,
-            TypeSpec reflectedType)
+                               PropertyInfo propertyInfo,
+                               TypeSpec reflectedType)
             : base(typeResolver, propertyInfo)
         {
             if (reflectedType == null)
@@ -63,6 +63,7 @@ namespace Pomona.Common.TypeSystem
             this.setter = CreateLazy(() => typeResolver.LoadSetter(this));
             this.isRequiredForConstructor = CreateLazy(() => ReflectedType.RequiredProperties.Contains(this));
         }
+
 
         public virtual PropertySpec BaseDefinition
         {
@@ -109,58 +110,17 @@ namespace Pomona.Common.TypeSystem
             get { return PropertyInfo.NormalizeReflectedType(); }
         }
 
-        #region PropertySpec implementation
 
-        public virtual HttpMethod AccessMode
+        public Expression CreateGetterExpression(Expression instance)
         {
-            get { return 0; }
+            var formula = this.GetPropertyFormula();
+            if (formula == null)
+                return Expression.MakeMemberAccess(instance, NormalizedPropertyInfo);
+
+            //// TODO: Make some assertions here..
+            return FindAndReplaceVisitor.Replace(formula.Body, formula.Parameters[0], instance);
         }
 
-        public virtual bool IsSerialized
-        {
-            get { return true; }
-        }
-
-        public virtual HttpMethod ItemAccessMode
-        {
-            get
-            {
-                // Only for collections..
-                return 0;
-            }
-        }
-
-        public PropertyFlags Flags
-        {
-            get { return this.propertyFlags; }
-        }
-
-        public bool IsReadable
-        {
-            get { return this.propertyFlags.HasFlag(PropertyFlags.IsReadable); }
-        }
-
-        public bool IsRequiredForConstructor
-        {
-            get { return this.isRequiredForConstructor.Value; }
-        }
-
-        public bool IsWritable
-        {
-            get { return this.propertyFlags.HasFlag(PropertyFlags.IsWritable); }
-        }
-
-        public string LowerCaseName
-        {
-            get { return Name.ToLowerInvariant(); }
-        }
-
-        public virtual ExpandMode ExpandMode
-        {
-            get { return ExpandMode.Default; }
-        }
-
-        #endregion
 
         public virtual object GetValue(object target)
         {
@@ -191,17 +151,6 @@ namespace Pomona.Common.TypeSystem
         public override string ToString()
         {
             return string.Format("{0}::{1}", ReflectedType, Name);
-        }
-
-
-        public Expression CreateGetterExpression(Expression instance)
-        {
-            var formula = this.GetPropertyFormula();
-            if (formula == null)
-                return Expression.MakeMemberAccess(instance, NormalizedPropertyInfo);
-
-            //// TODO: Make some assertions here..
-            return FindAndReplaceVisitor.Replace(formula.Body, formula.Parameters[0], instance);
         }
 
 
@@ -283,5 +232,58 @@ namespace Pomona.Common.TypeSystem
 
             return expr.Compile();
         }
+
+        #region PropertySpec implementation
+
+        public virtual HttpMethod AccessMode
+        {
+            get { return 0; }
+        }
+
+        public virtual bool IsSerialized
+        {
+            get { return true; }
+        }
+
+        public virtual HttpMethod ItemAccessMode
+        {
+            get
+            {
+                // Only for collections..
+                return 0;
+            }
+        }
+
+        public PropertyFlags Flags
+        {
+            get { return this.propertyFlags; }
+        }
+
+        public bool IsReadable
+        {
+            get { return this.propertyFlags.HasFlag(PropertyFlags.IsReadable); }
+        }
+
+        public bool IsRequiredForConstructor
+        {
+            get { return this.isRequiredForConstructor.Value; }
+        }
+
+        public bool IsWritable
+        {
+            get { return this.propertyFlags.HasFlag(PropertyFlags.IsWritable); }
+        }
+
+        public string LowerCaseName
+        {
+            get { return Name.ToLowerInvariant(); }
+        }
+
+        public virtual ExpandMode ExpandMode
+        {
+            get { return ExpandMode.Default; }
+        }
+
+        #endregion
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,8 +49,8 @@ namespace Pomona.Common.Proxies
             var ownerType = typeof(TOwner);
             const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
             this.propertyInfo = TypeUtils.AllBaseTypesAndInterfaces(ownerType)
-                .Select(t => t.GetProperty(propertyName, bindingFlags))
-                .FirstOrDefault(t => t != null);
+                                         .Select(t => t.GetProperty(propertyName, bindingFlags))
+                                         .FirstOrDefault(t => t != null);
 
             if (this.propertyInfo == null)
                 throw new MissingMemberException(String.Format("Could not wrap property {0}.", propertyName));
@@ -117,12 +117,6 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public override string ToString()
-        {
-            return String.Format("{0}.{1}", this.propertyInfo.DeclaringType, Name);
-        }
-
-
         public TPropType Get(TOwner obj)
         {
             return Getter(obj);
@@ -132,6 +126,12 @@ namespace Pomona.Common.Proxies
         public void Set(TOwner obj, TPropType value)
         {
             Setter(obj, value);
+        }
+
+
+        public override string ToString()
+        {
+            return String.Format("{0}.{1}", this.propertyInfo.DeclaringType, Name);
         }
     }
 }

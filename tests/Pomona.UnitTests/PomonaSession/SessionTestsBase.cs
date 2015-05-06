@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,10 @@
 
 #endregion
 
-using System;
 using System.Linq;
+
 using NUnit.Framework;
-using Pomona.Common.TypeSystem;
+
 using Pomona.Example;
 using Pomona.Example.Models;
 
@@ -37,23 +37,16 @@ namespace Pomona.UnitTests.PomonaSession
 {
     public abstract class SessionTestsBase
     {
-        private CritterRepository repository;
-        private Critter firstCritter;
-        private TypeMapper typeMapper;
-
-        public Critter FirstCritter
-        {
-            get { return firstCritter; }
-        }
+        public Critter FirstCritter { get; private set; }
 
         public int FirstCritterId
         {
-            get { return firstCritter.Id; }
+            get { return this.FirstCritter.Id; }
         }
 
         public MusicalCritter MusicalCritter
         {
-            get { return this.repository.List<Critter>().OfType<MusicalCritter>().First(); }
+            get { return this.Repository.List<Critter>().OfType<MusicalCritter>().First(); }
         }
 
         public int MusicalCritterId
@@ -61,23 +54,16 @@ namespace Pomona.UnitTests.PomonaSession
             get { return MusicalCritter.Id; }
         }
 
-        protected CritterRepository Repository
-        {
-            get { return this.repository; }
-        }
-
-        protected TypeMapper TypeMapper
-        {
-            get { return typeMapper; }
-        }
+        protected CritterRepository Repository { get; private set; }
+        protected TypeMapper TypeMapper { get; private set; }
 
 
         [SetUp]
         public void SetUp()
         {
-            typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.repository = new CritterRepository(typeMapper);
-            firstCritter = this.repository.List<Critter>().First();
+            this.TypeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            this.Repository = new CritterRepository(this.TypeMapper);
+            this.FirstCritter = this.Repository.List<Critter>().First();
         }
     }
 }

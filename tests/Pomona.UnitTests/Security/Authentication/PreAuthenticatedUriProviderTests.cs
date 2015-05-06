@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,22 @@ namespace Pomona.UnitTests.Security.Authentication
     [TestFixture]
     public class PreAuthenticatedUriProviderTests
     {
+        private UrlToken deserializedObject;
+        private UrlToken serializedObject;
+        private PreAuthenticatedUriProvider uriProvider;
+
+
+        [TestCase("http://bahahaha", "http://bahahaha/?$token=XYZ")]
+        [TestCase("http://bahahaha?existingParam=something",
+            "http://bahahaha/?existingParam=something&$token=XYZ")]
+        [TestCase("http://bahahaha?$token=something-else", "http://bahahaha/?$token=XYZ")]
+        [TestCase("/relative", "/relative/?$token=XYZ", Ignore = true, Category = "TODO")]
+        public void CreatePreAuthenticatedUrl_AppendsSerializedUrlTokenToUrl(string url, string expectedResult)
+        {
+            var preAuthUrl = this.uriProvider.CreatePreAuthenticatedUrl(url);
+            Assert.That(preAuthUrl, Is.EqualTo(expectedResult));
+        }
+
         #region Setup/Teardown
 
         [SetUp]
@@ -50,9 +66,30 @@ namespace Pomona.UnitTests.Security.Authentication
 
         #endregion
 
-        private PreAuthenticatedUriProvider uriProvider;
-        private UrlToken deserializedObject;
-        private UrlToken serializedObject;
+        [TestCase("http://x/filofax?$token=XYZ", "/filofax", null, true)]
+        [TestCase("http://y:80/filofax?$token=XYZ", "/filofax", null, /* success?: */ true)]
+        [TestCase("http://y:80/filofax?$moo=true&$token=XYZ", "/filofax", null, /* success?: */ false)]
+        [TestCase("http://x/filofax?$token=FAILS", "/filofax", null, false)]
+        [TestCase("http://x/wrong?$token=XYZ", "/filofax", null, /* success?: */ false)]
+        [TestCase("http://x/filofax?$token=XYZ", "/filofax", "2050-02-1 12:18:00Z", /* success?: */
+            true)]
+        [TestCase("http://x/filofax?$token=XYZ", "/filofax", "2049-02-1 12:18:00Z", /* success?: */
+            false)]
+        public void VerifyPreAuthenticatedUrl(string url, string urlTokenPath, string expiration, bool expectedResult)
+        {
+            Console.WriteLine(DateTime.UtcNow.ToString("u"));
+            // "http://bahaha/filofax?$token=XYZ"
+            this.deserializedObject = new UrlToken()
+            {
+                Path = urlTokenPath,
+                Expiration =
+                    expiration != null ? (DateTime?)DateTime.Parse(expiration, CultureInfo.InvariantCulture) : null
+            };
+            var result = this.uriProvider.VerifyPreAuthenticatedUrl(url,
+                                                                    new DateTime(2050, 1, 1, 1, 1, 1, DateTimeKind.Utc));
+            Assert.That(result, Is.EqualTo(expectedResult));
+        }
+
 
         private class MockedCryptoSerializer : ICryptoSerializer
         {
@@ -78,43 +115,6 @@ namespace Pomona.UnitTests.Security.Authentication
                 this.parent.serializedObject = (UrlToken)obj;
                 return "XYZ";
             }
-        }
-
-
-        [TestCase("http://bahahaha", "http://bahahaha/?$token=XYZ")]
-        [TestCase("http://bahahaha?existingParam=something",
-            "http://bahahaha/?existingParam=something&$token=XYZ")]
-        [TestCase("http://bahahaha?$token=something-else", "http://bahahaha/?$token=XYZ")]
-        [TestCase("/relative", "/relative/?$token=XYZ", Ignore = true, Category = "TODO")]
-        public void CreatePreAuthenticatedUrl_AppendsSerializedUrlTokenToUrl(string url, string expectedResult)
-        {
-            var preAuthUrl = this.uriProvider.CreatePreAuthenticatedUrl(url);
-            Assert.That(preAuthUrl, Is.EqualTo(expectedResult));
-        }
-
-
-        [TestCase("http://x/filofax?$token=XYZ", "/filofax", null, true)]
-        [TestCase("http://y:80/filofax?$token=XYZ", "/filofax", null, /* success?: */ true)]
-        [TestCase("http://y:80/filofax?$moo=true&$token=XYZ", "/filofax", null, /* success?: */ false)]
-        [TestCase("http://x/filofax?$token=FAILS", "/filofax", null, false)]
-        [TestCase("http://x/wrong?$token=XYZ", "/filofax", null, /* success?: */ false)]
-        [TestCase("http://x/filofax?$token=XYZ", "/filofax", "2050-02-1 12:18:00Z", /* success?: */
-            true)]
-        [TestCase("http://x/filofax?$token=XYZ", "/filofax", "2049-02-1 12:18:00Z", /* success?: */
-            false)]
-        public void VerifyPreAuthenticatedUrl(string url, string urlTokenPath, string expiration, bool expectedResult)
-        {
-            Console.WriteLine(DateTime.UtcNow.ToString("u"));
-            // "http://bahaha/filofax?$token=XYZ"
-            this.deserializedObject = new UrlToken()
-            {
-                Path = urlTokenPath,
-                Expiration =
-                    expiration != null ? (DateTime?)DateTime.Parse(expiration, CultureInfo.InvariantCulture) : null
-            };
-            var result = this.uriProvider.VerifyPreAuthenticatedUrl(url,
-                new DateTime(2050, 1, 1, 1, 1, 1, DateTimeKind.Utc));
-            Assert.That(result, Is.EqualTo(expectedResult));
         }
     }
 }

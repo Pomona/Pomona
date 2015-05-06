@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,25 +38,15 @@ namespace Pomona.Common.ExtendedResources
 {
     internal class ExtendedCollectionOverlayProperty : ExtendedOverlayProperty
     {
+        private static readonly MethodInfo createProxyListMethod =
+            ReflectionHelper.GetMethodDefinition(() => CreateProxyList<IClientResource, IClientResource>(null, null));
+
+
         public ExtendedCollectionOverlayProperty(PropertyInfo property,
                                                  PropertyInfo underlyingProperty,
                                                  ExtendedResourceInfo info)
             : base(property, underlyingProperty, info)
         {
-        }
-
-
-        private static IList<TExtended> CreateProxyList<TExtended, TServer>(IEnumerable source,
-                                                                            ExtendedResourceInfo userTypeInfo)
-            where TExtended : TServer, IClientResource
-            where TServer : IClientResource
-        {
-#if DISABLE_PROXY_GENERATION
-            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
-#else
-
-            return new ExtendedResourceList<TExtended, TServer>((IList<TServer>)source, userTypeInfo);
-#endif
         }
 
 
@@ -90,7 +80,17 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        private static readonly MethodInfo createProxyListMethod =
-            ReflectionHelper.GetMethodDefinition(() => CreateProxyList<IClientResource, IClientResource>(null, null));
+        private static IList<TExtended> CreateProxyList<TExtended, TServer>(IEnumerable source,
+                                                                            ExtendedResourceInfo userTypeInfo)
+            where TExtended : TServer, IClientResource
+            where TServer : IClientResource
+        {
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
+
+            return new ExtendedResourceList<TExtended, TServer>((IList<TServer>)source, userTypeInfo);
+#endif
+        }
     }
 }

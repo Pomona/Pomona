@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
 using Nancy;
 using Nancy.ErrorHandling;
 
@@ -38,12 +39,12 @@ namespace Pomona
     public class DefaultErrorHandler : IStatusCodeHandler
     {
         private readonly HttpStatusCode[] _supportedStatusCodes = new[]
-            {
-                HttpStatusCode.BadRequest,
-                HttpStatusCode.NotFound,
-                HttpStatusCode.PreconditionFailed,
-                HttpStatusCode.InternalServerError
-            };
+        {
+            HttpStatusCode.BadRequest,
+            HttpStatusCode.NotFound,
+            HttpStatusCode.PreconditionFailed,
+            HttpStatusCode.InternalServerError
+        };
 
         #region IErrorHandler Members
 
@@ -57,7 +58,7 @@ namespace Pomona
             if (!context.Items.TryGetValue("ERROR_EXCEPTION", out exceptionObject))
                 return;
 
-            var exception = UnwrapException((Exception) exceptionObject);
+            var exception = UnwrapException((Exception)exceptionObject);
 
             // We're not that interested in Nancys exception really
             if (exception is RequestExecutionException)
@@ -72,10 +73,10 @@ namespace Pomona
             if (exception is ResourcePreconditionFailedException)
             {
                 context.Response = new Response
-                    {
-                        StatusCode = HttpStatusCode.PreconditionFailed,
-                        ContentType = "text/html"
-                    };
+                {
+                    StatusCode = HttpStatusCode.PreconditionFailed,
+                    ContentType = "text/html"
+                };
                 return;
             }
 
@@ -84,22 +85,22 @@ namespace Pomona
             context.Items.TryGetValue("ERROR_TRACE", out errorTrace);
 
             resp.Contents = stream =>
+            {
+                using (var streamWriter = new StreamWriter(stream))
                 {
-                    using (var streamWriter = new StreamWriter(stream))
+                    if (exception != null)
                     {
-                        if (exception != null)
-                        {
-                            streamWriter.WriteLine("Exception:");
-                            streamWriter.WriteLine(exception);
-                        }
-                        if (errorTrace != null)
-                        {
-                            streamWriter.WriteLine("Trace:");
-                            streamWriter.WriteLine(errorTrace);
-                        }
-                        streamWriter.WriteLine("Ey.. Got an exception there matey!!");
+                        streamWriter.WriteLine("Exception:");
+                        streamWriter.WriteLine(exception);
                     }
-                };
+                    if (errorTrace != null)
+                    {
+                        streamWriter.WriteLine("Trace:");
+                        streamWriter.WriteLine(errorTrace);
+                    }
+                    streamWriter.WriteLine("Ey.. Got an exception there matey!!");
+                }
+            };
             resp.ContentType = "text/plain";
             resp.StatusCode = HttpStatusCode.InternalServerError;
             context.Response = resp;
@@ -108,15 +109,14 @@ namespace Pomona
 
         public virtual bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
         {
-            return _supportedStatusCodes.Any(s => s == statusCode);
+            return this._supportedStatusCodes.Any(s => s == statusCode);
         }
+
 
         protected virtual Exception UnwrapException(Exception exception)
         {
             if (exception is TargetInvocationException || exception is RequestExecutionException)
-            {
                 return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
-            }
             return exception;
         }
 

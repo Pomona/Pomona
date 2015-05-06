@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,14 +26,11 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 using Nancy;
-
-using NSubstitute;
 
 using NUnit.Framework;
 
@@ -41,32 +38,29 @@ using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
-using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
 using Pomona.Example.Models.Existence;
 using Pomona.RequestProcessing;
-using Pomona.Routing;
 
 namespace Pomona.SystemTests
 {
     [TestFixture]
     public class HandlerMethodTests : ClientTestsBase
     {
-        public IQueryable<Critter> GetCritters()
-        {
-            return new List<Critter>().AsQueryable(); // Why not?
-        }
-
-
-        public IQueryable<Critter> QueryCritters()
-        {
-            return new List<Critter>().AsQueryable(); // Why not?
-        }
+        public NancyContext nancyContext;
+        private ClientSerializationContextProvider serializationContextProvider;
+        public ITextSerializerFactory serializerFactory;
 
 
         public IQueryable<Critter> GetCrayons()
         {
             return new List<Critter>().AsQueryable();
+        }
+
+
+        public IQueryable<Critter> GetCritters()
+        {
+            return new List<Critter>().AsQueryable(); // Why not?
         }
 
 
@@ -77,18 +71,6 @@ namespace Pomona.SystemTests
             else
                 throw new PomonaServerException("A test called GetPlanetarySystems in HandlerMethodTests.cs without a Galaxy.");
         }
-
-
-        public IQueryable<PlanetarySystem> QueryPlanetarySystems(
-            /* This deliberately doesn't take a Galaxy although it should */)
-        {
-            return new List<PlanetarySystem>().AsQueryable();
-        }
-
-
-        public NancyContext nancyContext;
-        public ITextSerializerFactory serializerFactory;
-        private ClientSerializationContextProvider serializationContextProvider;
 
 
         [TestFixtureSetUp]
@@ -106,11 +88,11 @@ namespace Pomona.SystemTests
         public void Match_ChildResource_Requires_ParentResource()
         {
             var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("QueryPlanetarySystems"),
-                TypeMapper);
+                                                 TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
-                    PathNodeType.Collection,
-                    TypeMapper.FromType(typeof(PlanetarySystem))),
+                                   PathNodeType.Collection,
+                                   TypeMapper.FromType(typeof(PlanetarySystem))),
                 Is.Null);
         }
 
@@ -119,11 +101,11 @@ namespace Pomona.SystemTests
         public void Match_ChildResource_Takes_ParentResource()
         {
             var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("GetPlanetarySystems"),
-                TypeMapper);
+                                                 TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
-                    PathNodeType.Collection,
-                    TypeMapper.FromType(typeof(PlanetarySystem))),
+                                   PathNodeType.Collection,
+                                   TypeMapper.FromType(typeof(PlanetarySystem))),
                 Is.Not.Null);
         }
 
@@ -134,8 +116,8 @@ namespace Pomona.SystemTests
             var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("GetCrayons"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
-                    PathNodeType.Collection,
-                    TypeMapper.FromType(typeof(Critter))),
+                                   PathNodeType.Collection,
+                                   TypeMapper.FromType(typeof(Critter))),
                 Is.Null);
         }
 
@@ -146,8 +128,8 @@ namespace Pomona.SystemTests
             var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("GetCritters"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
-                    PathNodeType.Collection,
-                    TypeMapper.FromType(typeof(MusicalCritter))),
+                                   PathNodeType.Collection,
+                                   TypeMapper.FromType(typeof(MusicalCritter))),
                 Is.Null);
         }
 
@@ -158,8 +140,8 @@ namespace Pomona.SystemTests
             var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("GetCritters"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
-                    PathNodeType.Collection,
-                    TypeMapper.FromType(typeof(Critter))),
+                                   PathNodeType.Collection,
+                                   TypeMapper.FromType(typeof(Critter))),
                 Is.Not.Null);
         }
 
@@ -170,9 +152,22 @@ namespace Pomona.SystemTests
             var methodObject = new HandlerMethod(typeof(HandlerMethodTests).GetMethod("QueryCritters"), TypeMapper);
             Assert.That(
                 methodObject.Match(HttpMethod.Get,
-                    PathNodeType.Collection,
-                    TypeMapper.FromType(typeof(Critter))),
+                                   PathNodeType.Collection,
+                                   TypeMapper.FromType(typeof(Critter))),
                 Is.Not.Null);
+        }
+
+
+        public IQueryable<Critter> QueryCritters()
+        {
+            return new List<Critter>().AsQueryable(); // Why not?
+        }
+
+
+        public IQueryable<PlanetarySystem> QueryPlanetarySystems(
+            /* This deliberately doesn't take a Galaxy although it should */)
+        {
+            return new List<PlanetarySystem>().AsQueryable();
         }
     }
 }

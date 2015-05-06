@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -41,9 +41,8 @@ namespace Pomona.RequestProcessing
     public class HandlerMethod
     {
         private readonly MethodInfo methodInfo;
-
-        private readonly System.Lazy<IList<Type>> parameterTypes;
-        private readonly System.Lazy<IList<HandlerParameter>> parameters;
+        private readonly Lazy<IList<HandlerParameter>> parameters;
+        private readonly Lazy<IList<Type>> parameterTypes;
         private readonly TypeMapper typeMapper;
 
 
@@ -56,9 +55,9 @@ namespace Pomona.RequestProcessing
             this.methodInfo = methodInfo;
             this.typeMapper = typeMapper;
             this.parameters =
-                new System.Lazy<IList<HandlerParameter>>(
+                new Lazy<IList<HandlerParameter>>(
                     () => methodInfo.GetParameters().Select(x => new HandlerParameter(x, this)).ToList());
-            this.parameterTypes = new System.Lazy<IList<Type>>(() => Parameters.MapList(x => x.Type));
+            this.parameterTypes = new Lazy<IList<Type>>(() => Parameters.MapList(x => x.Type));
         }
 
 
@@ -72,14 +71,14 @@ namespace Pomona.RequestProcessing
             get { return this.methodInfo.Name; }
         }
 
-        public IList<Type> ParameterTypes
-        {
-            get { return this.parameterTypes.Value; }
-        }
-
         public IList<HandlerParameter> Parameters
         {
             get { return this.parameters.Value; }
+        }
+
+        public IList<Type> ParameterTypes
+        {
+            get { return this.parameterTypes.Value; }
         }
 
         public Type ReturnType
@@ -158,28 +157,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        RouteAction MatchMethodTakingResourceId(ResourceType resourceType)
-        {
-            if (this.methodInfo.ReturnType != resourceType.Type)
-                return null;
-
-            var idParam = Parameters.SingleOrDefault(x => x.Type == resourceType.PrimaryId.PropertyType.Type);
-            if (idParam != null)
-                return new HandlerMethodTakingResourceId(this);
-            return null;
-        }
-
-
-        RouteAction MatchMethodTakingForm(ResourceType resourceType)
-        {
-            var resourceTypeParam = Parameters.LastOrDefault(x => x.IsTransformedType);
-            
-            return (resourceTypeParam != null && resourceTypeParam.Type.IsAssignableFrom(resourceType))
-                ? new HandlerMethodTakingFormInvoker(this, resourceTypeParam)
-                : null;
-        }
-
-        RouteAction MatchMethodTakingExistingResource(ResourceType resourceType)
+        private RouteAction MatchMethodTakingExistingResource(ResourceType resourceType)
         {
             var existingTypeParam = Parameters.SingleOrDefaultIfMultiple(x => x.Type.IsAssignableFrom(resourceType));
             if (existingTypeParam == null || Parameters.Skip(existingTypeParam.Position + 1).Any(x => x.IsTransformedType))
@@ -188,16 +166,8 @@ namespace Pomona.RequestProcessing
             return new HandlerMethodTakingExistingResource(this, resourceType);
         }
 
-        RouteAction MatchMethodTakingPatchedExistingResource(ResourceType resourceType)
-        {
-            var existingTypeParam = Parameters.SingleOrDefaultIfMultiple(x => x.Type.IsAssignableFrom(resourceType));
-            if (existingTypeParam == null || Parameters.Skip(existingTypeParam.Position + 1).Any(x => x.IsTransformedType))
-                return null;
 
-            return new HandlerMethodTakingPatchedResource(this, resourceType);
-        }
-
-        RouteAction MatchMethodTakingExistingResourceAndForm(ResourceType resourceType)
+        private RouteAction MatchMethodTakingExistingResourceAndForm(ResourceType resourceType)
         {
             var existingTypeParam = Parameters.SingleOrDefaultIfMultiple(x => x.Type.IsAssignableFrom(resourceType));
             if (existingTypeParam == null)
@@ -213,7 +183,39 @@ namespace Pomona.RequestProcessing
         }
 
 
-        RouteAction MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
+        private RouteAction MatchMethodTakingForm(ResourceType resourceType)
+        {
+            var resourceTypeParam = Parameters.LastOrDefault(x => x.IsTransformedType);
+
+            return (resourceTypeParam != null && resourceTypeParam.Type.IsAssignableFrom(resourceType))
+                ? new HandlerMethodTakingFormInvoker(this, resourceTypeParam)
+                : null;
+        }
+
+
+        private RouteAction MatchMethodTakingPatchedExistingResource(ResourceType resourceType)
+        {
+            var existingTypeParam = Parameters.SingleOrDefaultIfMultiple(x => x.Type.IsAssignableFrom(resourceType));
+            if (existingTypeParam == null || Parameters.Skip(existingTypeParam.Position + 1).Any(x => x.IsTransformedType))
+                return null;
+
+            return new HandlerMethodTakingPatchedResource(this, resourceType);
+        }
+
+
+        private RouteAction MatchMethodTakingResourceId(ResourceType resourceType)
+        {
+            if (this.methodInfo.ReturnType != resourceType.Type)
+                return null;
+
+            var idParam = Parameters.SingleOrDefault(x => x.Type == resourceType.PrimaryId.PropertyType.Type);
+            if (idParam != null)
+                return new HandlerMethodTakingResourceId(this);
+            return null;
+        }
+
+
+        private RouteAction MatchResourceNodeRequest(HttpMethod httpMethod, ResourceType resourceType)
         {
             if (!NameStartsWith(httpMethod))
                 return null;

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,47 +43,11 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class ExceptionTests
     {
-        #region Setup/Teardown
-
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            var pomonaExceptions = typeof(UnknownTypeException).Assembly
-                .GetLoadableTypes()
-                .Where(type => typeof(Exception).IsAssignableFrom(type));
-
-            var pomonaCommonExceptions = typeof(PomonaSerializationException).Assembly
-                .GetLoadableTypes()
-                .Where(type => typeof(Exception).IsAssignableFrom(type));
-
-            var pomonaNHibernate3Exceptions = typeof(NhQueryProviderCapabilityResolver).Assembly
-                .GetLoadableTypes()
-                .Where(type => typeof(Exception).IsAssignableFrom(type));
-
-            var pomonaProfilingExceptions = typeof(ICryptoSerializer).Assembly
-                .GetLoadableTypes()
-                .Where(type => typeof(MiniProfilerWrapper).IsAssignableFrom(type));
-
-            var pomonaSecurityExceptions = typeof(ICryptoSerializer).Assembly
-                .GetLoadableTypes()
-                .Where(type => typeof(Exception).IsAssignableFrom(type));
-
-            this.exceptions = pomonaExceptions
-                .Union(pomonaCommonExceptions)
-                .Union(pomonaNHibernate3Exceptions)
-                .Union(pomonaProfilingExceptions)
-                .Union(pomonaSecurityExceptions)
-                .ToArray();
-
-            Assert.That(this.exceptions, Has.Length.GreaterThan(0));
-        }
-
-        #endregion
+        private const MethodAttributes methodAttributes = MethodAttributes.NewSlot | MethodAttributes.SpecialName |
+                                                          MethodAttributes.HideBySig
+                                                          | MethodAttributes.Virtual | MethodAttributes.Public;
 
         private Type[] exceptions;
-        const MethodAttributes methodAttributes = MethodAttributes.NewSlot | MethodAttributes.SpecialName |
-                                          MethodAttributes.HideBySig
-                                          | MethodAttributes.Virtual | MethodAttributes.Public;
 
 
         [Test]
@@ -117,5 +81,43 @@ namespace Pomona.UnitTests
                             exception);
             }
         }
+
+        #region Setup/Teardown
+
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            var pomonaExceptions = typeof(UnknownTypeException).Assembly
+                                                               .GetLoadableTypes()
+                                                               .Where(type => typeof(Exception).IsAssignableFrom(type));
+
+            var pomonaCommonExceptions = typeof(PomonaSerializationException).Assembly
+                                                                             .GetLoadableTypes()
+                                                                             .Where(type => typeof(Exception).IsAssignableFrom(type));
+
+            var pomonaNHibernate3Exceptions = typeof(NhQueryProviderCapabilityResolver).Assembly
+                                                                                       .GetLoadableTypes()
+                                                                                       .Where(
+                                                                                           type => typeof(Exception).IsAssignableFrom(type));
+
+            var pomonaProfilingExceptions = typeof(ICryptoSerializer).Assembly
+                                                                     .GetLoadableTypes()
+                                                                     .Where(type => typeof(MiniProfilerWrapper).IsAssignableFrom(type));
+
+            var pomonaSecurityExceptions = typeof(ICryptoSerializer).Assembly
+                                                                    .GetLoadableTypes()
+                                                                    .Where(type => typeof(Exception).IsAssignableFrom(type));
+
+            this.exceptions = pomonaExceptions
+                .Union(pomonaCommonExceptions)
+                .Union(pomonaNHibernate3Exceptions)
+                .Union(pomonaProfilingExceptions)
+                .Union(pomonaSecurityExceptions)
+                .ToArray();
+
+            Assert.That(this.exceptions, Has.Length.GreaterThan(0));
+        }
+
+        #endregion
     }
 }

@@ -862,35 +862,6 @@ namespace Pomona.Common.Linq
             }
 
 
-            protected override Expression VisitUnary(UnaryExpression node)
-            {
-                var visitedNode =  base.VisitUnary(node);
-                node = visitedNode as UnaryExpression;
-                if (node != null)
-                {
-                    var operandAsConstant = node.Operand as ConstantExpression;
-                    var nullableUnderlyingType = Nullable.GetUnderlyingType(node.Type);
-
-                    if (enumUnderlyingTypes.Contains(nullableUnderlyingType) && operandAsConstant != null)
-                    {
-                        var enumNonNullableType = Nullable.GetUnderlyingType(operandAsConstant.Type);
-                        if (enumNonNullableType != null && enumNonNullableType.IsEnum && operandAsConstant.Value != null)
-                        {
-                            return Expression.Convert(Expression.Constant(operandAsConstant.Value, enumNonNullableType), node.Type);
-                        }
-                    }
-
-                    if (node.NodeType == ExpressionType.Convert && operandAsConstant != null
-                        && operandAsConstant.Type == nullableUnderlyingType)
-                    {
-                        return Expression.Constant(operandAsConstant.Value, node.Type);
-                    }
-                    return node;
-                }
-                return visitedNode;
-            }
-
-
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
                 var baseNode = base.VisitMethodCall(node);
@@ -932,6 +903,31 @@ namespace Pomona.Common.Linq
                     return Expression.Constant(nNode.Constructor.Invoke(invokeArgs.ToArray()));
                 }
                 return baseNode;
+            }
+
+
+            protected override Expression VisitUnary(UnaryExpression node)
+            {
+                var visitedNode = base.VisitUnary(node);
+                node = visitedNode as UnaryExpression;
+                if (node != null)
+                {
+                    var operandAsConstant = node.Operand as ConstantExpression;
+                    var nullableUnderlyingType = Nullable.GetUnderlyingType(node.Type);
+
+                    if (enumUnderlyingTypes.Contains(nullableUnderlyingType) && operandAsConstant != null)
+                    {
+                        var enumNonNullableType = Nullable.GetUnderlyingType(operandAsConstant.Type);
+                        if (enumNonNullableType != null && enumNonNullableType.IsEnum && operandAsConstant.Value != null)
+                            return Expression.Convert(Expression.Constant(operandAsConstant.Value, enumNonNullableType), node.Type);
+                    }
+
+                    if (node.NodeType == ExpressionType.Convert && operandAsConstant != null
+                        && operandAsConstant.Type == nullableUnderlyingType)
+                        return Expression.Constant(operandAsConstant.Value, node.Type);
+                    return node;
+                }
+                return visitedNode;
             }
 
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ namespace Pomona.Security.Authentication
 
 
         public DefaultPreAuthenticatedUriResolver(IUriResolver uriResolver,
-            IPreAuthenticatedUriProvider authenticatedUrlHelper)
+                                                  IPreAuthenticatedUriProvider authenticatedUrlHelper)
         {
             if (uriResolver == null)
                 throw new ArgumentNullException("uriResolver");

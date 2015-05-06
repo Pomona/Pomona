@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,11 +27,8 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 
 using Pomona.Common;
@@ -44,8 +41,8 @@ namespace Pomona.CodeGen
         // ReSharper disable UnassignedReadonlyField.Compiler
         private static readonly StringEnumTemplate defaultValue;
         // ReSharper restore UnassignedReadonlyField.Compiler
-
         private static ReadOnlyCollection<StringEnumTemplate> values;
+        private static Dictionary<string, StringEnumTemplate> knownValuesMap;
         private readonly string value;
 
 
@@ -61,40 +58,11 @@ namespace Pomona.CodeGen
             {
                 if (values == null)
                 {
-                    values = new ReadOnlyCollection<StringEnumTemplate>(StringEnumExtensions.ScanStringEnumValues<StringEnumTemplate>().ToList());
+                    values =
+                        new ReadOnlyCollection<StringEnumTemplate>(StringEnumExtensions.ScanStringEnumValues<StringEnumTemplate>().ToList());
                 }
                 return values;
             }
-        }
-
-        private static Dictionary<string, StringEnumTemplate> knownValuesMap;
-
-        private static Dictionary<string, StringEnumTemplate> KnownValuesMap
-        {
-            get
-            {
-                if (knownValuesMap == null)
-                {
-                    knownValuesMap = new Dictionary<string, StringEnumTemplate>(StringComparer.InvariantCultureIgnoreCase);
-                    foreach (var val in AllValues)
-                    {
-                        knownValuesMap.Add(val.Value, val);
-                    }
-                }
-                return knownValuesMap;
-            }
-        }
-
-
-        public static bool TryParse(string str, out StringEnumTemplate value)
-        {
-            value = (StringEnumTemplate)str;
-            return true;
-        }
-
-        public static StringEnumTemplate Parse(string str)
-        {
-            return (StringEnumTemplate)str;
         }
 
         public bool IsDefault
@@ -112,6 +80,20 @@ namespace Pomona.CodeGen
             get { return this.value ?? defaultValue.value; }
         }
 
+        private static Dictionary<string, StringEnumTemplate> KnownValuesMap
+        {
+            get
+            {
+                if (knownValuesMap == null)
+                {
+                    knownValuesMap = new Dictionary<string, StringEnumTemplate>(StringComparer.InvariantCultureIgnoreCase);
+                    foreach (var val in AllValues)
+                        knownValuesMap.Add(val.Value, val);
+                }
+                return knownValuesMap;
+            }
+        }
+
 
         public override bool Equals(object obj)
         {
@@ -127,15 +109,28 @@ namespace Pomona.CodeGen
         }
 
 
-        public bool Equals(StringEnumTemplate other)
+        public static StringEnumTemplate Parse(string str)
         {
-            return string.Equals(Value, other.Value, StringComparison.InvariantCultureIgnoreCase);
+            return (StringEnumTemplate)str;
         }
 
 
         public override string ToString()
         {
             return Value;
+        }
+
+
+        public static bool TryParse(string str, out StringEnumTemplate value)
+        {
+            value = (StringEnumTemplate)str;
+            return true;
+        }
+
+
+        public bool Equals(StringEnumTemplate other)
+        {
+            return string.Equals(Value, other.Value, StringComparison.InvariantCultureIgnoreCase);
         }
 
         #region Operators

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,34 +30,31 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-using Pomona.Common.Serialization;
-
 namespace Pomona.Common.TypeSystem
 {
     public interface ITypeResolver
     {
+        PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo);
         TypeSpec FromType(Type type);
         TypeSpec FromType(string typeName);
-        bool TryGetTypeByName(string typeName, out TypeSpec typeSpec);
-        PropertySpec FromProperty(Type reflectedType, PropertyInfo propertyInfo);
-
+        PropertySpec LoadBaseDefinition(PropertySpec propertySpec);
+        TypeSpec LoadBaseType(TypeSpec typeSpec);
+        ConstructorSpec LoadConstructor(TypeSpec typeSpec);
         IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec);
         TypeSpec LoadDeclaringType(PropertySpec propertySpec);
         IEnumerable<TypeSpec> LoadGenericArguments(TypeSpec typeSpec);
+        Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec);
         IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec);
         string LoadName(MemberSpec memberSpec);
         string LoadNamespace(TypeSpec typeSpec);
         IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec);
-        TypeSpec LoadBaseType(TypeSpec typeSpec);
-        TypeSpec LoadPropertyType(PropertySpec propertySpec);
         PropertyFlags LoadPropertyFlags(PropertySpec propertySpec);
-        ResourceType LoadUriBaseType(ResourceType resourceType);
-        PropertySpec LoadBaseDefinition(PropertySpec propertySpec);
-        PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo);
-        Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec);
-        Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec);
-        RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec);
+        TypeSpec LoadPropertyType(PropertySpec propertySpec);
         IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec);
-        ConstructorSpec LoadConstructor(TypeSpec typeSpec);
+        RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec);
+        Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec);
+        ResourceType LoadUriBaseType(ResourceType resourceType);
+        bool TryGetTypeByName(string typeName, out TypeSpec typeSpec);
+        PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo);
     }
 }

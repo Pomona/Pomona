@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -44,16 +44,6 @@ namespace Pomona.SystemTests.Linq
     [TestFixture]
     public class RestQueryTreeParserTests
     {
-        private RestQueryableTreeParser Parse<T>(Func<IQueryable<T>, IQueryable> bah)
-        {
-            var queryable = new RestQueryProvider(Substitute.For<IPomonaClient>()).CreateQuery<T>("http://example/path");
-            var q = bah(queryable);
-            var treeParser = new RestQueryableTreeParser();
-            treeParser.Visit(q.Expression);
-            return treeParser;
-        }
-
-
         [Test]
         public void QueryWithMultipleSkips_ThrowsNotSupportedException()
         {
@@ -108,7 +98,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryWithSkipBeforeOrderBy_ThrowsNotSupportedException()
         {
             Assert.That(() => Parse<ICritter>(x => x.Skip(10).OrderBy(y => y.CreatedOn)),
-                Throws.TypeOf<NotSupportedException>());
+                        Throws.TypeOf<NotSupportedException>());
         }
 
 
@@ -116,7 +106,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryWithTakeBeforeOrderBy_ThrowsNotSupportedException()
         {
             Assert.That(() => Parse<ICritter>(x => x.Take(10).OrderBy(y => y.CreatedOn)),
-                Throws.TypeOf<NotSupportedException>());
+                        Throws.TypeOf<NotSupportedException>());
         }
 
 
@@ -130,6 +120,16 @@ namespace Pomona.SystemTests.Linq
                             y => y.CritterName.StartsWith("BAH")));
             parser.WherePredicate.AssertEquals<Func<ICritter, bool>>(
                 y => y.Id == 1 && y.Name.ToUpper().StartsWith("BAH"));
+        }
+
+
+        private RestQueryableTreeParser Parse<T>(Func<IQueryable<T>, IQueryable> bah)
+        {
+            var queryable = new RestQueryProvider(Substitute.For<IPomonaClient>()).CreateQuery<T>("http://example/path");
+            var q = bah(queryable);
+            var treeParser = new RestQueryableTreeParser();
+            treeParser.Visit(q.Expression);
+            return treeParser;
         }
     }
 }

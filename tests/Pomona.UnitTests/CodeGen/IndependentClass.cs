@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -46,12 +46,6 @@ namespace Pomona.UnitTests.CodeGen
         public IndependentClass SelfRef { get; set; }
 
 
-        public static void OutMethod(out IndependentClass bah)
-        {
-            bah = new IndependentClass(null);
-        }
-
-
         public bool AnotherMethod()
         {
             OneMethod();
@@ -62,6 +56,12 @@ namespace Pomona.UnitTests.CodeGen
         public void OneMethod()
         {
             AnotherMethod();
+        }
+
+
+        public static void OutMethod(out IndependentClass bah)
+        {
+            bah = new IndependentClass(null);
         }
     }
 }

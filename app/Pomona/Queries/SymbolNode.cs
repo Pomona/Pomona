@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +37,8 @@ namespace Pomona.Queries
         private readonly string name;
 
 
-        public SymbolNode(string name, IEnumerable<NodeBase> children) : this(NodeType.Symbol, name, children)
+        public SymbolNode(string name, IEnumerable<NodeBase> children)
+            : this(NodeType.Symbol, name, children)
         {
         }
 
@@ -45,9 +50,7 @@ namespace Pomona.Queries
                 name = name.Substring(1);
 
             if (name != null)
-            {
                 this.name = name;
-            }
         }
 
 
@@ -58,19 +61,18 @@ namespace Pomona.Queries
 
         public string Name
         {
-            get { return name; }
+            get { return this.name; }
         }
 
 
         public override string ToString()
         {
             if (Children.Count == 0)
-                return String.Format("{0}", name);
+                return String.Format("{0}", this.name);
             else
             {
                 return String.Format(
-                    "{0}({1})",
-                    name,
+                    "{0}({1})", this.name,
                     string.Join(", ", Children.Select(x => x.ToString())));
             }
         }

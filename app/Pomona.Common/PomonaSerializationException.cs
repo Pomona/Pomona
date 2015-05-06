@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Runtime.Serialization;
@@ -42,7 +46,8 @@ namespace Pomona.Common
         /// Initializes a new instance of the <see cref="T:Pomona.Common.PomonaSerializationException"/> class with a specified error message.
         /// </summary>
         /// <param name="message">The message that describes the error. </param>
-        public PomonaSerializationException(string message) : base(message)
+        public PomonaSerializationException(string message)
+            : base(message)
         {
         }
 
@@ -51,7 +56,8 @@ namespace Pomona.Common
         /// Initializes a new instance of the <see cref="T:Pomona.Common.PomonaSerializationException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
         /// </summary>
         /// <param name="message">The error message that explains the reason for the exception. </param><param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified. </param>
-        public PomonaSerializationException(string message, Exception innerException) : base(message, innerException)
+        public PomonaSerializationException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
 

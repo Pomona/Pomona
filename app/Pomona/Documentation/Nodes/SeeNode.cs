@@ -42,12 +42,12 @@ namespace Pomona.Documentation.Nodes
         }
 
 
-        public MemberSpec Reference { get; private set; }
-
-
         protected override string OnToString(Func<IDocNode, string> formattingHook)
         {
             return "(ref: " + Reference.Name + ")";
         }
+
+
+        public MemberSpec Reference { get; private set; }
     }
 }

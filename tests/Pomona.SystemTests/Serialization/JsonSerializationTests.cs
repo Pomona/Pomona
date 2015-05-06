@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -44,24 +44,18 @@ namespace Pomona.SystemTests.Serialization
     [TestFixture]
     public class JsonSerializationTests
     {
-        #region Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-            var factory = new PomonaJsonSerializerFactory();
-            var pomonaClient = Substitute.For<IPomonaClient>();
-            this.deserializer = factory.GetDeserializer(new ClientSerializationContextProvider(this.clientTypeMapper, pomonaClient, pomonaClient));
-        }
-
-        #endregion
-
-        private PomonaJsonDeserializer deserializer;
         private readonly ClientTypeMapper clientTypeMapper = new ClientTypeMapper(new Type[] { typeof(IOrderItem) });
+        private PomonaJsonDeserializer deserializer;
 
-        public class TestClass : IClientResource
+
+        [Test]
+        public void DateTimeWithoutUTCMarkAtEndDeserializesCorrectly()
         {
-            public string FooBar { get; set; }
+            var obj =
+                this.deserializer.DeserializeString<IStringToObjectDictionaryContainer>(
+                    "{ map : { blah : { _type: 'DateTime', value: '1995-06-08T22:00:00' } } }");
+            Assert.That((DateTime)obj.Map.SafeGet("blah"),
+                        Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Local)));
         }
 
 
@@ -72,25 +66,32 @@ namespace Pomona.SystemTests.Serialization
                 this.deserializer.DeserializeString<IStringToObjectDictionaryContainer>(
                     "{ map : { blah : { _type: 'DateTime', value: '1995-06-08T22:00:00Z' } } }");
             Assert.That((DateTime)obj.Map.SafeGet("blah"),
-                Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Utc)));
+                        Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Utc)));
         }
 
+        #region Setup/Teardown
 
-        [Test]
-        public void DateTimeWithoutUTCMarkAtEndDeserializesCorrectly()
+        [SetUp]
+        public void SetUp()
         {
-            var obj =
-                this.deserializer.DeserializeString<IStringToObjectDictionaryContainer>(
-                    "{ map : { blah : { _type: 'DateTime', value: '1995-06-08T22:00:00' } } }");
-            Assert.That((DateTime)obj.Map.SafeGet("blah"),
-                Is.EqualTo(new DateTime(1995, 06, 08, 22, 00, 00, DateTimeKind.Local)));
+            var factory = new PomonaJsonSerializerFactory();
+            var pomonaClient = Substitute.For<IPomonaClient>();
+            this.deserializer =
+                factory.GetDeserializer(new ClientSerializationContextProvider(this.clientTypeMapper, pomonaClient, pomonaClient));
         }
 
+        #endregion
 
         [Test]
         public void UnknownPropertyIsIgnoredByDeserializer()
         {
             this.deserializer.DeserializeString<IOrderItem>("{name:\"blah\",ignored:\"optional\"}");
+        }
+
+
+        public class TestClass : IClientResource
+        {
+            public string FooBar { get; set; }
         }
     }
 }

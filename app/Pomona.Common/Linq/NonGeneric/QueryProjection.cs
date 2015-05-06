@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -54,22 +54,7 @@ namespace Pomona.Common.Linq.NonGeneric
 
 
         public abstract string Name { get; }
-
         public abstract Expression Apply(IQueryable queryable);
-
-
-        /// <summary>
-        /// Gets the resulting type given an IQueryable with specified element type.
-        /// </summary>
-        /// <param name="elementType">The element type</param>
-        /// <returns>The type the projection would produce.</returns>
-        public abstract Type GetResultType(Type elementType);
-
-
-        public override string ToString()
-        {
-            return Name;
-        }
 
 
         public virtual object Execute(IQueryable queryable)
@@ -83,6 +68,20 @@ namespace Pomona.Common.Linq.NonGeneric
         public T Execute<T>(IQueryable queryable)
         {
             return (T)Execute(queryable);
+        }
+
+
+        /// <summary>
+        /// Gets the resulting type given an IQueryable with specified element type.
+        /// </summary>
+        /// <param name="elementType">The element type</param>
+        /// <returns>The type the projection would produce.</returns>
+        public abstract Type GetResultType(Type elementType);
+
+
+        public override string ToString()
+        {
+            return Name;
         }
 
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,6 @@
 
 using System.Linq;
 
-using Critters;
 using Critters.Client;
 
 using NUnit.Framework;
@@ -41,26 +40,17 @@ namespace Pomona.SystemTests.TestingClient
     [TestFixture]
     public class TestingClientTests
     {
-        #region Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.testClient = TestableClientGenerator.CreateClient<ICritterClient>();
-            this.mockControl = (TestableClientProxyBase)this.testClient;
-        }
-
-        #endregion
-
-        private ICritterClient testClient;
         private TestableClientProxyBase mockControl;
+        private ICritterClient testClient;
 
-        public interface ICustomCritter : ICritter
-        {
-        }
 
-        public interface ICustomGalaxy : IGalaxy
+        [Test]
+        public void Get_Critter_ById()
         {
+            var critterResource = new CritterResource() { Name = "donald" };
+            this.mockControl.Save(critterResource);
+            var critter = this.testClient.Critters.Get(critterResource.Id);
+            Assert.That(critter, Is.Not.Null);
         }
 
 
@@ -73,16 +63,6 @@ namespace Pomona.SystemTests.TestingClient
             // This will make behaviour different than real client for resources that don't exist.
             var donaldIsLazy = this.testClient.Critters.GetLazy(donald.Id);
             Assert.That(donaldIsLazy, Is.EqualTo(donald));
-        }
-
-
-        [Test]
-        public void Get_Critter_ById()
-        {
-            var critterResource = new CritterResource() { Name = "donald" };
-            this.mockControl.Save(critterResource);
-            var critter = this.testClient.Critters.Get(critterResource.Id);
-            Assert.That(critter, Is.Not.Null);
         }
 
 
@@ -137,6 +117,25 @@ namespace Pomona.SystemTests.TestingClient
             this.mockControl.Save(new GalaxyResource() { Name = "donald" });
             var emptyCritterResults = this.testClient.Galaxies.Query().ToList();
             Assert.That(emptyCritterResults, Has.Count.EqualTo(1));
+        }
+
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.testClient = TestableClientGenerator.CreateClient<ICritterClient>();
+            this.mockControl = (TestableClientProxyBase)this.testClient;
+        }
+
+        #endregion
+
+        public interface ICustomCritter : ICritter
+        {
+        }
+
+        public interface ICustomGalaxy : IGalaxy
+        {
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,25 +49,25 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        public PropertyInfo UnderlyingProperty
-        {
-            get { return this.underlyingProperty; }
-        }
-
         public ExtendedResourceInfo Info
         {
             get { return this.info; }
         }
 
+        public PropertyInfo UnderlyingProperty
+        {
+            get { return this.underlyingProperty; }
+        }
 
-        protected bool TryGetFromCache(IDictionary<string, IExtendedResourceProxy> cache, object underlyingResource, out IExtendedResourceProxy extendedResource)
+
+        protected bool TryGetFromCache(IDictionary<string, IExtendedResourceProxy> cache,
+                                       object underlyingResource,
+                                       out IExtendedResourceProxy extendedResource)
         {
             if (cache.TryGetValue(Property.Name, out extendedResource))
             {
                 if ((extendedResource != null && extendedResource.WrappedResource == underlyingResource) || underlyingResource == null)
-                {
                     return true;
-                }
             }
             return false;
         }

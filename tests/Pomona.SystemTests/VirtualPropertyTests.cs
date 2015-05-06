@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,17 +40,6 @@ namespace Pomona.SystemTests
     public class VirtualPropertyTests : ClientTestsBase
     {
         [Test]
-        public void Query_using_virtual_property_in_predicate_is_successful()
-        {
-            Save(new VirtualPropertyThing()); // Just another thing that will not match predicate.
-            var virtualPropThing = Save(new VirtualPropertyThing() { Number = 9.0 });
-            var id =
-                Client.VirtualPropertyThings.Query().Where(x => x.NumberSquareRoot == 3.0).Select(x => x.Id).Single();
-            Assert.That(id, Is.EqualTo(virtualPropThing.Id));
-        }
-
-
-        [Test]
         public void Get_type_having_virtual_properties_is_successful()
         {
             var entity = Save(new VirtualPropertyThing() { Number = 25.0 });
@@ -71,6 +60,17 @@ namespace Pomona.SystemTests
             Assert.That(resource.Number, Is.EqualTo(13.0 * 13.0));
             Assert.That(resource.NumberSquareRoot, Is.EqualTo(13.0));
             Assert.That(resource.Rocky, Is.EqualTo("IS DA MAN"));
+        }
+
+
+        [Test]
+        public void Query_using_virtual_property_in_predicate_is_successful()
+        {
+            Save(new VirtualPropertyThing()); // Just another thing that will not match predicate.
+            var virtualPropThing = Save(new VirtualPropertyThing() { Number = 9.0 });
+            var id =
+                Client.VirtualPropertyThings.Query().Where(x => x.NumberSquareRoot == 3.0).Select(x => x.Id).Single();
+            Assert.That(id, Is.EqualTo(virtualPropThing.Id));
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -75,20 +75,6 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
-        public void ExpandShallow_ExtensionMethod_SetsExpandModeOfPropertyToShallow()
-        {
-            CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
-                                                      x => x.ExpandShallow(),
-                                                      (f, p) => f.GetPropertyExpandMode(p.ReflectedType, p),
-                                                      (origValue, changedValue) =>
-                                                      {
-                                                          Assert.That(origValue, Is.EqualTo(ExpandMode.Default));
-                                                          Assert.That(changedValue, Is.EqualTo(ExpandMode.Shallow));
-                                                      });
-        }
-
-
-        [Test]
         public void Expand_ExtensionMethod_SetsExpandModeOfPropertyToFull()
         {
             CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
@@ -107,6 +93,20 @@ namespace Pomona.UnitTests.FluentMapping
         {
             CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
                                                       x => x.Expand(ExpandMode.Shallow),
+                                                      (f, p) => f.GetPropertyExpandMode(p.ReflectedType, p),
+                                                      (origValue, changedValue) =>
+                                                      {
+                                                          Assert.That(origValue, Is.EqualTo(ExpandMode.Default));
+                                                          Assert.That(changedValue, Is.EqualTo(ExpandMode.Shallow));
+                                                      });
+        }
+
+
+        [Test]
+        public void ExpandShallow_ExtensionMethod_SetsExpandModeOfPropertyToShallow()
+        {
+            CheckHowChangeInPropertyRuleAffectsFilter(x => x.Children,
+                                                      x => x.ExpandShallow(),
                                                       (f, p) => f.GetPropertyExpandMode(p.ReflectedType, p),
                                                       (origValue, changedValue) =>
                                                       {

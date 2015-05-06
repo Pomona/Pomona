@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+
 using Nancy;
 
 namespace Pomona
@@ -38,11 +39,15 @@ namespace Pomona
         private readonly List<KeyValuePair<string, string>> responseHeaders;
         private readonly HttpStatusCode statusCode;
 
-        public PomonaError(HttpStatusCode statusCode) : this(statusCode, null)
+
+        public PomonaError(HttpStatusCode statusCode)
+            : this(statusCode, null)
         {
         }
 
-        public PomonaError(HttpStatusCode statusCode, object entity,
+
+        public PomonaError(HttpStatusCode statusCode,
+                           object entity,
                            IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
             this.statusCode = statusCode;
@@ -51,19 +56,20 @@ namespace Pomona
                 this.responseHeaders = responseHeaders.ToList();
         }
 
+
+        public object Entity
+        {
+            get { return this.entity; }
+        }
+
         public List<KeyValuePair<string, string>> ResponseHeaders
         {
-            get { return responseHeaders; }
+            get { return this.responseHeaders; }
         }
 
         public HttpStatusCode StatusCode
         {
-            get { return statusCode; }
-        }
-
-        public object Entity
-        {
-            get { return entity; }
+            get { return this.statusCode; }
         }
     }
 }

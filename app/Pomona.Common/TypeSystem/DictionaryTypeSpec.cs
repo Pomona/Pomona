@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,9 +38,9 @@ namespace Pomona.Common.TypeSystem
 
 
         public DictionaryTypeSpec(ITypeResolver typeResolver,
-            Type type,
-            Func<TypeSpec> keyType,
-            Func<TypeSpec> valueType)
+                                  Type type,
+                                  Func<TypeSpec> keyType,
+                                  Func<TypeSpec> valueType)
             : base(typeResolver, type)
         {
             if (keyType == null)
@@ -52,19 +52,24 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public override bool IsDictionary
+        {
+            get { return true; }
+        }
+
         public virtual TypeSpec KeyType
         {
             get { return this.keyType.Value; }
         }
 
+        public override TypeSerializationMode SerializationMode
+        {
+            get { return TypeSerializationMode.Dictionary; }
+        }
+
         public virtual TypeSpec ValueType
         {
             get { return this.valueType.Value; }
-        }
-
-        public override bool IsDictionary
-        {
-            get { return true; }
         }
 
 
@@ -73,22 +78,10 @@ namespace Pomona.Common.TypeSystem
             return new DictionaryTypeSpecFactory();
         }
 
-
-        public override TypeSerializationMode SerializationMode
-        {
-            get { return TypeSerializationMode.Dictionary; }
-        }
-
         #region Nested type: DictionaryTypeSpecFactory
 
         internal class DictionaryTypeSpecFactory : ITypeFactory
         {
-            public int Priority
-            {
-                get { return 0; }
-            }
-
-
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
                 Type[] typeArgs;
@@ -97,9 +90,15 @@ namespace Pomona.Common.TypeSystem
                 var keyType = typeArgs[0];
                 var valueType = typeArgs[1];
                 return new DictionaryTypeSpec(typeResolver,
-                    type,
-                    () => typeResolver.FromType(keyType),
-                    () => typeResolver.FromType(valueType));
+                                              type,
+                                              () => typeResolver.FromType(keyType),
+                                              () => typeResolver.FromType(valueType));
+            }
+
+
+            public int Priority
+            {
+                get { return 0; }
             }
         }
 

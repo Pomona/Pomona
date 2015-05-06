@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,12 @@ namespace Pomona.Common.Linq.Queries.Interception
         }
 
 
+        public IQueryable ChangeType(Type elementType)
+        {
+            return ((InterceptedQueryProvider)Provider).CreateLazySource(elementType, this.factory);
+        }
+
+
         public Func<Type, IQueryable> Factory
         {
             get { return this.factory; }
@@ -53,12 +59,6 @@ namespace Pomona.Common.Linq.Queries.Interception
         public IQueryable WrappedSource
         {
             get { return this.factory(typeof(T)); }
-        }
-
-
-        public IQueryable ChangeType(Type elementType)
-        {
-            return ((InterceptedQueryProvider)Provider).CreateLazySource(elementType, this.factory);
         }
     }
 }

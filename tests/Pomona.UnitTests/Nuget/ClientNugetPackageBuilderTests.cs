@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,9 @@
 
 using System;
 using System.IO;
+
 using NUnit.Framework;
+
 using Pomona.CodeGen;
 using Pomona.UnitTests.PomonaSession;
 
@@ -47,7 +49,7 @@ namespace Pomona.UnitTests.Nuget
                 packageBuilder.BuildPackage(fileStream);
                 fileData = fileStream.ToArray();
             }
-            Console.WriteLine("Package size is " + fileData.Length/1024.0 + " KiB");
+            Console.WriteLine("Package size is " + fileData.Length / 1024.0 + " KiB");
         }
 
 

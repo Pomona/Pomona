@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Linq;
 using System.Text;
 
@@ -84,9 +83,9 @@ namespace Pomona.Common
             return this.serializerFactory
                        .GetDeserializer(serializationContextProvider)
                        .DeserializeString(jsonString, new DeserializeOptions
-                                                      {
-                                                          ExpectedBaseType = expectedType
-                                                      });
+                       {
+                           ExpectedBaseType = expectedType
+                       });
         }
 
 
@@ -104,9 +103,9 @@ namespace Pomona.Common
                 requestBytes = this.serializerFactory
                                    .GetSerializer(serializationContextProvider)
                                    .SerializeToBytes(requestBodyEntity, new SerializeOptions
-                                                                        {
-                                                                            ExpectedBaseType = requestBodyBaseType
-                                                                        });
+                                   {
+                                       ExpectedBaseType = requestBodyBaseType
+                                   });
             }
             var request = new HttpRequest(uri, requestBytes, httpMethod);
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -56,13 +56,6 @@ namespace Pomona.Example.Models
         }
 
 
-        public static bool TheIgnoredStaticProperty
-        {
-            get { throw new NotImplementedException("Should not be gotten!"); }
-        }
-
-        public string PropertyExcludedByGetAllPropertiesOfType { get; set; }
-
         /// <summary>
         /// This is a value object.
         /// </summary>
@@ -74,8 +67,8 @@ namespace Pomona.Example.Models
         /// List of <see cref="Critter"/> enemies.
         /// </summary>
         public IList<Critter> Enemies { get; set; }
-        public Farm Farm { get; set; }
 
+        public Farm Farm { get; set; }
         public Guid Guid { get; set; }
 
         public int HandledGeneratedProperty
@@ -92,6 +85,7 @@ namespace Pomona.Example.Models
         /// An integer exposed as a string
         /// </summary>
         public int IntExposedAsString { get; set; }
+
         public bool IsCaptured { get; internal set; }
 
         /// <summary>
@@ -112,17 +106,19 @@ namespace Pomona.Example.Models
 
         public string OnlyWritableByInheritedResource { get; protected set; }
         public string Password { get; set; }
+        public string PropertyExcludedByGetAllPropertiesOfType { get; set; }
         public string PropertyWithAttributeAddedFluently { get; set; }
         public string Protected { get; protected set; }
         public bool PublicAndReadOnlyThroughApi { get; set; }
-
         public Critter ReferenceToAnotherCritter { get; set; }
-
         public string RelativeImageUrl { get; set; }
-
         public IList<SimpleAttribute> SimpleAttributes { get; set; }
-
         public IList<Subscription> Subscriptions { get; protected set; }
+
+        public static bool TheIgnoredStaticProperty
+        {
+            get { throw new NotImplementedException("Should not be gotten!"); }
+        }
 
         [NotKnownToDataSource]
         public string UnhandledGeneratedProperty
@@ -132,16 +128,17 @@ namespace Pomona.Example.Models
 
         public IList<Weapon> Weapons { get; protected set; }
 
-        /// <summary>
-        /// To check that property scanning works properly on entities having explicit prop implementations.
-        /// </summary>
-        int IHiddenInterface.Foo { get; set; }
-
 
         public void FixParentReferences()
         {
             foreach (var subscription in Subscriptions)
                 subscription.Critter = this;
         }
+
+
+        /// <summary>
+        /// To check that property scanning works properly on entities having explicit prop implementations.
+        /// </summary>
+        int IHiddenInterface.Foo { get; set; }
     }
 }

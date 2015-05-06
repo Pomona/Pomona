@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml.Linq;
-using System.Xml.Serialization;
 
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
@@ -42,8 +41,8 @@ namespace Pomona.Documentation
 {
     public class XmlDocumentationProvider : IDocumentationProvider
     {
-        private readonly Dictionary<string, XDoc> xmlDocs = new Dictionary<string, XDoc>();
         private readonly XmlDocMapper mapper;
+        private readonly Dictionary<string, XDoc> xmlDocs = new Dictionary<string, XDoc>();
 
 
         public XmlDocumentationProvider(IResourceTypeResolver typeMapper)
@@ -60,7 +59,7 @@ namespace Pomona.Documentation
             var xDocContentContainer = xdoc.GetSummary(member);
             if (xDocContentContainer == null)
                 return null;
-            return mapper.Map(xDocContentContainer);
+            return this.mapper.Map(xDocContentContainer);
         }
 
 

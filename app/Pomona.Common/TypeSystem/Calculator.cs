@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,12 @@ namespace Pomona.Common.TypeSystem
 {
     public static class Calculator<T>
     {
-        private static readonly System.Lazy<Func<T, T, T>> addFunc;
-        private static readonly System.Lazy<Func<T, T, T>> divideFunc;
-        private static readonly System.Lazy<Func<T, T, bool>> equalFunc;
-        private static readonly System.Lazy<Func<T, T, T>> minusFunc;
-        private static readonly System.Lazy<Func<T, T, T>> multiplyFunc;
-        private static readonly System.Lazy<Func<T, T>> negateFunc;
+        private static readonly Lazy<Func<T, T, T>> addFunc;
+        private static readonly Lazy<Func<T, T, T>> divideFunc;
+        private static readonly Lazy<Func<T, T, bool>> equalFunc;
+        private static readonly Lazy<Func<T, T, T>> minusFunc;
+        private static readonly Lazy<Func<T, T, T>> multiplyFunc;
+        private static readonly Lazy<Func<T, T>> negateFunc;
 
 
         static Calculator()
@@ -118,9 +118,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        private static System.Lazy<Func<T, T, TRet>> GetBinOpMethod<TRet>(ExpressionType binaryType)
+        private static Lazy<Func<T, T, TRet>> GetBinOpMethod<TRet>(ExpressionType binaryType)
         {
-            return new System.Lazy<Func<T, T, TRet>>(() =>
+            return new Lazy<Func<T, T, TRet>>(() =>
             {
                 try
                 {
@@ -136,9 +136,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        private static System.Lazy<Func<T, TRet>> GetUnaryOpMethod<TRet>(ExpressionType unaryType)
+        private static Lazy<Func<T, TRet>> GetUnaryOpMethod<TRet>(ExpressionType unaryType)
         {
-            return new System.Lazy<Func<T, TRet>>(() =>
+            return new Lazy<Func<T, TRet>>(() =>
             {
                 try
                 {
@@ -154,7 +154,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        private static T InvokeOperator(T a, T b, System.Lazy<Func<T, T, T>> operatorMethod)
+        private static T InvokeOperator(T a, T b, Lazy<Func<T, T, T>> operatorMethod)
         {
             var func = operatorMethod.Value;
             if (func == null)
@@ -163,7 +163,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        private static T InvokeUnaryOperator(T a, System.Lazy<Func<T, T>> operatorMethod)
+        private static T InvokeUnaryOperator(T a, Lazy<Func<T, T>> operatorMethod)
         {
             var func = operatorMethod.Value;
             if (func == null)
@@ -173,9 +173,9 @@ namespace Pomona.Common.TypeSystem
 
 
         private static bool TryInvokeOperator<TRet>(T a,
-            T b,
-            out TRet result,
-            System.Lazy<Func<T, T, TRet>> operatorMethod)
+                                                    T b,
+                                                    out TRet result,
+                                                    Lazy<Func<T, T, TRet>> operatorMethod)
         {
             var func = operatorMethod.Value;
             if (func == null)
@@ -188,7 +188,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        private static bool TryInvokeUnaryOperator<TRet>(T a, out TRet result, System.Lazy<Func<T, TRet>> operatorMethod)
+        private static bool TryInvokeUnaryOperator<TRet>(T a, out TRet result, Lazy<Func<T, TRet>> operatorMethod)
         {
             var func = operatorMethod.Value;
             if (func == null)

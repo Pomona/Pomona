@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,6 @@ namespace Pomona.Common.TypeSystem
 {
     public static class MaybeExtensions
     {
-        public static Maybe<T> MaybeAs<T>(this object val)
-        {
-            return val.Maybe().OfType<T>();
-        }
-
-
         public static Maybe<T> Maybe<T>(this T val, Func<T, bool> predicate)
             where T : class
         {
@@ -64,6 +58,12 @@ namespace Pomona.Common.TypeSystem
             where T : struct
         {
             return val.HasValue ? new Maybe<T>(val.Value) : TypeSystem.Maybe<T>.Empty;
+        }
+
+
+        public static Maybe<T> MaybeAs<T>(this object val)
+        {
+            return val.Maybe().OfType<T>();
         }
 
 

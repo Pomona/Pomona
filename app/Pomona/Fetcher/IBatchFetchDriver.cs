@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,16 +35,19 @@ namespace Pomona.Fetcher
 {
     public interface IBatchFetchDriver
     {
-        IEnumerable<PropertyInfo> GetProperties(Type type);
-        bool PathIsExpanded(string path, PropertyInfo property);
         PropertyInfo GetIdProperty(Type type);
+        IEnumerable<PropertyInfo> GetProperties(Type type);
         bool IsLoaded(object obj);
-        IQueryable<TEntity> Query<TEntity>();
+        bool IsManyToOne(PropertyInfo prop);
+        bool PathIsExpanded(string path, PropertyInfo property);
+
 
         void PopulateCollections<TParentEntity, TCollectionElement>(
-            IEnumerable<KeyValuePair<TParentEntity, IEnumerable<TCollectionElement>>> bindings, PropertyInfo property,
+            IEnumerable<KeyValuePair<TParentEntity, IEnumerable<TCollectionElement>>> bindings,
+            PropertyInfo property,
             Type elementType);
 
-        bool IsManyToOne(PropertyInfo prop);
+
+        IQueryable<TEntity> Query<TEntity>();
     }
 }

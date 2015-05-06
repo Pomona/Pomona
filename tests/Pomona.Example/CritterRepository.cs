@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -48,12 +48,10 @@ namespace Pomona.Example
         private static readonly MethodInfo saveCollectionMethod;
         private static readonly MethodInfo saveDictionaryMethod;
         private static readonly MethodInfo saveInternalMethod;
-
         private readonly List<PomonaQuery> queryLog = new List<PomonaQuery>();
         private readonly object syncLock = new object();
         private readonly TypeMapper typeMapper;
         private Dictionary<Type, object> entityLists = new Dictionary<Type, object>();
-
         private int idCounter;
 
 
@@ -84,107 +82,6 @@ namespace Pomona.Example
             ResetTestData();
         }
 
-        #region IPomonaDataSource Members
-
-        public PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery pq)
-        {
-            lock (this.syncLock)
-            {
-                this.queryLog.Add(pq);
-
-                var visitor = new MakeDictAccessesSafeVisitor();
-                pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
-
-                var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
-                throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
-
-                return pq.ApplyAndExecute(queryable);
-            }
-        }
-
-
-        public ICollection<T> List<T>()
-        {
-            lock (this.syncLock)
-            {
-                return new ReadOnlyCollection<T>(GetEntityList<T>());
-            }
-        }
-
-
-        public object Patch<T>(T updatedObject)
-        {
-            var etagEntity = updatedObject as ISetEtaggedEntity;
-            if (etagEntity != null)
-                etagEntity.SetEtag(Guid.NewGuid().ToString());
-
-            Save(updatedObject);
-
-            return updatedObject;
-        }
-
-
-        public object Post<T>(T newObject)
-        {
-            lock (this.syncLock)
-            {
-                newObject = Save(newObject);
-                var order = newObject as Order;
-                if (order != null)
-                    return new OrderResponse(order);
-
-                return newObject;
-            }
-        }
-
-
-        public IQueryable<T> Query<T>()
-            where T : class
-        {
-            lock (this.syncLock)
-            {
-                var entityType = typeof(T);
-                var entityUriBaseType = ((ResourceType)TypeMapper.FromType(typeof(T))).UriBaseType.Type;
-
-                var genericQueryMethod = queryMethod.MakeGenericMethod(entityUriBaseType, entityType);
-                return (IQueryable<T>)genericQueryMethod.Invoke(this, null);
-            }
-        }
-
-
-        private static string GetDictItemOrDefault(IDictionary<string, string> dict, string key)
-        {
-            string value;
-            return dict.TryGetValue(key, out value) ? value : Guid.NewGuid().ToString();
-        }
-
-
-        private IQueryable<TEntity> Query<TEntityBase, TEntity>()
-        {
-            //var visitor = new MakeDictAccessesSafeVisitor();
-            //pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
-
-            //var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
-            //throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
-
-            return GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
-        }
-
-
-        public class MakeDictAccessesSafeVisitor : ExpressionVisitor
-        {
-            protected override Expression VisitMethodCall(MethodCallExpression node)
-            {
-                if (node.Method == OdataFunctionMapping.DictStringStringGetMethod)
-                {
-                    var method = ReflectionHelper.GetMethodInfo<string, string>(x => GetDictItemOrDefault(null, null));
-                    return Expression.Call(method, node.Object, node.Arguments.First());
-                }
-                return base.VisitMethodCall(node);
-            }
-        }
-
-        #endregion
 
         public List<PomonaQuery> QueryLog
         {
@@ -198,18 +95,6 @@ namespace Pomona.Example
         public TypeMapper TypeMapper
         {
             get { return this.typeMapper; }
-        }
-
-
-        public static IEnumerable<Type> GetEntityTypes()
-        {
-            return typeof(CritterModule).Assembly
-                .GetTypes()
-                .Where(x => (x.Namespace == "Pomona.Example.Models"
-                             || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models")))
-                            && x.IsPublic
-                            && !x.IsGenericTypeDefinition
-                            && x != typeof(INonExposedBaseInterface));
         }
 
 
@@ -292,10 +177,10 @@ namespace Pomona.Example
                     continue;
                 var enemyCount = rng.Next(5) + 1;
                 Enumerable.Repeat(0, enemyCount)
-                    .Select(x => rng.Next(critters.Count))
-                    .Distinct()
-                    .Select(x => critters[x])
-                    .AddTo(critter.Enemies);
+                          .Select(x => rng.Next(critters.Count))
+                          .Distinct()
+                          .Select(x => critters[x])
+                          .AddTo(critter.Enemies);
             }
         }
 
@@ -308,6 +193,18 @@ namespace Pomona.Example
                 var deleteMethodInstance = deleteInternalMethod.MakeGenericMethod(mappedTypeInstance);
                 deleteMethodInstance.Invoke(this, new object[] { entity });
             }
+        }
+
+
+        public static IEnumerable<Type> GetEntityTypes()
+        {
+            return typeof(CritterModule).Assembly
+                                        .GetTypes()
+                                        .Where(x => (x.Namespace == "Pomona.Example.Models"
+                                                     || (x.Namespace != null && x.Namespace.StartsWith("Pomona.Example.Models")))
+                                                    && x.IsPublic
+                                                    && !x.IsGenericTypeDefinition
+                                                    && x != typeof(INonExposedBaseInterface));
         }
 
 
@@ -514,5 +411,107 @@ namespace Pomona.Example
             SaveCollection(dictionary.Values, savedObjects);
             return dictionary;
         }
+
+        #region IPomonaDataSource Members
+
+        public PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery pq)
+        {
+            lock (this.syncLock)
+            {
+                this.queryLog.Add(pq);
+
+                var visitor = new MakeDictAccessesSafeVisitor();
+                pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
+
+                var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
+                throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
+
+                return pq.ApplyAndExecute(queryable);
+            }
+        }
+
+
+        public ICollection<T> List<T>()
+        {
+            lock (this.syncLock)
+            {
+                return new ReadOnlyCollection<T>(GetEntityList<T>());
+            }
+        }
+
+
+        public object Patch<T>(T updatedObject)
+        {
+            var etagEntity = updatedObject as ISetEtaggedEntity;
+            if (etagEntity != null)
+                etagEntity.SetEtag(Guid.NewGuid().ToString());
+
+            Save(updatedObject);
+
+            return updatedObject;
+        }
+
+
+        public object Post<T>(T newObject)
+        {
+            lock (this.syncLock)
+            {
+                newObject = Save(newObject);
+                var order = newObject as Order;
+                if (order != null)
+                    return new OrderResponse(order);
+
+                return newObject;
+            }
+        }
+
+
+        public IQueryable<T> Query<T>()
+            where T : class
+        {
+            lock (this.syncLock)
+            {
+                var entityType = typeof(T);
+                var entityUriBaseType = ((ResourceType)TypeMapper.FromType(typeof(T))).UriBaseType.Type;
+
+                var genericQueryMethod = queryMethod.MakeGenericMethod(entityUriBaseType, entityType);
+                return (IQueryable<T>)genericQueryMethod.Invoke(this, null);
+            }
+        }
+
+
+        private static string GetDictItemOrDefault(IDictionary<string, string> dict, string key)
+        {
+            string value;
+            return dict.TryGetValue(key, out value) ? value : Guid.NewGuid().ToString();
+        }
+
+
+        private IQueryable<TEntity> Query<TEntityBase, TEntity>()
+        {
+            //var visitor = new MakeDictAccessesSafeVisitor();
+            //pq.FilterExpression = (LambdaExpression)visitor.Visit(pq.FilterExpression);
+
+            //var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
+            //throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
+
+            return GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
+        }
+
+
+        public class MakeDictAccessesSafeVisitor : ExpressionVisitor
+        {
+            protected override Expression VisitMethodCall(MethodCallExpression node)
+            {
+                if (node.Method == OdataFunctionMapping.DictStringStringGetMethod)
+                {
+                    var method = ReflectionHelper.GetMethodInfo<string, string>(x => GetDictItemOrDefault(null, null));
+                    return Expression.Call(method, node.Object, node.Arguments.First());
+                }
+                return base.VisitMethodCall(node);
+            }
+        }
+
+        #endregion
     }
 }

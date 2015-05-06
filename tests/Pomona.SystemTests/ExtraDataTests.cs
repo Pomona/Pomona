@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,11 @@
 #endregion
 
 using Extra.Client;
+
 using Nancy.Testing;
+
 using NUnit.Framework;
+
 using Pomona.Example;
 using Pomona.TestHelpers;
 using Pomona.UnitTests.Client;
@@ -43,19 +46,11 @@ namespace Pomona.SystemTests
             return new ExtraClient(baseUri + "/Extra/");
         }
 
+
         public override ExtraClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
         {
             var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
             return new ExtraClient(baseUri + "Extra/", nancyTestingWebClient);
-        }
-
-        public override void SetupRequestCompletedHandler()
-        {
-        }
-
-
-        public override void TeardownRequestCompletedHandler()
-        {
         }
 
 
@@ -67,6 +62,7 @@ namespace Pomona.SystemTests
             Assert.AreEqual("What", result.TheString);
         }
 
+
         [Test]
         public void PatchExtraData()
         {
@@ -77,13 +73,24 @@ namespace Pomona.SystemTests
             Assert.AreEqual("NootNoot", result.TheString);
         }
 
+
         [Test]
         public void PostExtraData()
         {
-            var post = Client.SimpleExtraDatas.Post(new SimpleExtraDataForm() {TheString = "NootNoot"});
+            var post = Client.SimpleExtraDatas.Post(new SimpleExtraDataForm() { TheString = "NootNoot" });
             var result = Client.SimpleExtraDatas.Get(post.Id);
             Assert.AreEqual(post.Id, result.Id);
             Assert.AreEqual("NootNoot", result.TheString);
+        }
+
+
+        public override void SetupRequestCompletedHandler()
+        {
+        }
+
+
+        public override void TeardownRequestCompletedHandler()
+        {
         }
     }
 }

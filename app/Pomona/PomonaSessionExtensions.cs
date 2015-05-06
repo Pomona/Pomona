@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@ using System.Linq;
 using Nancy;
 using Nancy.Extensions;
 
-using Pomona.Common;
 using Pomona.Routing;
 
 namespace Pomona
@@ -53,33 +52,33 @@ namespace Pomona
             }
 
             var relativePath = session.GetInstance<IUriResolver>().ToRelativePath(urlWithoutQueryPart);
-            var req = new PomonaRequest(url, relativePath, query: query);
+            var req = new PomonaRequest(url, relativePath, query : query);
             return session.Dispatch(req);
         }
 
 
         internal static object Get(this IPomonaSession session,
-                                 UrlSegment urlSegment)
+                                   UrlSegment urlSegment)
         {
             if (session == null)
                 throw new ArgumentNullException("session");
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaContext(urlSegment, executeQueryable : true, handleException: false);
+            var request = new PomonaContext(urlSegment, executeQueryable : true, handleException : false);
             return session.Dispatch(request).Entity;
         }
 
 
         internal static IQueryable Query(this IPomonaSession session,
-                                       UrlSegment urlSegment)
+                                         UrlSegment urlSegment)
         {
             if (session == null)
                 throw new ArgumentNullException("session");
             if (urlSegment == null)
                 throw new ArgumentNullException("urlSegment");
 
-            var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable), handleException: false);
+            var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable), handleException : false);
             return (IQueryable)session.Dispatch(request).Entity;
         }
     }

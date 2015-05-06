@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Pomona.Common;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
@@ -49,11 +49,11 @@ namespace Pomona.Schemas
         public Schema Generate()
         {
             var typeSchemas = this.typeMapper
-                    .SourceTypes
-                    .OfType<StructuredType>()
-                    .OrderBy(x => x.Name)
-                    .Select(GenerateForType);
-            
+                                  .SourceTypes
+                                  .OfType<StructuredType>()
+                                  .OrderBy(x => x.Name)
+                                  .Select(GenerateForType);
+
             return new Schema
             {
                 Types = typeSchemas.ToList(),
@@ -126,17 +126,15 @@ namespace Pomona.Schemas
                 Extends = extends,
                 Name = typeName,
                 Properties = new SortedDictionary<string, SchemaPropertyEntry>(properties
-                    .Select(GenerateForProperty)
-                    .ToDictionary(x => x.Name, x => x)),
+                                                                                   .Select(GenerateForProperty)
+                                                                                   .ToDictionary(x => x.Name, x => x)),
                 // TODO: Expose IsAbstract on TypeSpec
                 Abstract = structuredType.Type != null && structuredType.Type.IsAbstract,
                 AllowedMethods = structuredType.AllowedMethods
             };
 
             if (resourceTypeSpec != null)
-            {
                 schemaTypeEntry.Uri = resourceTypeSpec.UrlRelativePath;
-            }
 
             return schemaTypeEntry;
         }

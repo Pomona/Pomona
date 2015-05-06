@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,40 +43,24 @@ namespace Pomona.UnitTests.Client
         public const bool UseSelfHostedHttpServerDefault = false;
         private static TClient cachedNancyTestingClient;
         private static CritterRepository cachedNancyTestingClientRepository;
-        private string baseUri;
-        private TClient client;
         private CritterHost critterHost;
-
-        protected bool RequestTraceEnabled { get; set; }
+        public CritterRepository Repository { get; private set; }
+        public TypeMapper TypeMapper { get; private set; }
 
         public virtual bool UseSelfHostedHttpServer
         {
             get { return UseSelfHostedHttpServerDefault; }
         }
 
-        public CritterRepository Repository { get; private set; }
-
-        public TypeMapper TypeMapper { get; private set; }
-
-        protected string BaseUri
-        {
-            get { return this.baseUri; }
-        }
-
-        protected TClient Client
-        {
-            get { return this.client; }
-        }
+        protected string BaseUri { get; private set; }
+        protected TClient Client { get; private set; }
 
         protected ICollection<Critter> CritterEntities
         {
             get { return Repository.List<Critter>(); }
         }
 
-        public abstract TClient CreateHttpTestingClient(string baseUri);
-        public abstract TClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper);
-        public abstract void SetupRequestCompletedHandler();
-        public abstract void TeardownRequestCompletedHandler();
+        protected bool RequestTraceEnabled { get; set; }
 
 
         public void AssertIsOrderedBy<T, TOrderKey>(IEnumerable<T> enumerable,
@@ -95,32 +79,36 @@ namespace Pomona.UnitTests.Client
         }
 
 
+        public abstract TClient CreateHttpTestingClient(string baseUri);
+        public abstract TClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper);
+
+
         [TestFixtureSetUp]
         public void FixtureSetUp()
         {
             if (UseSelfHostedHttpServer)
             {
                 var rng = new Random();
-                this.baseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
-                Console.WriteLine("Starting CritterHost on " + this.baseUri);
-                this.critterHost = new CritterHost(new Uri(this.baseUri));
+                this.BaseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
+                Console.WriteLine("Starting CritterHost on " + this.BaseUri);
+                this.critterHost = new CritterHost(new Uri(this.BaseUri));
                 this.critterHost.Start();
-                TypeMapper = critterHost.TypeMapper;
-                this.client = CreateHttpTestingClient(this.baseUri);
+                TypeMapper = this.critterHost.TypeMapper;
+                this.Client = CreateHttpTestingClient(this.BaseUri);
                 Repository = this.critterHost.Repository;
             }
             else
             {
-                this.baseUri = "http://test/";
+                this.BaseUri = "http://test/";
 
                 if (cachedNancyTestingClient == null)
                 {
                     var critterBootstrapper = new CritterBootstrapper();
                     cachedNancyTestingClientRepository = critterBootstrapper.Repository;
-                    cachedNancyTestingClient = CreateInMemoryTestingClient(this.baseUri, critterBootstrapper);
+                    cachedNancyTestingClient = CreateInMemoryTestingClient(this.BaseUri, critterBootstrapper);
                 }
                 TypeMapper = cachedNancyTestingClientRepository.TypeMapper;
-                this.client = cachedNancyTestingClient;
+                this.Client = cachedNancyTestingClient;
                 Repository = cachedNancyTestingClientRepository;
             }
 
@@ -144,6 +132,10 @@ namespace Pomona.UnitTests.Client
             RequestTraceEnabled = true;
             Repository.ResetTestData();
         }
+
+
+        public abstract void SetupRequestCompletedHandler();
+        public abstract void TeardownRequestCompletedHandler();
 
 
         protected T Save<T>(T entity)

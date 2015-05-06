@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,12 +35,6 @@ namespace Pomona.UnitTests.Ioc
     [TestFixture]
     public class TinyIocTests : IocTestsBase<TinyIoCContainer>
     {
-        protected override void Register<TService, TImplementation>()
-        {
-            Container.Register<TService, TImplementation>();
-        }
-
-
         [Test]
         public void Constructor_DoesNotThrowException()
         {
@@ -52,7 +46,13 @@ namespace Pomona.UnitTests.Ioc
         public void GetInstance_ByType_ReturnsInstance()
         {
             Assert.That(CreateWrapper().GetInstance(typeof(IDummyContract)),
-                Is.TypeOf<DummyImplementation>());
+                        Is.TypeOf<DummyImplementation>());
+        }
+
+
+        protected override void Register<TService, TImplementation>()
+        {
+            Container.Register<TService, TImplementation>();
         }
     }
 }

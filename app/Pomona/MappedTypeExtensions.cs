@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,8 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -36,10 +41,10 @@ namespace Pomona
         static MappedTypeExtensions()
         {
             numberTypes = new[]
-                {
-                    typeof (int), typeof (double), typeof (float), typeof (long), typeof (byte),
-                    typeof (short)
-                };
+            {
+                typeof(int), typeof(double), typeof(float), typeof(long), typeof(byte),
+                typeof(short)
+            };
         }
 
 
@@ -61,21 +66,21 @@ namespace Pomona
                 var targetType = sharedType.Type;
                 if (numberTypes.Contains(targetType))
                 {
-                    if (targetType == typeof (double) || targetType == typeof (float))
+                    if (targetType == typeof(double) || targetType == typeof(float))
                         return "number";
                     return "integer";
                 }
 
-                if (targetType == typeof (string))
+                if (targetType == typeof(string))
                     return "string";
 
-                if (targetType == typeof (bool))
+                if (targetType == typeof(bool))
                     return "boolean";
 
-                if (targetType == typeof (decimal))
+                if (targetType == typeof(decimal))
                     return "decimal";
 
-                if (targetType == typeof (object))
+                if (targetType == typeof(object))
                     return "any";
             }
 

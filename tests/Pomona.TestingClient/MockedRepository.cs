@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ namespace Pomona.TestingClient
         public virtual TResource Get(object id)
         {
             ResourceInfoAttribute resourceInfo;
-            if (!this.Client.TryGetResourceInfoForType(typeof(TResource), out resourceInfo))
+            if (!Client.TryGetResourceInfoForType(typeof(TResource), out resourceInfo))
                 throw new InvalidOperationException("Expected TResource to have a ResourceInfoAttribute here.");
 
             var idProp = resourceInfo.IdProperty;
@@ -98,7 +98,7 @@ namespace Pomona.TestingClient
 
         public virtual void Delete(TResource resource)
         {
-            this.Client.Delete(resource);
+            Client.Delete(resource);
         }
 
 
@@ -109,7 +109,7 @@ namespace Pomona.TestingClient
 
         public Expression Expression
         {
-            get { return Expression.Constant(this.Client.Query<TResource>()); }
+            get { return Expression.Constant(Client.Query<TResource>()); }
         }
 
 
@@ -123,32 +123,32 @@ namespace Pomona.TestingClient
                                                         Action<TSubResource> patchAction,
                                                         Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
         {
-            return this.Client.OnPatch(resource, patchAction);
+            return Client.OnPatch(resource, patchAction);
         }
 
 
         public virtual TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
             where TSubResource : class, TResource
         {
-            return this.Client.OnPatch(resource, patchAction);
+            return Client.OnPatch(resource, patchAction);
         }
 
 
         public virtual TPostReturnType Post(IPostForm form)
         {
-            return (TPostReturnType)this.Client.OnPost(form);
+            return (TPostReturnType)Client.OnPost(form);
         }
 
 
         public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            var postForm = this.Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+            var postForm = Client.TypeMapper.CreatePostForm(typeof(TSubResource));
 
-            var resInfo = this.Client.GetResourceInfoForType(typeof(TSubResource));
+            var resInfo = Client.GetResourceInfoForType(typeof(TSubResource));
             var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
             postAction(form);
-            return (TPostReturnType)this.Client.OnPost((PostResourceBase)((object)form));
+            return (TPostReturnType)Client.OnPost((PostResourceBase)((object)form));
         }
 
 
@@ -164,12 +164,12 @@ namespace Pomona.TestingClient
             where TSubResource : class, TResource
             where TSubResponseResource : TPostReturnType
         {
-            var postForm = this.Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+            var postForm = Client.TypeMapper.CreatePostForm(typeof(TSubResource));
 
-            var resInfo = this.Client.GetResourceInfoForType(typeof(TSubResource));
+            var resInfo = Client.GetResourceInfoForType(typeof(TSubResource));
             var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
             postAction(form);
-            return (TSubResponseResource)this.Client.OnPost((PostResourceBase)((object)form));
+            return (TSubResponseResource)Client.OnPost((PostResourceBase)((object)form));
         }
 
 
@@ -197,19 +197,19 @@ namespace Pomona.TestingClient
 
         public IQueryProvider Provider
         {
-            get { return this.Client.Query<TResource>().Provider; }
+            get { return Client.Query<TResource>().Provider; }
         }
 
 
         public virtual IQueryable<TResource> Query()
         {
-            return this.Client.Query<TResource>();
+            return Client.Query<TResource>();
         }
 
 
         public virtual IQueryable<TSubResource> Query<TSubResource>() where TSubResource : TResource
         {
-            return this.Client.Query<TSubResource>();
+            return Client.Query<TSubResource>();
         }
 
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@ using System.Reflection;
 using Pomona.Common.Internals;
 #if !DISABLE_PROXY_GENERATION
 using System.Reflection.Emit;
+
 #endif
 
 namespace Pomona.Common.Proxies
@@ -41,8 +42,8 @@ namespace Pomona.Common.Proxies
     public static class EmitHelpers
     {
         public static Type CreatePocoType(string @namespace,
-            string name,
-            IEnumerable<KeyValuePair<string, Type>> properties)
+                                          string name,
+                                          IEnumerable<KeyValuePair<string, Type>> properties)
         {
 #if DISABLE_PROXY_GENERATION
             throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
@@ -109,16 +110,16 @@ namespace Pomona.Common.Proxies
 
 
         internal static TypeBuilder CreateRuntimeTypeBuilder(string @namespace,
-            string name,
-            TypeAttributes? typeAttributes = null,
-            Type baseType = null,
-            IEnumerable<Type> implementedInterfaces = null)
+                                                             string name,
+                                                             TypeAttributes? typeAttributes = null,
+                                                             Type baseType = null,
+                                                             IEnumerable<Type> implementedInterfaces = null)
         {
             baseType = baseType ?? typeof(object);
             var typeBuilder = CreateRuntimeModule(@namespace).DefineType(@namespace + "." + name,
-                typeAttributes ?? (TypeAttributes.Public),
-                baseType ?? typeof(object),
-                implementedInterfaces.EmptyIfNull().ToArray());
+                                                                         typeAttributes ?? (TypeAttributes.Public),
+                                                                         baseType ?? typeof(object),
+                                                                         implementedInterfaces.EmptyIfNull().ToArray());
 
             var proxyBaseCtor =
                 baseType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).First(
@@ -128,8 +129,8 @@ namespace Pomona.Common.Proxies
                 typeBuilder.DefineConstructor(MethodAttributes.HideBySig | MethodAttributes.SpecialName |
                                               MethodAttributes.RTSpecialName
                                               | MethodAttributes.Public,
-                    CallingConventions.Standard,
-                    Type.EmptyTypes);
+                                              CallingConventions.Standard,
+                                              Type.EmptyTypes);
 
             var ctorIlProcessor = ctor.GetILGenerator();
             ctorIlProcessor.Emit(OpCodes.Ldarg_0);

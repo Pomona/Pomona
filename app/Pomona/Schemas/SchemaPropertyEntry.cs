@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 
 using Pomona.Common;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
 {
@@ -43,13 +42,8 @@ namespace Pomona.Schemas
         [JsonProperty(PropertyName = "access")]
         public string[] AccessMethodsAsArray
         {
-            get
-            {
-                return this.Access == HttpMethod.Get ? null : Schema.HttpAccessModeToMethodsArray(this.Access);
-            }
-            set {
-                this.Access = value == null ? HttpMethod.Get : Schema.MethodsArrayToHttpAccessMode(value);
-            }
+            get { return Access == HttpMethod.Get ? null : Schema.HttpAccessModeToMethodsArray(Access); }
+            set { Access = value == null ? HttpMethod.Get : Schema.MethodsArrayToHttpAccessMode(value); }
         }
 
         public IList<SchemaArrayItem> Items { get; set; }

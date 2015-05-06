@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,13 @@ namespace Pomona.Common.TypeSystem
 {
     public class ResourceType : StructuredType
     {
+        private static readonly MethodInfo convertToPathEncodedStringMethod =
+            ReflectionHelper.GetMethodDefinition<ResourceType>(x => ConvertToPathEncodedString(null));
+
+        private static readonly MethodInfo stringBuilderAppendFormatMethod =
+            ReflectionHelper.GetMethodDefinition<StringBuilder>(
+                x => x.AppendFormat((IFormatProvider)null, "", new object[] { }));
+
         private readonly Lazy<ResourceTypeDetails> resourceTypeDetails;
         private readonly Lazy<ResourceType> uriBaseType;
         private readonly Lazy<Action<object, StringBuilder>> uriGenerator;
@@ -99,6 +106,11 @@ namespace Pomona.Common.TypeSystem
             get { return ResourceTypeDetails.ParentToChildProperty; }
         }
 
+        public string PluralName
+        {
+            get { return ResourceTypeDetails.PluralName; }
+        }
+
         public StructuredType PostReturnType
         {
             get { return ResourceTypeDetails.PostReturnType; }
@@ -127,11 +139,6 @@ namespace Pomona.Common.TypeSystem
         protected ResourceTypeDetails ResourceTypeDetails
         {
             get { return this.resourceTypeDetails.Value; }
-        }
-
-        public string PluralName
-        {
-            get { return ResourceTypeDetails.PluralName; }
         }
 
 
@@ -232,13 +239,5 @@ namespace Pomona.Common.TypeSystem
             return Expression.Call(convertToPathEncodedStringMethod,
                                    Expression.Convert(expr, typeof(object)));
         }
-
-
-        private static readonly MethodInfo convertToPathEncodedStringMethod =
-            ReflectionHelper.GetMethodDefinition<ResourceType>(x => ConvertToPathEncodedString(null));
-
-        private static readonly MethodInfo stringBuilderAppendFormatMethod =
-            ReflectionHelper.GetMethodDefinition<StringBuilder>(
-                x => x.AppendFormat((IFormatProvider)null, "", new object[] { }));
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,13 +39,11 @@ namespace Pomona.Common.ExtendedResources
 {
     internal class TransformAdditionalPropertiesToAttributesVisitor : ExpressionTypeVisitor
     {
-        private readonly ExtendedResourceMapper mapper;
         private static readonly MethodInfo dictionarySafeGetMethod;
+        private readonly ExtendedResourceMapper mapper;
 
         private readonly IDictionary<ParameterExpression, ParameterExpression> replacementParameters =
             new Dictionary<ParameterExpression, ParameterExpression>();
-
-        private IExtendedQueryableRoot root;
 
 
         static TransformAdditionalPropertiesToAttributesVisitor()
@@ -63,9 +61,18 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        internal IExtendedQueryableRoot Root
+        internal IExtendedQueryableRoot Root { get; private set; }
+
+
+        public Type ReplaceInGenericArguments(Type typeToSearch)
         {
-            get { return this.root; }
+            return TypeUtils.ReplaceInGenericArguments(typeToSearch, ReplaceType);
+        }
+
+
+        public override Type VisitType(Type typeToSearch)
+        {
+            return base.VisitType(ReplaceType(typeToSearch));
         }
 
 
@@ -74,12 +81,12 @@ namespace Pomona.Common.ExtendedResources
             var extendedQueryableRoot = node.Value as IExtendedQueryableRoot;
             if (extendedQueryableRoot != null)
             {
-                if (this.root != null)
+                if (this.Root != null)
                 {
                     throw new InvalidOperationException(
                         "Does not support queryable expression with multiple combined queryable sources!");
                 }
-                this.root = extendedQueryableRoot;
+                this.Root = extendedQueryableRoot;
                 return Expression.Constant(extendedQueryableRoot.WrappedSource);
             }
             return node;
@@ -107,7 +114,7 @@ namespace Pomona.Common.ExtendedResources
             var nodeExpression = Visit(node.Expression);
             if (nodeExpression == null || nodeExpression.NodeType == ExpressionType.Constant)
             {
-                var target =  nodeExpression != null ? ((ConstantExpression)nodeExpression).Value : null;
+                var target = nodeExpression != null ? ((ConstantExpression)nodeExpression).Value : null;
 
                 if (propInfo != null)
                     return Expression.Constant(propInfo.GetValue(target, null), propInfo.PropertyType);
@@ -130,11 +137,11 @@ namespace Pomona.Common.ExtendedResources
                 {
                     var serverProp =
                         declaringUserTypeInfo.ServerType.GetAllInheritedPropertiesFromInterface()
-                            .FirstOrDefault(x => x.Name == propInfo.Name);
+                                             .FirstOrDefault(x => x.Name == propInfo.Name);
                     if (serverProp == null)
                     {
                         throw new ExtendedResourceMappingException("Unable to find underlying server side property " +
-                                                            propInfo.Name);
+                                                                   propInfo.Name);
                     }
 
                     //if (!serverProp.PropertyType.IsAssignableFrom(propInfo.PropertyType))
@@ -187,21 +194,15 @@ namespace Pomona.Common.ExtendedResources
             {
                 var modifiedMember =
                     modifiedDeclaringType.GetMember(node.Member.Name,
-                        node.Member.MemberType,
-                        BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic |
-                        BindingFlags.Public)
-                        .First(x => x.UniqueToken() == node.Member.UniqueToken());
+                                                    node.Member.MemberType,
+                                                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic |
+                                                    BindingFlags.Public)
+                                         .First(x => x.UniqueToken() == node.Member.UniqueToken());
                 return Expression.MakeMemberAccess(node.Expression != null ? visitedExpression : null,
-                    modifiedMember);
+                                                   modifiedMember);
             }
 
             return base.VisitMember(node);
-        }
-
-
-        public override Type VisitType(Type typeToSearch)
-        {
-            return base.VisitType(ReplaceType(typeToSearch));
         }
 
 
@@ -223,7 +224,7 @@ namespace Pomona.Common.ExtendedResources
             if (serverType != node.Type)
             {
                 return this.replacementParameters.GetOrCreate(node,
-                    () => Expression.Parameter(serverType, node.Name));
+                                                              () => Expression.Parameter(serverType, node.Name));
             }
             return base.VisitParameter(node);
         }
@@ -232,12 +233,6 @@ namespace Pomona.Common.ExtendedResources
         private bool IsUserType(Type userType, out ExtendedResourceInfo userTypeInfo)
         {
             return this.mapper.TryGetExtendedResourceInfo(userType, out userTypeInfo);
-        }
-
-
-        public Type ReplaceInGenericArguments(Type typeToSearch)
-        {
-            return TypeUtils.ReplaceInGenericArguments(typeToSearch, ReplaceType);
         }
 
 

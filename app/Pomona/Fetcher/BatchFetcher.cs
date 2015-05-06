@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -113,7 +113,7 @@ namespace Pomona.Fetcher
                     if (IsManyToOne(prop))
                     {
                         expandManyToOneMethod.MakeGenericMethod(typeof(TEntity), prop.PropertyType)
-                            .Invoke(this, new object[] { entities, subPath, prop });
+                                             .Invoke(this, new object[] { entities, subPath, prop });
                     }
                     else
                     {
@@ -123,7 +123,7 @@ namespace Pomona.Fetcher
                             expandCollectionBatchedMethod.MakeGenericMethod(typeof(TEntity), elementType,
                                                                             this.driver.GetIdProperty(typeof(TEntity))
                                                                                 .PropertyType)
-                                .Invoke(this, new object[] { entities, subPath, prop });
+                                                         .Invoke(this, new object[] { entities, subPath, prop });
                         }
                     }
                 }
@@ -191,9 +191,9 @@ namespace Pomona.Fetcher
                 selectRelationRightParam);
 
             var relations = this.driver.Query<TParentEntity>()
-                .Where(containsExpr)
-                .SelectMany(selectManyExpr, selectRelation)
-                .ToList();
+                                .Where(containsExpr)
+                                .SelectMany(selectManyExpr, selectRelation)
+                                .ToList();
 
             var childIdsToFetch = relations.Select(x => x.ChildId).Distinct().ToArray();
 
@@ -247,41 +247,9 @@ namespace Pomona.Fetcher
                     Expression.Property(fetchPredicateParam, idProp)),
                 fetchPredicateParam);
             var results = this.driver.Query<TEntity>()
-                .Where(fetchPredicate)
-                .ToList();
+                              .Where(fetchPredicate)
+                              .ToList();
             return results;
-        }
-
-
-        private static IEnumerable<T[]> Partition<T>(IEnumerable<T> source, int partLength)
-        {
-            if (source == null)
-                throw new ArgumentNullException("source");
-            if (partLength < 1)
-                throw new ArgumentOutOfRangeException("partLength", "Can't divide sequence in parts less than length 1");
-            T[] part = null;
-            var offset = 0;
-            foreach (var item in source)
-            {
-                if (offset >= partLength)
-                {
-                    yield return part;
-                    offset = 0;
-                    part = null;
-                }
-
-                if (part == null)
-                    part = new T[partLength];
-
-                part[offset++] = item;
-            }
-
-            if (part != null)
-            {
-                if (offset < partLength)
-                    Array.Resize(ref part, offset);
-                yield return part;
-            }
         }
 
 
@@ -371,10 +339,10 @@ namespace Pomona.Fetcher
                 return false;
 
             elementType = prop.PropertyType
-                    .GetInterfaces()
-                    .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    .Select(x => x.GetGenericArguments()[0])
-                    .FirstOrDefault();
+                              .GetInterfaces()
+                              .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                              .Select(x => x.GetGenericArguments()[0])
+                              .FirstOrDefault();
 
             return elementType != null;
         }
@@ -383,6 +351,38 @@ namespace Pomona.Fetcher
         private bool IsManyToOne(PropertyInfo prop)
         {
             return this.driver.IsManyToOne(prop);
+        }
+
+
+        private static IEnumerable<T[]> Partition<T>(IEnumerable<T> source, int partLength)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+            if (partLength < 1)
+                throw new ArgumentOutOfRangeException("partLength", "Can't divide sequence in parts less than length 1");
+            T[] part = null;
+            var offset = 0;
+            foreach (var item in source)
+            {
+                if (offset >= partLength)
+                {
+                    yield return part;
+                    offset = 0;
+                    part = null;
+                }
+
+                if (part == null)
+                    part = new T[partLength];
+
+                part[offset++] = item;
+            }
+
+            if (part != null)
+            {
+                if (offset < partLength)
+                    Array.Resize(ref part, offset);
+                yield return part;
+            }
         }
     }
 }

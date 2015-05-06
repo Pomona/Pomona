@@ -238,6 +238,12 @@ namespace Pomona.Common
         }
 
 
+        public override bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
+        {
+            return base.TryGetTypeByName(typeName, out typeSpec) || this.typeNameMap.TryGetValue(typeName, out typeSpec);
+        }
+
+
         public IQueryable<T> WrapExtendedQuery<T>(Func<Type, IQueryable> queryableCreator)
         {
             ExtendedResourceInfo extendedResourceInfo;
@@ -291,12 +297,6 @@ namespace Pomona.Common
             }
 
             return type;
-        }
-
-
-        public override bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
-        {
-            return base.TryGetTypeByName(typeName, out typeSpec) || this.typeNameMap.TryGetValue(typeName, out typeSpec);
         }
 
 

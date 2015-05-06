@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -71,12 +71,12 @@ namespace Pomona.Common.Expressions
             }
 
             return new TreePatternMatcher(ReplaceParametersWithCaptureGroup(searchLambda),
-                ReplaceParametersWithCaptureGroup(replaceLambda));
+                                          ReplaceParametersWithCaptureGroup(replaceLambda));
         }
 
 
         public static TreePatternMatcher FromLambda<T, TRet>(Expression<Func<T, IMatchContext, TRet>> searchLambda,
-            Expression<Func<T, IMatchContext, TRet>> replaceLambda)
+                                                             Expression<Func<T, IMatchContext, TRet>> replaceLambda)
         {
             return FromLambda((LambdaExpression)searchLambda, replaceLambda);
         }
@@ -124,19 +124,6 @@ namespace Pomona.Common.Expressions
         }
 
 
-        private static Expression ReplaceParametersWithCaptureGroup(LambdaExpression expr)
-        {
-            var contextParam = expr.Parameters.FirstOrDefault(x => x.Type == typeof(IMatchContext))
-                               ?? Expression.Parameter(typeof(IMatchContext));
-            var visitedBody =
-                new ReplaceParametersWithCaptureGroupsVisitor(
-                    expr.Parameters.Where(x => x.Type != typeof(IMatchContext)),
-                    contextParam).Visit(expr.Body);
-
-            return visitedBody;
-        }
-
-
         private bool Match(Expression pattern, Expression expr)
         {
             return (pattern == null && expr == null) ||
@@ -145,23 +132,23 @@ namespace Pomona.Common.Expressions
                        .Maybe()
                        .Where(x => x.NodeType == expr.NodeType)
                        .Switch(y => y
-                           .Case<MemberExpression>().Then(x => MatchMember(x, (MemberExpression)expr))
-                           .Case<MethodCallExpression>().Then(x => MatchMethodCall(x, (MethodCallExpression)expr))
-                           .Case<BinaryExpression>().Then(x => MatchBinary(x, (BinaryExpression)expr))
-                           .Case<ConstantExpression>().Then(x => MatchConstant(x, (ConstantExpression)expr))
-                           .Case<LambdaExpression>().Then(x => MatchLambda(x, (LambdaExpression)expr))
-                           .Case<ParameterExpression>().Then(x => x.Type == expr.Type)
-                           .Case<UnaryExpression>().Then(x => MatchUnary(x, (UnaryExpression)expr))
-                           .Case<NewExpression>().Then(x => MatchNew(x, (NewExpression)expr))
-                           .Case<NewArrayExpression>().Then(x => MatchNewArray(x, (NewArrayExpression)expr))
-                           .Case<ConditionalExpression>().Then(x => MatchConditional(x, (ConditionalExpression)expr))
-                           // TODO make sure parameters originates from correct place.
-                           .Case(x => true /* Default case */).Then(
-                               x =>
-                               {
-                                   throw new NotImplementedException("Match of Expression type " + x.GetType().FullName
-                                                                     + " is not implemented.");
-                               })
+                                   .Case<MemberExpression>().Then(x => MatchMember(x, (MemberExpression)expr))
+                                   .Case<MethodCallExpression>().Then(x => MatchMethodCall(x, (MethodCallExpression)expr))
+                                   .Case<BinaryExpression>().Then(x => MatchBinary(x, (BinaryExpression)expr))
+                                   .Case<ConstantExpression>().Then(x => MatchConstant(x, (ConstantExpression)expr))
+                                   .Case<LambdaExpression>().Then(x => MatchLambda(x, (LambdaExpression)expr))
+                                   .Case<ParameterExpression>().Then(x => x.Type == expr.Type)
+                                   .Case<UnaryExpression>().Then(x => MatchUnary(x, (UnaryExpression)expr))
+                                   .Case<NewExpression>().Then(x => MatchNew(x, (NewExpression)expr))
+                                   .Case<NewArrayExpression>().Then(x => MatchNewArray(x, (NewArrayExpression)expr))
+                                   .Case<ConditionalExpression>().Then(x => MatchConditional(x, (ConditionalExpression)expr))
+                                   // TODO make sure parameters originates from correct place.
+                                   .Case(x => true /* Default case */).Then(
+                                       x =>
+                                       {
+                                           throw new NotImplementedException("Match of Expression type " + x.GetType().FullName
+                                                                             + " is not implemented.");
+                                       })
                        ).OrDefault();
         }
 
@@ -255,6 +242,19 @@ namespace Pomona.Common.Expressions
             return pattern.Method == expr.Method && Match(pattern.Operand, expr.Operand);
         }
 
+
+        private static Expression ReplaceParametersWithCaptureGroup(LambdaExpression expr)
+        {
+            var contextParam = expr.Parameters.FirstOrDefault(x => x.Type == typeof(IMatchContext))
+                               ?? Expression.Parameter(typeof(IMatchContext));
+            var visitedBody =
+                new ReplaceParametersWithCaptureGroupsVisitor(
+                    expr.Parameters.Where(x => x.Type != typeof(IMatchContext)),
+                    contextParam).Visit(expr.Body);
+
+            return visitedBody;
+        }
+
         #region Nested type: ReplaceParametersWithCaptureGroupsVisitor
 
         private class ReplaceParametersWithCaptureGroupsVisitor : ExpressionVisitor
@@ -268,7 +268,7 @@ namespace Pomona.Common.Expressions
 
 
             public ReplaceParametersWithCaptureGroupsVisitor(IEnumerable<ParameterExpression> replacedParameters,
-                ParameterExpression matchContextParameter)
+                                                             ParameterExpression matchContextParameter)
             {
                 this.matchContextParameter = matchContextParameter;
                 this.replacedParameters = new List<ParameterExpression>(replacedParameters);
@@ -285,13 +285,13 @@ namespace Pomona.Common.Expressions
                 if (replacedParameterIndex >= 0)
                 {
                     return this.paramGroups.GetOrCreate(node,
-                        () =>
-                        {
-                            var groupKey = "$$param_" + replacedParameterIndex;
-                            return Expression.Call(this.matchContextParameter,
-                                groupMethod.MakeGenericMethod(node.Type),
-                                Expression.Constant(groupKey));
-                        });
+                                                        () =>
+                                                        {
+                                                            var groupKey = "$$param_" + replacedParameterIndex;
+                                                            return Expression.Call(this.matchContextParameter,
+                                                                                   groupMethod.MakeGenericMethod(node.Type),
+                                                                                   Expression.Constant(groupKey));
+                                                        });
                 }
                 return base.VisitParameter(node);
             }

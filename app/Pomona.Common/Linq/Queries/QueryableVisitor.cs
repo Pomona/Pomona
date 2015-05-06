@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,27 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
+        protected override Expression VisitExtension(Expression node)
+        {
+            var ofTypeExpression = node as OfTypeExpression;
+            if (ofTypeExpression != null)
+                return VisitOfType(ofTypeExpression);
+            var whereExpression = node as WhereExpression;
+            if (whereExpression != null)
+                return VisitWhere(whereExpression);
+            var selectManyExpression = node as SelectManyExpression;
+            if (selectManyExpression != null)
+                return VisitSelectMany(selectManyExpression);
+            var selectExpression = node as SelectExpression;
+            if (selectExpression != null)
+                return VisitSelect(selectExpression);
+            var querySourceExpression = node as QuerySourceExpression;
+            if (querySourceExpression != null)
+                return VisitQuerySource(querySourceExpression);
+            return base.VisitExtension(node);
+        }
+
+
         protected virtual Expression VisitOfType(OfTypeExpression node)
         {
             return base.VisitExtension(node);
@@ -71,27 +92,6 @@ namespace Pomona.Common.Linq.Queries
 
         protected virtual Expression VisitWhere(WhereExpression node)
         {
-            return base.VisitExtension(node);
-        }
-
-
-        protected override Expression VisitExtension(Expression node)
-        {
-            var ofTypeExpression = node as OfTypeExpression;
-            if (ofTypeExpression != null)
-                return VisitOfType(ofTypeExpression);
-            var whereExpression = node as WhereExpression;
-            if (whereExpression != null)
-                return VisitWhere(whereExpression);
-            var selectManyExpression = node as SelectManyExpression;
-            if (selectManyExpression != null)
-                return VisitSelectMany(selectManyExpression);
-            var selectExpression = node as SelectExpression;
-            if (selectExpression != null)
-                return VisitSelect(selectExpression);
-            var querySourceExpression = node as QuerySourceExpression;
-            if (querySourceExpression != null)
-                return VisitQuerySource(querySourceExpression);
             return base.VisitExtension(node);
         }
     }

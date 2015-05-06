@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,30 +38,30 @@ namespace Pomona.RequestProcessing
 {
     public abstract class HandlerRequestProcessor : IRouteActionResolver
     {
-        public abstract IEnumerable<RouteAction> Resolve(Route route, HttpMethod method);
-
-
         public static HandlerRequestProcessor Create(Type type)
         {
             return
                 (HandlerRequestProcessor)
                     Activator.CreateInstance(typeof(HandlerRequestProcessor<>).MakeGenericType(type));
         }
+
+
+        public abstract IEnumerable<RouteAction> Resolve(Route route, HttpMethod method);
     }
 
     public class HandlerRequestProcessor<THandler> : HandlerRequestProcessor
     {
+        public IEnumerable<HandlerMethod> GetHandlerMethods(TypeMapper mapper)
+        {
+            return typeof(THandler).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                                   .Select(x => new HandlerMethod(x, mapper));
+        }
+
+
         public override IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
         {
             var handlerMethodInvokers = ResolveHandlerMethods(route, method);
             return handlerMethodInvokers;
-        }
-
-
-        public IEnumerable<HandlerMethod> GetHandlerMethods(TypeMapper mapper)
-        {
-            return typeof(THandler).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Select(x => new HandlerMethod(x, mapper));
         }
 
 

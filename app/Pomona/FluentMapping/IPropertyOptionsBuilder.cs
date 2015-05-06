@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,6 @@ namespace Pomona.FluentMapping
 
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsEtag();
-
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> AsPrimaryKey();
 
 
@@ -70,12 +69,14 @@ namespace Pomona.FluentMapping
         /// <returns>The builder</returns>
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Deny(HttpMethod method);
 
+
         /// <summary>
         /// When serializing resource also include the reference resource(s).
         /// </summary>
         /// <param name="expandMode">The expand mode.</param>
         /// <returns>The builder</returns>
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> Expand(ExpandMode expandMode);
+
 
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> ExposedAsRepository();
         IPropertyOptionsBuilder<TDeclaringType, TPropertyType> HasAttribute(Attribute attribute);

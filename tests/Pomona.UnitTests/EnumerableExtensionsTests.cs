@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,16 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class EnumerableExtensionsTests
     {
+        [Test]
+        public void Flatten_DoesNotThrowStackOverflowException()
+        {
+            var node = new Node();
+            node.Children.Add(new Node());
+            node.Children.Add(new Node());
+            Assert.That(node.WrapAsEnumerable().Flatten(x => x.Children).Count(), Is.EqualTo(3));
+        }
+
+
         public class Node
         {
             private readonly List<Node> children = new List<Node>();
@@ -46,16 +56,6 @@ namespace Pomona.UnitTests
             {
                 get { return this.children; }
             }
-        }
-
-
-        [Test]
-        public void Flatten_DoesNotThrowStackOverflowException()
-        {
-            var node = new Node();
-            node.Children.Add(new Node());
-            node.Children.Add(new Node());
-            Assert.That(node.WrapAsEnumerable().Flatten(x => x.Children).Count(), Is.EqualTo(3));
         }
     }
 }

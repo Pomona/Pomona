@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,13 +35,12 @@ namespace Pomona
 {
     public interface IPomonaSession : IContainer
     {
-        Route Routes { get; }
-        IPomonaSessionFactory Factory { get; }
         PomonaContext CurrentContext { get; }
+        IPomonaSessionFactory Factory { get; }
+        Route Routes { get; }
         TypeMapper TypeMapper { get; }
         PomonaResponse Dispatch(PomonaContext context);
         PomonaResponse Dispatch(PomonaRequest request);
-        
         IEnumerable<RouteAction> GetRouteActions(PomonaContext context);
     }
 }

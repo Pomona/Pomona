@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -96,7 +96,7 @@ namespace Pomona.Common.TypeSystem
         {
             get { return StructuredTypeDetails.PrimaryId; }
         }
-        
+
         public new virtual IEnumerable<StructuredProperty> Properties
         {
             get { return base.Properties.Cast<StructuredProperty>(); }
@@ -154,6 +154,14 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        protected internal override IEnumerable<PropertySpec> OnLoadProperties()
+        {
+            return
+                Type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                    .Select(x => TypeResolver.WrapProperty(this, x));
+        }
+
+
         protected internal override PropertySpec OnWrapProperty(PropertyInfo property)
         {
             return new StructuredProperty(TypeResolver, property, this);
@@ -163,14 +171,6 @@ namespace Pomona.Common.TypeSystem
         protected override TypeSerializationMode OnLoadSerializationMode()
         {
             return TypeSerializationMode.Structured;
-        }
-
-
-        protected internal override IEnumerable<PropertySpec> OnLoadProperties()
-        {
-            return
-                Type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Select(x => TypeResolver.WrapProperty(this, x));
         }
 
         #region Nested type: ConstructorPropertySource

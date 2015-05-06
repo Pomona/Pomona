@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.IO;
@@ -66,9 +70,9 @@ namespace Pomona.Common.Internals
                         var nextByte = source.ReadByte();
                         if (nextByte != -1)
                         {
-                            var temp = new byte[readBuffer.Length*2];
+                            var temp = new byte[readBuffer.Length * 2];
                             Buffer.BlockCopy(readBuffer, 0, temp, 0, readBuffer.Length);
-                            Buffer.SetByte(temp, totalBytesRead, (byte) nextByte);
+                            Buffer.SetByte(temp, totalBytesRead, (byte)nextByte);
                             readBuffer = temp;
                             totalBytesRead++;
                         }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,19 +35,6 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class ClientMetadataTests
     {
-        private class TestableClientMetadata : ClientMetadata
-        {
-            public TestableClientMetadata(string assemblyName = null,
-                                          string name = null,
-                                          string interfaceName = null,
-                                          string @namespace = null,
-                                          string informationalVersion = null)
-                : base(assemblyName, name, interfaceName, @namespace, informationalVersion)
-            {
-            }
-        }
-
-
         [Test]
         public void Constructor_AssemblyName()
         {
@@ -198,6 +185,19 @@ namespace Pomona.UnitTests
             Assert.That(overriddenMetadata.InterfaceName, Is.EqualTo("IMyAwesomeClient"), "InterfaceName");
             Assert.That(overriddenMetadata.Namespace, Is.EqualTo("Client"), "Namespace");
             Assert.That(overriddenMetadata.InformationalVersion, Is.EqualTo("1.0.0.0"), "InformationalVersion");
+        }
+
+
+        private class TestableClientMetadata : ClientMetadata
+        {
+            public TestableClientMetadata(string assemblyName = null,
+                                          string name = null,
+                                          string interfaceName = null,
+                                          string @namespace = null,
+                                          string informationalVersion = null)
+                : base(assemblyName, name, interfaceName, @namespace, informationalVersion)
+            {
+            }
         }
     }
 }

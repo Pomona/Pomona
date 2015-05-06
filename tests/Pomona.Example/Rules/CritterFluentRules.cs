@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Linq;
 
 using Nancy;
 
@@ -56,14 +55,14 @@ namespace Pomona.Example.Rules
         {
             map
                 .HasChildren(x => x.Children,
-                    x => x.Parent,
-                    t =>
-                    {
-                        return
-                            t.ConstructedUsing(c => new HandledChild(c.Parent<HandledThing>()))
-                                .HandledBy<HandledThingsHandler>();
-                    },
-                    o => o.ExposedAsRepository())
+                             x => x.Parent,
+                             t =>
+                             {
+                                 return
+                                     t.ConstructedUsing(c => new HandledChild(c.Parent<HandledThing>()))
+                                      .HandledBy<HandledThingsHandler>();
+                             },
+                             o => o.ExposedAsRepository())
                 .Include(x => x.ETag, o => o.AsEtag())
                 .AsUriBaseType()
                 .DeleteAllowed().HandledBy<HandledThingsHandler>();
@@ -166,6 +165,7 @@ namespace Pomona.Example.Rules
             map.ConstructedUsing(x => new ArgNullThrowingThing(x.Optional().Incoming));
         }
 
+
         public void Map(ITypeMappingConfigurator<OrderResponse> map)
         {
             map.AsValueObject();
@@ -177,9 +177,9 @@ namespace Pomona.Example.Rules
             map.ConstructedUsing(
                 (c) =>
                     new Loner(c.Requires().Name,
-                        c.Requires().Strength,
-                        c.Optional().OptionalInfo,
-                        c.Optional().OptionalDate));
+                              c.Requires().Strength,
+                              c.Optional().OptionalInfo,
+                              c.Optional().OptionalDate));
         }
 
 
@@ -201,56 +201,56 @@ namespace Pomona.Example.Rules
             map
                 .Include<string>("Rocky",
                                  o => o.OnGetAndQuery(x => x.Items.SafeGet("Rocky") ?? "BALOBA")
-                                     .OnSet((x, v) => x.Items["Rocky"] = v)
-                                     .Writable())
+                                       .OnSet((x, v) => x.Items["Rocky"] = v)
+                                       .Writable())
                 .Include<double>("NumberSquareRoot",
                                  o => o.OnGetAndQuery(x => Math.Sqrt(x.Number))
-                                     .OnSet((x, v) => x.Number = v * v)
-                                     .Writable());
-
+                                       .OnSet((x, v) => x.Number = v * v)
+                                       .Writable());
         }
+
 
         public void Map(ITypeMappingConfigurator<Critter> map)
         {
             map.AsUriBaseType()
-                .Include(x => x.CrazyValue)
-                .Include(x => x.CreatedOn)
-                .Include(x => x.Subscriptions, o => o.Expand().Writable())
-                .Include(x => x.HandledGeneratedProperty, o => o.OnQuery(x => x.Id % 6))
-                .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
-                .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
-                .Include(x => x.PropertyWithAttributeAddedFluently, o => o.HasAttribute(new ObsoleteAttribute()))
-                .IncludeAs<string>(x => x.IntExposedAsString,
-                    o =>
-                        o.OnGet(x => x.IntExposedAsString.ToString()).OnQuery(x => x.IntExposedAsString.ToString())
-                            .OnSet((c, v) => c.IntExposedAsString = int.Parse(v)))
-                .Include(x => x.Weapons, o => o.Writable())
-                .Include(x => x.RelativeImageUrl,
-                    o => o.Named("AbsoluteImageUrl")
-                        .OnGet<NancyContext>((critter, ctx) =>
-                        {
-                            var absUrl = ctx.Request.Url.Clone();
-                            absUrl.Path = critter.RelativeImageUrl;
-                            absUrl.Query = null;
-                            return absUrl.ToString();
-                        })
-                        .OnSet<NancyContext>(
-                            (critter, value, ctx) =>
-                            {
-                                critter.RelativeImageUrl =
-                                    new Uri(value).AbsolutePath.Substring((ctx.Request.Url.BasePath ?? "").Length);
-                            }))
-                .Include(x => x.Enemies, o => o.ExpandShallow())
-                .HandledBy<CritterHandler>()
-                .OnDeserialized(c => c.FixParentReferences());
+               .Include(x => x.CrazyValue)
+               .Include(x => x.CreatedOn)
+               .Include(x => x.Subscriptions, o => o.Expand().Writable())
+               .Include(x => x.HandledGeneratedProperty, o => o.OnQuery(x => x.Id % 6))
+               .Include(x => x.Password, o => o.WithAccessMode(HttpMethod.Post | HttpMethod.Put))
+               .Include(x => x.PublicAndReadOnlyThroughApi, o => o.ReadOnly())
+               .Include(x => x.PropertyWithAttributeAddedFluently, o => o.HasAttribute(new ObsoleteAttribute()))
+               .IncludeAs<string>(x => x.IntExposedAsString,
+                                  o =>
+                                      o.OnGet(x => x.IntExposedAsString.ToString()).OnQuery(x => x.IntExposedAsString.ToString())
+                                       .OnSet((c, v) => c.IntExposedAsString = int.Parse(v)))
+               .Include(x => x.Weapons, o => o.Writable())
+               .Include(x => x.RelativeImageUrl,
+                        o => o.Named("AbsoluteImageUrl")
+                              .OnGet<NancyContext>((critter, ctx) =>
+                              {
+                                  var absUrl = ctx.Request.Url.Clone();
+                                  absUrl.Path = critter.RelativeImageUrl;
+                                  absUrl.Query = null;
+                                  return absUrl.ToString();
+                              })
+                              .OnSet<NancyContext>(
+                                  (critter, value, ctx) =>
+                                  {
+                                      critter.RelativeImageUrl =
+                                          new Uri(value).AbsolutePath.Substring((ctx.Request.Url.BasePath ?? "").Length);
+                                  }))
+               .Include(x => x.Enemies, o => o.ExpandShallow())
+               .HandledBy<CritterHandler>()
+               .OnDeserialized(c => c.FixParentReferences());
         }
 
 
         public void Map(ITypeMappingConfigurator<HasReadOnlyDictionaryProperty> map)
         {
             map.Include(x => x.Map,
-                o =>
-                    o.AsAttributes().WithAccessMode(HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post));
+                        o =>
+                            o.AsAttributes().WithAccessMode(HttpMethod.Get | HttpMethod.Patch | HttpMethod.Post));
         }
 
 
@@ -269,7 +269,7 @@ namespace Pomona.Example.Rules
         public void Map(ITypeMappingConfigurator<Gun> map)
         {
             map.ConstructedUsing(x => new Gun(x.Requires().Model))
-                .Include(x => x.ExplosionFactor);
+               .Include(x => x.ExplosionFactor);
         }
     }
 }

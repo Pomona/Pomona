@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,14 @@ namespace Pomona.SystemTests.CodeGen
     [TestFixture]
     public class StringEnumTests
     {
+        [Test]
+        public void AllValues_Has_All_Values()
+        {
+            Assert.That(ClientEnum.AllValues.Select(x => x.Value).ToList(),
+                        Is.EquivalentTo(new string[] { "Mouse", "Rat", "Cat" }));
+        }
+
+
         [Test]
         public void Cast_From_String_Works_As_It_Should()
         {
@@ -86,14 +94,6 @@ namespace Pomona.SystemTests.CodeGen
         {
             var parsed = (ClientEnum)"rAt";
             Assert.That(parsed.ToString(), Is.EqualTo("Rat"));
-        }
-
-
-        [Test]
-        public void AllValues_Has_All_Values()
-        {
-            Assert.That(ClientEnum.AllValues.Select(x => x.Value).ToList(),
-                        Is.EquivalentTo(new string[] { "Mouse", "Rat", "Cat" }));
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,12 +43,12 @@ namespace Pomona.Common.Linq
         }
 
 
+        public abstract ReadOnlyCollection<object> Children { get; }
+
         public virtual bool LocalExecutionPreferred
         {
             get { return false; }
         }
-
-        public abstract ReadOnlyCollection<object> Children { get; }
 
         public override ExpressionType NodeType
         {

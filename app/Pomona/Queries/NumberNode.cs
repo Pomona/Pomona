@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -46,33 +46,33 @@ namespace Pomona.Queries
 
         public string Value
         {
-            get { return value; }
+            get { return this.value; }
+        }
+
+
+        public object Parse()
+        {
+            var lastCharacter = this.value[this.value.Length - 1];
+            if (lastCharacter == 'm' || lastCharacter == 'M')
+                return decimal.Parse(this.value.Substring(0, this.value.Length - 1), CultureInfo.InvariantCulture);
+            if (lastCharacter == 'f' || lastCharacter == 'F')
+                return float.Parse(this.value.Substring(0, this.value.Length - 1), CultureInfo.InvariantCulture);
+            if (lastCharacter == 'L')
+                return Int64.Parse(this.value.Substring(0, this.value.Length - 1), CultureInfo.InvariantCulture);
+
+            var parts = this.value.Split('.');
+            if (parts.Length == 1)
+                return int.Parse(parts[0], CultureInfo.InvariantCulture);
+            if (parts.Length == 2)
+                return double.Parse(this.value, CultureInfo.InvariantCulture);
+
+            throw new InvalidOperationException("Unable to parse " + this.value);
         }
 
 
         public override string ToString()
         {
             return base.ToString() + " " + Value;
-        }
-
-
-        public object Parse()
-        {
-            var lastCharacter = value[value.Length - 1];
-            if (lastCharacter == 'm' || lastCharacter == 'M')
-                return decimal.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
-            if (lastCharacter == 'f' || lastCharacter == 'F')
-                return float.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
-            if (lastCharacter == 'L')
-                return Int64.Parse(value.Substring(0, value.Length - 1), CultureInfo.InvariantCulture);
-
-            var parts = value.Split('.');
-            if (parts.Length == 1)
-                return int.Parse(parts[0], CultureInfo.InvariantCulture);
-            if (parts.Length == 2)
-                return double.Parse(value, CultureInfo.InvariantCulture);
-
-            throw new InvalidOperationException("Unable to parse " + value);
         }
     }
 }

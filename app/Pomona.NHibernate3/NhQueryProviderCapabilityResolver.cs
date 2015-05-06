@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,8 @@ namespace Pomona.NHibernate3
             var cm = this.factory.GetClassMetadata(propertyInfo.ReflectedType);
             if (cm == null)
                 return false;
-            return (cm.HasIdentifierProperty && cm.IdentifierPropertyName == propertyInfo.Name) || cm.PropertyNames.Contains(propertyInfo.Name);
+            return (cm.HasIdentifierProperty && cm.IdentifierPropertyName == propertyInfo.Name)
+                   || cm.PropertyNames.Contains(propertyInfo.Name);
         }
     }
 }

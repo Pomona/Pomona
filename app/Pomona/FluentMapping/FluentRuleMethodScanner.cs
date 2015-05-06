@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,7 @@ namespace Pomona.FluentMapping
         {
             return
                 GetMappingRulesFromObjects(fluentRuleObjects).Concat(GetMappingRulesFromDelegates(fluentRuleDelegates))
-                    .Flatten
+                                                             .Flatten
                     (x => x.GetChildRules()).ToList();
         }
 
@@ -62,9 +62,9 @@ namespace Pomona.FluentMapping
                 return Enumerable.Empty<FluentRuleMethod>();
             return ruleContainers
                 .SelectMany(x => x.GetType()
-                                .GetMethods()
-                                .Where(IsRuleMethod)
-                                .Select(m => new FluentRuleMethod(m, x)));
+                                  .GetMethods()
+                                  .Where(IsRuleMethod)
+                                  .Select(m => new FluentRuleMethod(m, x)));
         }
 
 

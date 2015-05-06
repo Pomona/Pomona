@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,16 +34,17 @@ namespace Pomona.Example.Models
     {
         private string eTag = Guid.NewGuid().ToString();
 
-        public string Info { get; set; }
-
         public string ETag
         {
-            get { return eTag; }
+            get { return this.eTag; }
         }
+
+        public string Info { get; set; }
+
 
         public void SetEtag(string newEtagValue)
         {
-            eTag = newEtagValue;
+            this.eTag = newEtagValue;
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,17 +40,9 @@ namespace Pomona
 
         private static readonly Func<Type, IPomonaDataSource, object, object> postMethodInvoker =
             GenericInvoker.Instance<IPomonaDataSource>().CreateFunc1<object, object>(x => x.Post<object>(null));
+
         private static readonly Func<Type, IPomonaDataSource, object, object> patchMethodInvoker =
             GenericInvoker.Instance<IPomonaDataSource>().CreateFunc1<object, object>(x => x.Patch<object>(null));
-
-        public static IQueryable Query(this IPomonaDataSource dataSource, Type type)
-        {
-            if (dataSource == null)
-                throw new ArgumentNullException("dataSource");
-            if (type == null)
-                throw new ArgumentNullException("type");
-            return queryMethodInvoker(type, dataSource);
-        }
 
 
         public static object Patch(this IPomonaDataSource dataSource, Type type, object patchedObject)
@@ -65,6 +57,7 @@ namespace Pomona
             return patchMethodInvoker(type, dataSource, patchedObject);
         }
 
+
         public static object Post(this IPomonaDataSource dataSource, Type type, object form)
         {
             if (dataSource == null)
@@ -75,6 +68,16 @@ namespace Pomona
                 throw new ArgumentNullException("form");
 
             return postMethodInvoker(type, dataSource, form);
+        }
+
+
+        public static IQueryable Query(this IPomonaDataSource dataSource, Type type)
+        {
+            if (dataSource == null)
+                throw new ArgumentNullException("dataSource");
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return queryMethodInvoker(type, dataSource);
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,21 +49,20 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class PostTests : ClientTestsBase
     {
-        #region Setup/Teardown
-
-        [TearDown]
-        public void TearDown()
+        [Test]
+        public void Post_Thing_Having_StringEnum_Property()
         {
-            // Reset lazymode back to enabled. @asbjornu
-            Client.Settings.LazyMode = LazyMode.Enabled;
+            var resource = Client.HasCustomStringEnums.Post(f => f.Value = CustomStringEnum.Mouse);
+            Assert.That(resource.Value, Is.EqualTo(CustomStringEnum.Mouse));
         }
 
-        #endregion
 
         [Test]
         public void PostAbstractClass_ThrowsExceptionOnClient()
         {
-            var exception = Assert.Throws<MissingMethodException>(() => Client.Post<IAbstractAnimal>(x => {}));
+            var exception = Assert.Throws<MissingMethodException>(() => Client.Post<IAbstractAnimal>(x =>
+            {
+            }));
 
             Assert.That(exception.Message,
                         Is.StringContaining("Cannot create an abstract class."),
@@ -110,6 +109,35 @@ namespace Pomona.SystemTests
             var dataBytes = Encoding.ASCII.GetBytes("Lalalala");
             var response = Client.Blobs.Post(new BlobForm() { DataBytes = dataBytes });
             Assert.That(response.DataBytes, Is.EquivalentTo(dataBytes));
+        }
+
+
+        [Test]
+        public void PostCritter_SetIntPropertyExposedAsStringToValidNumber_UpdatesEntityProperty()
+        {
+            var form = new CritterForm() { Name = "The postbear", IntExposedAsString = "348738" };
+            var resource = Client.Critters.Post(form);
+            Assert.That(resource.IntExposedAsString, Is.EqualTo("348738"));
+            var entity = CritterEntities.Single(x => x.Id == resource.Id);
+            Assert.That(entity.IntExposedAsString, Is.EqualTo(348738));
+        }
+
+
+        [Test]
+        public void PostCritter_WithPostOptionExpandWeapons_ExpandsWeapons()
+        {
+            var critter = Client.Critters.Post<IMusicalCritter>(x =>
+            {
+                x.Name = "klukluk";
+                x.Weapons.Add(new WeaponForm()
+                {
+                    Model = new WeaponModelForm() { Name = "halalaksldk" },
+                    Price = 23,
+                    Strength = 34
+                });
+            },
+                                                                o => o.Expand(x => x.Weapons));
+            Assert.That(critter.Weapons, Is.InstanceOf<List<IWeapon>>());
         }
 
 
@@ -245,35 +273,6 @@ namespace Pomona.SystemTests
 
             var critterEntity = CritterEntities.First(x => x.Id == critter.Id);
             Assert.That(critterEntity.Subscriptions[0].Critter, Is.EqualTo(critterEntity));
-        }
-
-
-        [Test]
-        public void PostCritter_SetIntPropertyExposedAsStringToValidNumber_UpdatesEntityProperty()
-        {
-            var form = new CritterForm() { Name = "The postbear", IntExposedAsString = "348738" };
-            var resource = Client.Critters.Post(form);
-            Assert.That(resource.IntExposedAsString, Is.EqualTo("348738"));
-            var entity = CritterEntities.Single(x => x.Id == resource.Id);
-            Assert.That(entity.IntExposedAsString, Is.EqualTo(348738));
-        }
-
-
-        [Test]
-        public void PostCritter_WithPostOptionExpandWeapons_ExpandsWeapons()
-        {
-            var critter = Client.Critters.Post<IMusicalCritter>(x =>
-            {
-                x.Name = "klukluk";
-                x.Weapons.Add(new WeaponForm()
-                {
-                    Model = new WeaponModelForm() { Name = "halalaksldk" },
-                    Price = 23,
-                    Strength = 34
-                });
-            },
-                                                                o => o.Expand(x => x.Weapons));
-            Assert.That(critter.Weapons, Is.InstanceOf<List<IWeapon>>());
         }
 
 
@@ -483,6 +482,16 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PostThing_IdentifiedByGuid_IsSuccessful()
+        {
+            var guidThing = Client.GuidThings.Post(new GuidThingForm());
+            var guid = guidThing.Id;
+            var reloadedThing = Client.Reload(guidThing);
+            Assert.That(reloadedThing.Id, Is.EqualTo(guid));
+        }
+
+
+        [Test]
         public void PostThingWithNullableDateTime_WithNonNullValue()
         {
             DateTime? maybeDateTime = new DateTime(2011, 10, 22, 1, 33, 22);
@@ -534,16 +543,6 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void PostThing_IdentifiedByGuid_IsSuccessful()
-        {
-            var guidThing = Client.GuidThings.Post(new GuidThingForm());
-            var guid = guidThing.Id;
-            var reloadedThing = Client.Reload(guidThing);
-            Assert.That(reloadedThing.Id, Is.EqualTo(guid));
-        }
-
-
-        [Test]
         public void PostToReadOnlyAttributesProperty()
         {
             var o =
@@ -557,6 +556,18 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PostUnpostableThing_ThrowsInvalidOperationException()
+        {
+            var ex =
+                Assert.Throws<InvalidOperationException>(
+                    () =>
+                        ((IPostableRepository<IUnpostableThing, IUnpostableThing>)Client.UnpostableThings).Post(
+                            x => x.FooBar = "moo"));
+            Assert.That(ex.Message, Is.EqualTo("Method POST is not allowed for uri."));
+        }
+
+
+        [Test]
         public void PostUnpostableThingOnServer_ThatIsOnlyUnpostableServerSide_ThrowsInvalidOperationException()
         {
             // UnpostableThingOnServer has been modified in GenerateClientDllApp to appear postable in client dll,
@@ -566,18 +577,6 @@ namespace Pomona.SystemTests
             Console.WriteLine(ex);
             Assert.That(ex.Message, Is.StringContaining("'405 MethodNotAllowed': Method POST not allowed!"));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.MethodNotAllowed));
-        }
-
-
-        [Test]
-        public void PostUnpostableThing_ThrowsInvalidOperationException()
-        {
-            var ex =
-                Assert.Throws<InvalidOperationException>(
-                    () =>
-                        ((IPostableRepository<IUnpostableThing, IUnpostableThing>)Client.UnpostableThings).Post(
-                            x => x.FooBar = "moo"));
-            Assert.That(ex.Message, Is.EqualTo("Method POST is not allowed for uri."));
         }
 
 
@@ -606,12 +605,15 @@ namespace Pomona.SystemTests
             Assert.That(ex.Body.Member, Is.EqualTo("Model"));
         }
 
+        #region Setup/Teardown
 
-        [Test]
-        public void Post_Thing_Having_StringEnum_Property()
+        [TearDown]
+        public void TearDown()
         {
-            var resource = Client.HasCustomStringEnums.Post(f => f.Value = CustomStringEnum.Mouse);
-            Assert.That(resource.Value, Is.EqualTo(CustomStringEnum.Mouse));
+            // Reset lazymode back to enabled. @asbjornu
+            Client.Settings.LazyMode = LazyMode.Enabled;
         }
+
+        #endregion
     }
 }

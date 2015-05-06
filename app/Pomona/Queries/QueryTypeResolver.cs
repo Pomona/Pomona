@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,12 +24,11 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-
-using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -42,6 +43,7 @@ namespace Pomona.Queries
 
         private readonly ITypeResolver typeMapper;
 
+
         public QueryTypeResolver(ITypeResolver typeMapper)
         {
             if (typeMapper == null)
@@ -55,11 +57,11 @@ namespace Pomona.Queries
         {
             // TODO: Proper exception handling when type is not TransformedType [KNS]
             property = null;
-            var transformedType = (StructuredType)typeMapper.FromType(type);
+            var transformedType = (StructuredType)this.typeMapper.FromType(type);
             PropertySpec uncastProperty;
             return transformedType.TryGetPropertyByName(propertyPath,
-                StringComparison.InvariantCultureIgnoreCase,
-                out uncastProperty) && (property = uncastProperty as TProperty) != null;
+                                                        StringComparison.InvariantCultureIgnoreCase,
+                                                        out uncastProperty) && (property = uncastProperty as TProperty) != null;
         }
 
 
@@ -68,12 +70,12 @@ namespace Pomona.Queries
             Type type;
 
             if (typeName.EndsWith("?"))
-                return typeof (Nullable<>).MakeGenericType(ResolveType(typeName.Substring(0, typeName.Length - 1)));
+                return typeof(Nullable<>).MakeGenericType(ResolveType(typeName.Substring(0, typeName.Length - 1)));
 
             if (nativeTypes.TryGetValue(typeName.ToLower(), out type))
                 return type;
 
-            return typeMapper.FromType(typeName).Type;
+            return this.typeMapper.FromType(typeName).Type;
         }
 
         #endregion

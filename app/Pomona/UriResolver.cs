@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -50,34 +50,6 @@ namespace Pomona
         }
 
 
-        public virtual string RelativeToAbsoluteUri(string path)
-        {
-            var baseUri = this.baseUriProvider.BaseUri.ToString();
-            return String.Format("{0}{1}{2}", baseUri, (baseUri.EndsWith("/") || path == string.Empty) ? string.Empty : "/", path);
-        }
-
-
-        public string ToRelativePath(string url)
-        {
-            var baseUrl = baseUriProvider.BaseUri.ToString().TrimEnd('/');
-            if (!(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase) && (baseUrl.Length == url.Length || url[baseUrl.Length] == '/')))
-                throw new ArgumentException("Url does not have the correct base url.", "url");
-            return url.Substring(baseUrl.Length);
-        }
-
-
-        public string GetUriFor(PropertySpec property, object entity)
-        {
-            return RelativeToAbsoluteUri(BuildRelativeUri(entity, property));
-        }
-
-
-        public string GetUriFor(object entity)
-        {
-            return RelativeToAbsoluteUri(BuildRelativeUri(entity, null));
-        }
-
-
         private string BuildRelativeUri(object entity, PropertySpec property)
         {
             var sb = new StringBuilder();
@@ -100,6 +72,36 @@ namespace Pomona
                     sb.Append('/');
                 sb.Append(((ResourceProperty)property).UriName);
             }
+        }
+
+
+        public string GetUriFor(PropertySpec property, object entity)
+        {
+            return RelativeToAbsoluteUri(BuildRelativeUri(entity, property));
+        }
+
+
+        public string GetUriFor(object entity)
+        {
+            return RelativeToAbsoluteUri(BuildRelativeUri(entity, null));
+        }
+
+
+        public virtual string RelativeToAbsoluteUri(string path)
+        {
+            var baseUri = this.baseUriProvider.BaseUri.ToString();
+            return String.Format("{0}{1}{2}", baseUri, (baseUri.EndsWith("/") || path == string.Empty) ? string.Empty : "/", path);
+        }
+
+
+        public string ToRelativePath(string url)
+        {
+            var baseUrl = this.baseUriProvider.BaseUri.ToString().TrimEnd('/');
+            if (
+                !(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase)
+                  && (baseUrl.Length == url.Length || url[baseUrl.Length] == '/')))
+                throw new ArgumentException("Url does not have the correct base url.", "url");
+            return url.Substring(baseUrl.Length);
         }
     }
 }

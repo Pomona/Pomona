@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,6 @@ namespace Pomona.RequestProcessing
         : WrappedQueryableBase<TElement>, IQueryableActionResult<TElement, TResult>
     {
         private readonly QueryProjection projection;
-        private int? defaultPageSize;
 
 
         internal QueryableActionResult(IQueryable<TElement> innerQueryable,
@@ -47,14 +46,16 @@ namespace Pomona.RequestProcessing
             : base(innerQueryable)
         {
             this.projection = projection;
-            this.defaultPageSize = defaultPageSize;
+            DefaultPageSize = defaultPageSize;
         }
 
 
-        public int? DefaultPageSize
+        public Type ResultType
         {
-            get { return this.defaultPageSize; }
+            get { return typeof(TResult); }
         }
+
+        public int? DefaultPageSize { get; private set; }
 
         public QueryProjection Projection
         {
@@ -64,11 +65,6 @@ namespace Pomona.RequestProcessing
         public IQueryable WrappedQueryable
         {
             get { return InnerQueryable; }
-        }
-
-        public Type ResultType
-        {
-            get { return typeof(TResult); }
         }
     }
 }

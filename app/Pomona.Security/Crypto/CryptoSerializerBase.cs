@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -41,10 +41,9 @@ namespace Pomona.Security.Crypto
 {
     public abstract class CryptoSerializerBase : ICryptoSerializer
     {
+        private readonly bool compressionEnabled = true;
         private readonly RandomNumberGenerator randomNumberGenerator;
         private readonly ISiteKeyProvider siteKeyProvider;
-
-        private bool compressionEnabled = true;
 
 
         public CryptoSerializerBase(ISiteKeyProvider siteKeyProvider, RandomNumberGenerator randomNumberGenerator)
@@ -64,18 +63,35 @@ namespace Pomona.Security.Crypto
         }
 
 
-        public T Deserialize<T>(string hexString)
+        protected virtual SymmetricAlgorithm CreateSymmetricalAlgorithm()
         {
-            if (hexString == null)
-                throw new ArgumentNullException("hexString");
-            try
-            {
-                return DeserializeUnprotected<T>(hexString);
-            }
-            catch (Exception ex)
-            {
-                throw new SerializationException("Unable to deserialize encrypted string", ex);
-            }
+            var codec = Rijndael.Create();
+            if (codec == null)
+                throw new InvalidOperationException("What? Should not get a null crypto codec!");
+            return codec;
+        }
+
+
+        private Stream CreateCompressStream(MemoryStream memStream)
+        {
+            if (this.compressionEnabled)
+                return new DeflateStream(memStream, CompressionMode.Compress);
+            return memStream;
+        }
+
+
+        private Stream CreateDecompressStream(MemoryStream memStream)
+        {
+            if (this.compressionEnabled)
+                return new DeflateStream(memStream, CompressionMode.Decompress);
+            return memStream;
+        }
+
+
+        private static byte[] DecodeUrlSafeBase64<T>(string hexString)
+        {
+            // Url-safe base64
+            return Convert.FromBase64String(hexString.Replace('-', '+').Replace('_', '/').Replace('.', '='));
         }
 
 
@@ -93,9 +109,9 @@ namespace Pomona.Security.Crypto
                 using (var decryptor = codec.CreateDecryptor(codec.Key, codec.IV))
                 {
                     var plainBytes = decryptor.TransformFinalBlock(encryptedTokenBytes,
-                        blockSizeBytes
-                        /* skip iv bytes */,
-                        cipherTextLength);
+                                                                   blockSizeBytes
+                                                                   /* skip iv bytes */,
+                                                                   cipherTextLength);
                     using (var memStream = new MemoryStream(plainBytes))
                     {
                         using (var gzipStream = CreateDecompressStream(memStream))
@@ -116,6 +132,40 @@ namespace Pomona.Security.Crypto
         }
 
 
+        private static string EncodeUrlSafeBase64(byte[] ivAndEncryptedMessageBytes)
+        {
+            return Convert.ToBase64String(ivAndEncryptedMessageBytes).Replace('+', '-').Replace('/', '_').Replace('=',
+                                                                                                                  '.');
+        }
+
+
+        private SymmetricAlgorithm GetInitializedCodec()
+        {
+            var codec = CreateSymmetricalAlgorithm();
+
+            codec.Key = KeyBytes;
+            codec.Mode = CipherMode.CFB; // For arbitrary lenghts
+            codec.Padding = PaddingMode.None;
+            codec.FeedbackSize = 8;
+            return codec;
+        }
+
+
+        public T Deserialize<T>(string hexString)
+        {
+            if (hexString == null)
+                throw new ArgumentNullException("hexString");
+            try
+            {
+                return DeserializeUnprotected<T>(hexString);
+            }
+            catch (Exception ex)
+            {
+                throw new SerializationException("Unable to deserialize encrypted string", ex);
+            }
+        }
+
+
         public string Serialize(object obj)
         {
             using (var memStream = new MemoryStream())
@@ -125,9 +175,9 @@ namespace Pomona.Security.Crypto
                     using (var textWriter = new StreamWriter(gzipStream, new UTF8Encoding(false)))
                     {
                         JsonSerializer.CreateDefault(new JsonSerializerSettings() { Formatting = Formatting.None })
-                            .Serialize(
-                                textWriter,
-                                obj);
+                                      .Serialize(
+                                          textWriter,
+                                          obj);
                         textWriter.Flush();
                         gzipStream.Flush();
                     }
@@ -146,64 +196,14 @@ namespace Pomona.Security.Crypto
                         var ivAndEncryptedMessageBytes = new byte[codec.IV.Length + encryptedMessageBytes.Length];
                         Array.Copy(codec.IV, ivAndEncryptedMessageBytes, codec.IV.Length);
                         Array.Copy(encryptedMessageBytes,
-                            0,
-                            ivAndEncryptedMessageBytes,
-                            codec.IV.Length,
-                            encryptedMessageBytes.Length);
+                                   0,
+                                   ivAndEncryptedMessageBytes,
+                                   codec.IV.Length,
+                                   encryptedMessageBytes.Length);
                         return EncodeUrlSafeBase64(ivAndEncryptedMessageBytes);
                     }
                 }
             }
-        }
-
-
-        private static byte[] DecodeUrlSafeBase64<T>(string hexString)
-        {
-            // Url-safe base64
-            return Convert.FromBase64String(hexString.Replace('-', '+').Replace('_', '/').Replace('.', '='));
-        }
-
-
-        private static string EncodeUrlSafeBase64(byte[] ivAndEncryptedMessageBytes)
-        {
-            return Convert.ToBase64String(ivAndEncryptedMessageBytes).Replace('+', '-').Replace('/', '_').Replace('=',
-                '.');
-        }
-
-
-        private Stream CreateCompressStream(MemoryStream memStream)
-        {
-            if (this.compressionEnabled)
-                return new DeflateStream(memStream, CompressionMode.Compress);
-            return memStream;
-        }
-
-
-        private Stream CreateDecompressStream(MemoryStream memStream)
-        {
-            if (this.compressionEnabled)
-                return new DeflateStream(memStream, CompressionMode.Decompress);
-            return memStream;
-        }
-
-
-        private SymmetricAlgorithm GetInitializedCodec()
-        {
-            var codec = CreateSymmetricalAlgorithm();
-
-            codec.Key = KeyBytes;
-            codec.Mode = CipherMode.CFB; // For arbitrary lenghts
-            codec.Padding = PaddingMode.None;
-            codec.FeedbackSize = 8;
-            return codec;
-        }
-
-        protected virtual SymmetricAlgorithm CreateSymmetricalAlgorithm()
-        {
-            var codec = Rijndael.Create();
-            if (codec == null)
-                throw new InvalidOperationException("What? Should not get a null crypto codec!");
-            return codec;
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -54,25 +54,21 @@ namespace Pomona.FluentMapping
 
 
         public List<Attribute> AddedAttributes { get; set; }
-
         public PropertyCreateMode? CreateMode { get; internal set; }
         public bool? ExposedAsRepository { get; internal set; }
         public LambdaExpression Formula { get; set; }
-
         public PropertyInclusionMode InclusionMode { get; internal set; }
         public bool? IsAttributesProperty { get; set; }
         public bool? IsEtagProperty { get; set; }
-
         public bool? IsPrimaryKey { get; set; }
         public HttpMethod ItemMethod { get; internal set; }
         public HttpMethod ItemMethodMask { get; internal set; }
         public HttpMethod Method { get; internal set; }
         public HttpMethod MethodMask { get; internal set; }
         public string Name { get; set; }
-
         public Func<object, IContainer, object> OnGetDelegate { get; set; }
-
         public Action<object, object, IContainer> OnSetDelegate { get; set; }
+        public ExpandMode? PropertyExpandMode { get; set; }
 
         public PropertyInfo PropertyInfo
         {
@@ -80,8 +76,6 @@ namespace Pomona.FluentMapping
         }
 
         public Type PropertyType { get; set; }
-
-        public ExpandMode? PropertyExpandMode { get; set; }
 
 
         internal void ClearAccessModeFlag(HttpMethod method)

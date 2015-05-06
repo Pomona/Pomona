@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -47,32 +47,7 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class JsonClientSerializationTests
     {
-        #region Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.typeMapper = new ClientTypeMapper(typeof(CritterClient).Assembly);
-        }
-
-        #endregion
-
         private ClientTypeMapper typeMapper;
-
-
-        private JObject SerializeAndGetJsonObject<T>(T value)
-        {
-            var serializerFactory =
-                new PomonaJsonSerializerFactory();
-            var pomonaClient = Substitute.For<IPomonaClient>();
-            var serializer = serializerFactory.GetSerializer(
-                new ClientSerializationContextProvider(this.typeMapper, pomonaClient, pomonaClient));
-            Console.WriteLine("Serialized object to json:");
-            var jsonString = serializer.SerializeToString(value);
-            Console.WriteLine(jsonString);
-
-            return (JObject)JToken.Parse(jsonString);
-        }
 
 
         [Test]
@@ -142,6 +117,30 @@ namespace Pomona.SystemTests
 
             fooBox.AssertHasPropertyWithValue("_type", "Int32");
             fooBox.AssertHasPropertyWithValue("value", 1234);
+        }
+
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.typeMapper = new ClientTypeMapper(typeof(CritterClient).Assembly);
+        }
+
+        #endregion
+
+        private JObject SerializeAndGetJsonObject<T>(T value)
+        {
+            var serializerFactory =
+                new PomonaJsonSerializerFactory();
+            var pomonaClient = Substitute.For<IPomonaClient>();
+            var serializer = serializerFactory.GetSerializer(
+                new ClientSerializationContextProvider(this.typeMapper, pomonaClient, pomonaClient));
+            Console.WriteLine("Serialized object to json:");
+            var jsonString = serializer.SerializeToString(value);
+            Console.WriteLine(jsonString);
+
+            return (JObject)JToken.Parse(jsonString);
         }
     }
 }

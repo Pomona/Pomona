@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,6 @@ namespace Pomona.Mapping
     {
         PropertyInfo GetChildToParentProperty(Type type);
         PropertyInfo GetParentToChildProperty(Type type);
-
         string GetPluralNameForType(Type type);
         Type GetPostReturnType(Type type);
         IEnumerable<Type> GetResourceHandlers(Type type);
@@ -54,7 +53,6 @@ namespace Pomona.Mapping
 
 
         string GetUrlRelativePath(Type type);
-
         bool TypeIsExposedAsRepository(Type type);
         bool TypeIsSingletonResource(Type type);
     }

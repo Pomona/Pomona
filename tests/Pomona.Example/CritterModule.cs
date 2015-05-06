@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -54,9 +54,7 @@ namespace Pomona.Example
             }
 
             if (exception is PomonaException)
-            {
                 return base.OnException(exception);
-            }
             return new PomonaError(HttpStatusCode.InternalServerError,
                                    new ErrorStatus(exception.Message, -1, exception : exception.ToString()));
         }

@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,10 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+
 using NUnit.Framework;
+
 using Pomona.Schemas;
 using Pomona.TestHelpers;
 
@@ -34,61 +40,65 @@ namespace Pomona.UnitTests.Schemas
     [TestFixture]
     public class ApiChangeVerifierTests
     {
+        private string tempDir;
+
+
         [SetUp]
         public void SetUp()
         {
-            tempDir = Path.GetTempPath() + Guid.NewGuid().ToString("N");
-            Directory.CreateDirectory(tempDir);
+            this.tempDir = Path.GetTempPath() + Guid.NewGuid().ToString("N");
+            Directory.CreateDirectory(this.tempDir);
         }
+
 
         [TearDown]
         public void TearDown()
         {
-            if (tempDir != null)
+            if (this.tempDir != null)
             {
                 try
                 {
-                    Directory.Delete(tempDir, true);
+                    Directory.Delete(this.tempDir, true);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("WARNING: Failed deleting temp dir {0}, got exception {1}", tempDir, ex);
+                    Console.WriteLine("WARNING: Failed deleting temp dir {0}, got exception {1}", this.tempDir, ex);
                 }
             }
         }
 
-        private string tempDir;
 
         [Test]
         public void VerifyCompatibility_WithBreakingChange_ThrowsException()
         {
-            var verifier = new ApiChangeVerifier(tempDir);
+            var verifier = new ApiChangeVerifier(this.tempDir);
             var schema = SchemaTests.CreateSchema();
             verifier.MarkApiVersion(schema);
             schema.Version = "1.3.3.8";
             schema.Types[0].Properties.Add(new KeyValuePair<string, SchemaPropertyEntry>("newProp",
                                                                                          new SchemaPropertyEntry
-                                                                                             {
-                                                                                                 Name = "newProp",
-                                                                                                 Type = "string",
-                                                                                                 Required = true
-                                                                                             }));
+                                                                                         {
+                                                                                             Name = "newProp",
+                                                                                             Type = "string",
+                                                                                             Required = true
+                                                                                         }));
             Assert.That(() => verifier.VerifyCompatibility(schema), Throws.Exception);
         }
+
 
         [Test]
         public void VerifyCompatibility_WithNonBreakingChange_ThrowsNoException()
         {
-            var verifier = new ApiChangeVerifier(tempDir);
+            var verifier = new ApiChangeVerifier(this.tempDir);
             var schema = SchemaTests.CreateSchema();
             verifier.MarkApiVersion(schema);
             schema.Version = "1.3.3.8";
             schema.Types[0].Properties.Add(new KeyValuePair<string, SchemaPropertyEntry>("newProp",
                                                                                          new SchemaPropertyEntry
-                                                                                             {
-                                                                                                 Name = "newProp",
-                                                                                                 Type = "string"
-                                                                                             }));
+                                                                                         {
+                                                                                             Name = "newProp",
+                                                                                             Type = "string"
+                                                                                         }));
             verifier.VerifyCompatibility(schema);
         }
     }

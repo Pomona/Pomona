@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 using Pomona.Common.Linq.NonGeneric;
 
@@ -42,6 +41,7 @@ namespace Pomona.Common.Expressions
         {
             return source.Select(Ex.Lambda(source.ElementType, selector));
         }
+
 
         public static IQueryable SelectManyEx(this IQueryable source, Func<Ex, Ex> selector)
         {

@@ -1,8 +1,9 @@
 ﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +23,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
 #endregion
 
 using System;
@@ -41,7 +43,7 @@ namespace Pomona.UnitTests
             Assert.NotNull(programFilesX86Path);
 
             var peverifyPath = Path.Combine(programFilesX86Path,
-                @"Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\PEVerify.exe");
+                                            @"Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\PEVerify.exe");
             if (!File.Exists(peverifyPath))
                 Assert.Inconclusive("Unable to run peverify test, need to have Microsoft sdk installed.");
 
@@ -63,8 +65,5 @@ namespace Pomona.UnitTests
             proc.WaitForExit();
             Assert.That(proc.ExitCode, Is.EqualTo(0), "PEVerify returned error code " + proc.ExitCode);
         }
-
-
- 
     }
 }

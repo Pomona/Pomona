@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -71,11 +71,53 @@ namespace Pomona
         /// </value>
         protected abstract string ContentType { get; }
 
-        /// <summary>
-        /// Gets a set of mappings that map a given extension (such as .json)
-        /// to a media range that can be sent to the client in a vary header.
-        /// </summary>
-        public abstract IEnumerable<Tuple<string, MediaRange>> ExtensionMappings { get; }
+        protected abstract ITextSerializerFactory GetSerializerFactory(NancyContext context);
+
+
+        protected bool IsTextHtmlContentType(MediaRange requestedMediaRange)
+        {
+            return requestedMediaRange.Matches("text/html");
+        }
+
+
+        private string GetHtmlLinks(NancyContext context)
+        {
+            var routeCache = this.routeCacheProvider.GetCache();
+            if (routeCache == null)
+                return String.Empty;
+
+            StringBuilder linkBuilder = new StringBuilder();
+
+            var routesWithMetadata = routeCache
+                .Select(r => r.Value)
+                .SelectMany(r => r.Select(t => t.Item2))
+                .Where(r => r.Metadata != null && r.Metadata.Has<PomonaRouteMetadata>());
+
+            foreach (var route in routesWithMetadata)
+            {
+                var metadata = route.Metadata.Retrieve<PomonaRouteMetadata>();
+                var rel = String.Concat("http://pomona.io/rel/", metadata.Relation);
+                var contentType = metadata.ContentType;
+                var methods = metadata.Method.ToString().ToUpperInvariant();
+                var href = context.Request.Url.BasePath + route.Path;
+
+                linkBuilder.AppendFormat("<link rel=\"{0}\" type=\"{1}\" methods=\"{2}\" href=\"{3}\">{4}",
+                                         rel,
+                                         contentType,
+                                         methods,
+                                         href,
+                                         Environment.NewLine);
+            }
+
+            return linkBuilder.ToString();
+        }
+
+
+        private ITextSerializer GetSerializer(NancyContext context)
+        {
+            return GetSerializerFactory(context)
+                .GetSerializer(context.GetPomonaSession().GetInstance<ISerializationContextProvider>());
+        }
 
 
         /// <summary>
@@ -86,6 +128,13 @@ namespace Pomona
         /// <param name="context">The context.</param>
         /// <returns></returns>
         public abstract ProcessorMatch CanProcess(MediaRange requestedMediaRange, dynamic model, NancyContext context);
+
+
+        /// <summary>
+        /// Gets a set of mappings that map a given extension (such as .json)
+        /// to a media range that can be sent to the client in a vary header.
+        /// </summary>
+        public abstract IEnumerable<Tuple<string, MediaRange>> ExtensionMappings { get; }
 
 
         /// <summary>
@@ -158,55 +207,6 @@ namespace Pomona
 
                 return response;
             }
-        }
-
-
-        private ITextSerializer GetSerializer(NancyContext context)
-        {
-            return GetSerializerFactory(context)
-                .GetSerializer(context.GetPomonaSession().GetInstance<ISerializationContextProvider>());
-        }
-
-
-        protected abstract ITextSerializerFactory GetSerializerFactory(NancyContext context);
-
-
-        protected bool IsTextHtmlContentType(MediaRange requestedMediaRange)
-        {
-            return requestedMediaRange.Matches("text/html");
-        }
-
-
-        private string GetHtmlLinks(NancyContext context)
-        {
-            var routeCache = this.routeCacheProvider.GetCache();
-            if (routeCache == null)
-                return String.Empty;
-
-            StringBuilder linkBuilder = new StringBuilder();
-
-            var routesWithMetadata = routeCache
-                .Select(r => r.Value)
-                .SelectMany(r => r.Select(t => t.Item2))
-                .Where(r => r.Metadata != null && r.Metadata.Has<PomonaRouteMetadata>());
-
-            foreach (var route in routesWithMetadata)
-            {
-                var metadata = route.Metadata.Retrieve<PomonaRouteMetadata>();
-                var rel = String.Concat("http://pomona.io/rel/", metadata.Relation);
-                var contentType = metadata.ContentType;
-                var methods = metadata.Method.ToString().ToUpperInvariant();
-                var href = context.Request.Url.BasePath + route.Path;
-
-                linkBuilder.AppendFormat("<link rel=\"{0}\" type=\"{1}\" methods=\"{2}\" href=\"{3}\">{4}",
-                                         rel,
-                                         contentType,
-                                         methods,
-                                         href,
-                                         Environment.NewLine);
-            }
-
-            return linkBuilder.ToString();
         }
     }
 }

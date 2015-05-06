@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -82,25 +82,118 @@ namespace Pomona
         }
 
 
-        private TypeMapper TypeMapper
-        {
-            get { return sessionFactory.TypeMapper; }
-        }
-
         protected IContainer Container
         {
             get
             {
-                if (container == null)
-                    container = new ModuleContainer(Context, dataSource, this);
-                return container;
+                if (this.container == null)
+                    this.container = new ModuleContainer(Context, this.dataSource, this);
+                return this.container;
             }
         }
 
-
-        public PomonaError HandleException(Exception exception)
+        private TypeMapper TypeMapper
         {
-            return OnException(UnwrapException(exception));
+            get { return this.sessionFactory.TypeMapper; }
+        }
+
+
+        public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
+        {
+            ClientLibGenerator.WriteClientLibrary(TypeMapper, stream, embedPomonaClient);
+        }
+
+
+        protected virtual void OnConfiguration(IConfigurator config)
+        {
+        }
+
+
+        protected virtual PomonaError OnException(Exception exception)
+        {
+            if (exception is PomonaSerializationException)
+                return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
+            var pomonaException = exception as PomonaServerException;
+
+            return pomonaException != null
+                ? new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message)
+                : new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
+        }
+
+
+        protected virtual PomonaResponse ProcessRequest()
+        {
+            var pomonaSession = this.sessionFactory.CreateSession(Container);
+            Context.Items[typeof(IPomonaSession).FullName] = pomonaSession;
+            var pomonaEngine =
+                new PomonaEngine(pomonaSession);
+            return pomonaEngine.Handle(Context, ModulePath);
+        }
+
+
+        protected virtual Exception UnwrapException(Exception exception)
+        {
+            if (exception is TargetInvocationException || exception is RequestExecutionException)
+                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
+
+            return exception;
+        }
+
+
+        internal PomonaConfigurationBase GetConfiguration()
+        {
+            var pomonaConfigAttr = GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
+            if (pomonaConfigAttr == null)
+            {
+                throw new InvalidOperationException(
+                    "Unable to find config for pomona module (has no [ModuleBinding] attribute attached).");
+            }
+            return (PomonaConfigurationBase)Activator.CreateInstance(pomonaConfigAttr.ConfigurationType);
+        }
+
+
+        private Response GetClientLibrary()
+        {
+            var response = new Response
+            {
+                Contents = stream => WriteClientLibrary(stream),
+                ContentType = "binary/octet-stream"
+            };
+
+            return response;
+        }
+
+
+        private Response GetClientNugetPackage()
+        {
+            var packageBuilder = new ClientNugetPackageBuilder(TypeMapper);
+            var response = new Response
+            {
+                Contents = stream =>
+                {
+                    using (var memstream = new MemoryStream())
+                    {
+                        packageBuilder.BuildPackage(memstream);
+                        var bytes = memstream.ToArray();
+                        stream.Write(bytes, 0, bytes.Length);
+                    }
+                },
+                ContentType = "application/zip",
+            };
+
+            return response;
+        }
+
+
+        private Response GetSchemas()
+        {
+            var response = new Response();
+
+            var schemas = new SchemaGenerator(TypeMapper).Generate().ToJson();
+            response.ContentsFromString(schemas);
+            response.ContentType = "application/json; charset=utf-8";
+
+            return response;
         }
 
 
@@ -128,111 +221,12 @@ namespace Pomona
 
             Get[PomonaRouteMetadataProvider.JsonSchema, "/schemas"] = x => GetSchemas();
 
-            var clientAssemblyFileName = String.Format("/{0}.dll", this.TypeMapper.Filter.ClientMetadata.AssemblyName);
+            var clientAssemblyFileName = String.Format("/{0}.dll", TypeMapper.Filter.ClientMetadata.AssemblyName);
             Get[PomonaRouteMetadataProvider.ClientAssembly, clientAssemblyFileName] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
 
             RegisterSerializationProvider(TypeMapper);
-        }
-
-
-        public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
-        {
-            ClientLibGenerator.WriteClientLibrary(this.TypeMapper, stream, embedPomonaClient);
-        }
-
-
-        protected virtual PomonaError OnException(Exception exception)
-        {
-            if (exception is PomonaSerializationException)
-                return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
-            var pomonaException = exception as PomonaServerException;
-
-            return pomonaException != null
-                ? new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message)
-                : new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
-        }
-
-
-        protected virtual void OnConfiguration(IConfigurator config)
-        {
-        }
-
-
-        protected virtual PomonaResponse ProcessRequest()
-        {
-            var pomonaSession = this.sessionFactory.CreateSession(Container);
-            Context.Items[typeof(IPomonaSession).FullName] = pomonaSession;
-            var pomonaEngine =
-                new PomonaEngine(pomonaSession);
-            return pomonaEngine.Handle(Context, ModulePath);
-        }
-
-
-        protected virtual Exception UnwrapException(Exception exception)
-        {
-            if (exception is TargetInvocationException || exception is RequestExecutionException)
-                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
-
-            return exception;
-        }
-
-
-        internal PomonaConfigurationBase GetConfiguration()
-        {
-            var pomonaConfigAttr = this.GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
-            if (pomonaConfigAttr == null)
-            {
-                throw new InvalidOperationException(
-                    "Unable to find config for pomona module (has no [ModuleBinding] attribute attached).");
-            }
-            return (PomonaConfigurationBase)Activator.CreateInstance(pomonaConfigAttr.ConfigurationType);
-        }
-
-
-        private Response GetClientLibrary()
-        {
-            var response = new Response
-            {
-                Contents = stream => WriteClientLibrary(stream),
-                ContentType = "binary/octet-stream"
-            };
-
-            return response;
-        }
-
-
-        private Response GetClientNugetPackage()
-        {
-            var packageBuilder = new ClientNugetPackageBuilder(this.TypeMapper);
-            var response = new Response
-            {
-                Contents = stream =>
-                {
-                    using (var memstream = new MemoryStream())
-                    {
-                        packageBuilder.BuildPackage(memstream);
-                        var bytes = memstream.ToArray();
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-                },
-                ContentType = "application/zip",
-            };
-
-            return response;
-        }
-
-
-        private Response GetSchemas()
-        {
-            var response = new Response();
-
-            var schemas = new SchemaGenerator(this.TypeMapper).Generate().ToJson();
-            response.ContentsFromString(schemas);
-            response.ContentType = "application/json; charset=utf-8";
-
-            return response;
         }
 
 
@@ -266,7 +260,7 @@ namespace Pomona
 
         private void RegisterClientNugetPackageRoute()
         {
-            var packageBuilder = new ClientNugetPackageBuilder(this.TypeMapper);
+            var packageBuilder = new ClientNugetPackageBuilder(TypeMapper);
             var packageFileName = packageBuilder.PackageFileName;
 
             Get[PomonaRouteMetadataProvider.ClientNugetPackage, "/Client.nupkg"] =
@@ -307,10 +301,11 @@ namespace Pomona
         }
 
 
-        public interface IConfigurator
+        public PomonaError HandleException(Exception exception)
         {
-            IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map);
+            return OnException(UnwrapException(exception));
         }
+
 
         internal class Configurator : IConfigurator
         {
@@ -324,9 +319,14 @@ namespace Pomona
 
             public IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map)
             {
-                delegates.Add(map);
+                this.delegates.Add(map);
                 return this;
             }
+        }
+
+        public interface IConfigurator
+        {
+            IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map);
         }
 
         private class ModuleContainer : ServerContainer
@@ -345,12 +345,12 @@ namespace Pomona
 
             public override T GetInstance<T>()
             {
-                if (typeof(T) == this.GetType())
-                    return (T)((object)module);
-                if (typeof(T) == typeof(IPomonaDataSource) && dataSource != null)
-                    return (T)dataSource;
+                if (typeof(T) == GetType())
+                    return (T)((object)this.module);
+                if (typeof(T) == typeof(IPomonaDataSource) && this.dataSource != null)
+                    return (T)this.dataSource;
                 if (typeof(T) == typeof(IPomonaErrorHandler))
-                    return (T)((object)module);
+                    return (T)((object)this.module);
 
                 return base.GetInstance<T>();
             }

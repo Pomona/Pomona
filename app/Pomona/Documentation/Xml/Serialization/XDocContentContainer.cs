@@ -1,3 +1,31 @@
+#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2015 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,11 +36,11 @@ namespace Pomona.Documentation.Xml.Serialization
 {
     public class XDocContentContainer : XDocContentNode, IList<XDocContentNode>
     {
-        new public XElement Node { get { return (XElement)base.Node; } }
-
-        public XDocContentContainer() : this(new XElement("detached-content-container"))
+        public XDocContentContainer()
+            : this(new XElement("detached-content-container"))
         {
         }
+
 
         internal XDocContentContainer(XElement node)
             : base(node)
@@ -20,21 +48,15 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
+        public new XElement Node
+        {
+            get { return (XElement)base.Node; }
+        }
+
+
         private IEnumerable<XDocContentNode> WrapAll()
         {
-            return Node.Nodes().Select(XDocContentNode.Wrap);
-        }
-
-
-        public IEnumerator<XDocContentNode> GetEnumerator()
-        {
-            return WrapAll().GetEnumerator();
-        }
-
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            return Node.Nodes().Select(Wrap);
         }
 
 
@@ -64,26 +86,17 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public bool Remove(XDocContentNode item)
-        {
-            if (Contains(item))
-            {
-                item.Node.Remove();
-                return true;
-            }
-            return false;
-        }
-
-
         public int Count
         {
             get { return Node.Nodes().Count(); }
         }
 
-        public bool IsReadOnly
+
+        public IEnumerator<XDocContentNode> GetEnumerator()
         {
-            get { return false; }
+            return WrapAll().GetEnumerator();
         }
+
 
         public int IndexOf(XDocContentNode item)
         {
@@ -102,12 +115,10 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public void RemoveAt(int index)
+        public bool IsReadOnly
         {
-            var node = this[index];
-            Remove(node);
+            get { return false; }
         }
-
 
         public XDocContentNode this[int index]
         {
@@ -118,7 +129,7 @@ namespace Pomona.Documentation.Xml.Serialization
                 var nodeAt = Node.Nodes().ElementAtOrDefault(index);
                 if (nodeAt == null)
                     throw new ArgumentOutOfRangeException("index", "Index out of range.");
-                return XDocContentNode.Wrap(nodeAt);
+                return Wrap(nodeAt);
             }
             set
             {
@@ -126,6 +137,30 @@ namespace Pomona.Documentation.Xml.Serialization
                     throw new ArgumentNullException("value");
                 this[index].Node.ReplaceWith(value.Node);
             }
+        }
+
+
+        public bool Remove(XDocContentNode item)
+        {
+            if (Contains(item))
+            {
+                item.Node.Remove();
+                return true;
+            }
+            return false;
+        }
+
+
+        public void RemoveAt(int index)
+        {
+            var node = this[index];
+            Remove(node);
+        }
+
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,10 +37,9 @@ namespace Pomona.Routing
 {
     public class GetByIdRoute : Route
     {
-        private readonly StructuredProperty idProperty;
-
-        private readonly ResourceType resultItemType;
         private readonly HttpMethod allowedMethods;
+        private readonly StructuredProperty idProperty;
+        private readonly ResourceType resultItemType;
 
 
         public GetByIdRoute(ResourceType resultItemType, Route parent, HttpMethod allowedMethods)
@@ -58,7 +57,7 @@ namespace Pomona.Routing
 
         public override HttpMethod AllowedMethods
         {
-            get { return allowedMethods; }
+            get { return this.allowedMethods; }
         }
 
         public StructuredProperty IdProperty

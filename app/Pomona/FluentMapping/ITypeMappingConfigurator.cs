@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,6 @@ namespace Pomona.FluentMapping
         ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping();
         ITypeMappingConfigurator<TDeclaringType> AsAbstract();
 
-        ITypeMappingConfigurator<TDeclaringType> ExposedAt(string path);
 
         ITypeMappingConfigurator<TDeclaringType> AsChildResourceOf<TParent>(
             Expression<Func<TDeclaringType, TParent>> parentProperty,
@@ -54,12 +53,11 @@ namespace Pomona.FluentMapping
 
 
         ITypeMappingConfigurator<TDeclaringType> AsConcrete();
-
         ITypeMappingConfigurator<TDeclaringType> AsEntity();
         ITypeMappingConfigurator<TDeclaringType> AsIndependentTypeRoot();
+        ITypeMappingConfigurator<TDeclaringType> AsSingleton();
         ITypeMappingConfigurator<TDeclaringType> AsUriBaseType();
         ITypeMappingConfigurator<TDeclaringType> AsValueObject();
-        ITypeMappingConfigurator<TDeclaringType> AsSingleton();
 
 
         ITypeMappingConfigurator<TDeclaringType> ConstructedUsing(
@@ -72,11 +70,19 @@ namespace Pomona.FluentMapping
 
         ITypeMappingConfigurator<TDeclaringType> DeleteAllowed();
         ITypeMappingConfigurator<TDeclaringType> DeleteDenied();
-
         ITypeMappingConfigurator<TDeclaringType> Exclude(Expression<Func<TDeclaringType, object>> property);
         ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository();
-
+        ITypeMappingConfigurator<TDeclaringType> ExposedAt(string path);
         ITypeMappingConfigurator<TDeclaringType> HandledBy<THandler>();
+
+
+        ITypeMappingConfigurator<TDeclaringType> HasChild<TItem>(
+            Expression<Func<TDeclaringType, TItem>> childProperty,
+            Expression<Func<TItem, TDeclaringType>> parentProperty,
+            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions = null,
+            Func
+                <IPropertyOptionsBuilder<TDeclaringType, TItem>,
+                IPropertyOptionsBuilder<TDeclaringType, TItem>> propertyOptions = null);
 
 
         ITypeMappingConfigurator<TDeclaringType> HasChildren<TItem>(
@@ -85,38 +91,31 @@ namespace Pomona.FluentMapping
             Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions = null,
             Func
                 <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
-                    IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> propertyOptions = null);
+                IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> propertyOptions = null);
 
-        ITypeMappingConfigurator<TDeclaringType> HasChild<TItem>(
-            Expression<Func<TDeclaringType, TItem>> childProperty,
-            Expression<Func<TItem, TDeclaringType>> parentProperty,
-            Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> typeOptions = null,
-            Func
-                <IPropertyOptionsBuilder<TDeclaringType, TItem>,
-                    IPropertyOptionsBuilder<TDeclaringType, TItem>> propertyOptions = null);
 
-        ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(string name, Func
-                <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
-                    IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options);
-            
+        ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(string name,
+                                                                        Func
+                                                                            <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
+                                                                            IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options);
+
+
         ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(
             Expression<Func<TDeclaringType, TPropertyType>> property,
             Func
                 <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
-                    IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
+                IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
 
 
         ITypeMappingConfigurator<TDeclaringType> IncludeAs<TPropertyType>(
             Expression<Func<TDeclaringType, object>> property,
             Func
                 <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
-                    IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
+                IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null);
 
 
         ITypeMappingConfigurator<TDeclaringType> Named(string exposedTypeName);
-
         ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action);
-
         ITypeMappingConfigurator<TDeclaringType> PatchAllowed();
         ITypeMappingConfigurator<TDeclaringType> PatchDenied();
         ITypeMappingConfigurator<TDeclaringType> PostAllowed();

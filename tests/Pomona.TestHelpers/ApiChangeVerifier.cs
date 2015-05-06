@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,9 +24,13 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.IO;
+
 using Nancy.Testing;
+
 using Pomona.Schemas;
 
 namespace Pomona.TestHelpers
@@ -33,21 +39,25 @@ namespace Pomona.TestHelpers
     {
         private readonly string schemaDirectory;
 
+
         public ApiChangeVerifier(string schemaDirectory)
         {
-            if (schemaDirectory == null) throw new ArgumentNullException("schemaDirectory");
+            if (schemaDirectory == null)
+                throw new ArgumentNullException("schemaDirectory");
             this.schemaDirectory = schemaDirectory;
         }
 
+
         public void MarkApiVersion(Schema schema)
         {
-            var schemaFilename = Path.Combine(schemaDirectory, schema.Version + ".json");
+            var schemaFilename = Path.Combine(this.schemaDirectory, schema.Version + ".json");
             File.WriteAllText(schemaFilename, schema.ToJson());
         }
 
+
         public void VerifyCompatibility(Schema changedSchema)
         {
-            foreach (var schemaFilename in Directory.GetFiles(schemaDirectory, "*.json"))
+            foreach (var schemaFilename in Directory.GetFiles(this.schemaDirectory, "*.json"))
             {
                 var content = File.ReadAllText(schemaFilename);
                 Console.WriteLine(content);
@@ -58,8 +68,10 @@ namespace Pomona.TestHelpers
                     breaks = !changedSchema.IsBackwardsCompatibleWith(oldSchema, errorWriter);
                     errorWriter.Flush();
                     if (breaks)
+                    {
                         throw new AssertException("Schema " + changedSchema.Version + " breaks compatibility with " +
                                                   schemaFilename + ": " + errorWriter);
+                    }
                 }
             }
         }

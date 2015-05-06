@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using NUnit.Framework;
+
 using Pomona.Common.Proxies;
 
 namespace Pomona.UnitTests.Proxies
@@ -38,82 +40,17 @@ namespace Pomona.UnitTests.Proxies
     [TestFixture]
     public class IlEmitBasedProxyBuilderTests
     {
-        public interface ITakesNothingReturnsValue
-        {
-            void TheMethod();
-        }
-
-        public interface ITakesArgumentsReturnsObject
-        {
-            object TheMethod(int a, long b, string c, double? d);
-        }
-
-        public interface ITakesNothingReturnsString
-        {
-            string TheMethod();
-        }
-
-        public interface ITakesNothingReturnsInt
-        {
-            int TheMethod();
-        }
-
-
-        public interface IHasMethodWithSameSignatureAsProxy
-        {
-            long TheCrazyMethod(bool hei);
-        }
-
-        public class RedirectProxy
-        {
-            private readonly List<Tuple<MethodInfo, object[]>> invokeLog = new List<Tuple<MethodInfo, object[]>>();
-
-            public List<Tuple<MethodInfo, object[]>> InvokeLog
-            {
-                get { return invokeLog; }
-            }
-
-            public object ReturnValue { get; set; }
-
-            public bool CrazyMethodWasCalled { get; set; }
-
-            public object OnInvokeMethod(MethodInfo methodInfo, object[] args)
-            {
-                invokeLog.Add(new Tuple<MethodInfo, object[]>(methodInfo, args));
-                return ReturnValue;
-            }
-
-            public virtual long TheCrazyMethod(bool hei)
-            {
-                CrazyMethodWasCalled = true;
-                return 12345678;
-            }
-        }
-
-        public object TestProxyMethod<TProxyTarget>(Func<TProxyTarget, object> invokeMethodFunc,
-                                                    out Tuple<MethodInfo, object[]> logEntry, object returnValue = null,
-                                                    int expectedInvokeLogCount = 1)
-        {
-            var proxy = RuntimeProxyFactory<RedirectProxy, TProxyTarget>.Create();
-            var redirectProxy = ((RedirectProxy)((object)proxy));
-            redirectProxy.ReturnValue = returnValue;
-            var invokeLog = redirectProxy.InvokeLog;
-            var retval = invokeMethodFunc(proxy);
-            Assert.That(invokeLog.Count, Is.EqualTo(expectedInvokeLogCount));
-            logEntry = invokeLog.FirstOrDefault();
-            return retval;
-        }
-
-
         [Test]
         public void GeneratePoco_WorksOk()
         {
             var pocoType = EmitHelpers.CreatePocoType("Jalla",
-                "Dummy",
-                new KeyValuePair<string, Type>[] { new KeyValuePair<string, Type>("Lala", typeof(string)), });
+                                                      "Dummy",
+                                                      new KeyValuePair<string, Type>[]
+                                                      { new KeyValuePair<string, Type>("Lala", typeof(string)), });
             var pocoInstance = Activator.CreateInstance(pocoType);
             Assert.That(pocoInstance, Is.Not.Null);
         }
+
 
         [Test]
         public void GenerateProxy_ForInterfaceImplementingMethodWithMatchingMethodInProxyBase_DoesNotGenerateMethod()
@@ -142,6 +79,7 @@ namespace Pomona.UnitTests.Proxies
             Assert.That(retval, Is.EqualTo("whatevs"));
         }
 
+
         [Test]
         public void GenerateProxy_ForInterfaceWithMethodTakingMultipleArgumentsAndReturningObject_GeneratesWorkingProxy()
         {
@@ -158,15 +96,85 @@ namespace Pomona.UnitTests.Proxies
             Assert.That(args[3], Is.EqualTo(10.5));
         }
 
+
         [Test]
         public void GenerateProxy_ForInterfaceWithVoidMethod_GeneratesWorkingProxy()
         {
             Tuple<MethodInfo, object[]> logEntry;
             TestProxyMethod<ITakesNothingReturnsValue>(x =>
-                {
-                    x.TheMethod();
-                    return null;
-                }, out logEntry);
+            {
+                x.TheMethod();
+                return null;
+            }, out logEntry);
+        }
+
+
+        public object TestProxyMethod<TProxyTarget>(Func<TProxyTarget, object> invokeMethodFunc,
+                                                    out Tuple<MethodInfo, object[]> logEntry,
+                                                    object returnValue = null,
+                                                    int expectedInvokeLogCount = 1)
+        {
+            var proxy = RuntimeProxyFactory<RedirectProxy, TProxyTarget>.Create();
+            var redirectProxy = ((RedirectProxy)((object)proxy));
+            redirectProxy.ReturnValue = returnValue;
+            var invokeLog = redirectProxy.InvokeLog;
+            var retval = invokeMethodFunc(proxy);
+            Assert.That(invokeLog.Count, Is.EqualTo(expectedInvokeLogCount));
+            logEntry = invokeLog.FirstOrDefault();
+            return retval;
+        }
+
+
+        public interface IHasMethodWithSameSignatureAsProxy
+        {
+            long TheCrazyMethod(bool hei);
+        }
+
+        public interface ITakesArgumentsReturnsObject
+        {
+            object TheMethod(int a, long b, string c, double? d);
+        }
+
+        public interface ITakesNothingReturnsInt
+        {
+            int TheMethod();
+        }
+
+        public interface ITakesNothingReturnsString
+        {
+            string TheMethod();
+        }
+
+        public interface ITakesNothingReturnsValue
+        {
+            void TheMethod();
+        }
+
+        public class RedirectProxy
+        {
+            private readonly List<Tuple<MethodInfo, object[]>> invokeLog = new List<Tuple<MethodInfo, object[]>>();
+            public bool CrazyMethodWasCalled { get; set; }
+
+            public List<Tuple<MethodInfo, object[]>> InvokeLog
+            {
+                get { return this.invokeLog; }
+            }
+
+            public object ReturnValue { get; set; }
+
+
+            public object OnInvokeMethod(MethodInfo methodInfo, object[] args)
+            {
+                this.invokeLog.Add(new Tuple<MethodInfo, object[]>(methodInfo, args));
+                return ReturnValue;
+            }
+
+
+            public virtual long TheCrazyMethod(bool hei)
+            {
+                CrazyMethodWasCalled = true;
+                return 12345678;
+            }
         }
     }
 }

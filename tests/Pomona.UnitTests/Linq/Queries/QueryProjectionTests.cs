@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,31 +39,12 @@ namespace Pomona.UnitTests.Linq.Queries
     [TestFixture]
     public class QueryProjectionTests
     {
-        private IQueryable<T> Empty<T>()
-        {
-            return Enumerable.Empty<T>().AsQueryable();
-        }
-
-
-        private IQueryable<T> Q<T>(params T[] args)
-        {
-            return args.AsQueryable();
-        }
-
-
         [Test]
         public void Execute_AsEnumerable_Projection_On_Collection_Returns_Unmodified_Source()
         {
             var source = Q(1, 2, 4, 8, 16);
             var result = QueryProjection.AsEnumerable.Execute<IEnumerable<int>>(source);
             Assert.That(result, Is.EqualTo(source));
-        }
-
-
-        [Test]
-        public void Execute_FirstOrDefault_Projection_On_Empty_Collection_Returns_Default()
-        {
-            Assert.That(QueryProjection.FirstOrDefault.Execute<string>(Empty<string>()), Is.Null);
         }
 
 
@@ -78,6 +59,13 @@ namespace Pomona.UnitTests.Linq.Queries
         public void Execute_First_Projection_On_Non_Empty_Collection_Returns_First_Element()
         {
             Assert.That(QueryProjection.FirstOrDefault.Execute<string>(Q("gangnam", "style")), Is.EqualTo("gangnam"));
+        }
+
+
+        [Test]
+        public void Execute_FirstOrDefault_Projection_On_Empty_Collection_Returns_Default()
+        {
+            Assert.That(QueryProjection.FirstOrDefault.Execute<string>(Empty<string>()), Is.Null);
         }
 
 
@@ -106,6 +94,18 @@ namespace Pomona.UnitTests.Linq.Queries
         public void Execute_Sum_Projection_On_Unsupported_Collection_Throws_Exception()
         {
             Assert.Throws<NotSupportedException>(() => QueryProjection.Sum.Execute(Q("can't", "touch", "this")));
+        }
+
+
+        private IQueryable<T> Empty<T>()
+        {
+            return Enumerable.Empty<T>().AsQueryable();
+        }
+
+
+        private IQueryable<T> Q<T>(params T[] args)
+        {
+            return args.AsQueryable();
         }
     }
 }

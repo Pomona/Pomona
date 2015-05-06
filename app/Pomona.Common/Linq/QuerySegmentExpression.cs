@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -67,8 +67,6 @@ namespace Pomona.Common.Linq
             }
         }
 
-        public abstract IEnumerable<string> ToStringSegments();
-
 
         public override string ToString()
         {
@@ -76,6 +74,9 @@ namespace Pomona.Common.Linq
                 this.cachedQueryString = string.Concat(ToStringSegments());
             return this.cachedQueryString;
         }
+
+
+        public abstract IEnumerable<string> ToStringSegments();
 
 
         protected static IEnumerable<string> ToStringSegmentsRecursive(IEnumerable<object> children)

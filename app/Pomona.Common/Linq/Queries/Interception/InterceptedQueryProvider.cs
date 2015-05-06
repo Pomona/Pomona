@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -65,7 +65,20 @@ namespace Pomona.Common.Linq.Queries.Interception
         }
 
 
-        public event EventHandler<QueryExecutingEventArgs> Executing;
+        public IQueryable CreateLazySource(Type elementType, Func<Type, IQueryable> factory)
+        {
+            if (elementType == null)
+                throw new ArgumentNullException("elementType");
+            return createLazySource(elementType, this, factory);
+        }
+
+
+        public IQueryable<TElement> CreateLazySource<TElement>(Func<Type, IQueryable> factory)
+        {
+            if (factory == null)
+                throw new ArgumentNullException("factory");
+            return new LazyInterceptedQueryableSource<TElement>(this, factory);
+        }
 
 
         public override IQueryable<TElement> CreateQuery<TElement>(Expression expression)
@@ -89,20 +102,7 @@ namespace Pomona.Common.Linq.Queries.Interception
         }
 
 
-        public IQueryable CreateLazySource(Type elementType, Func<Type, IQueryable> factory)
-        {
-            if (elementType == null)
-                throw new ArgumentNullException("elementType");
-            return createLazySource(elementType, this, factory);
-        }
-
-
-        public IQueryable<TElement> CreateLazySource<TElement>(Func<Type, IQueryable> factory)
-        {
-            if (factory == null)
-                throw new ArgumentNullException("factory");
-            return new LazyInterceptedQueryableSource<TElement>(this, factory);
-        }
+        public event EventHandler<QueryExecutingEventArgs> Executing;
 
         #region Nested type: SourceReplaceVisitor
 

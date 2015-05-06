@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,7 +39,7 @@ namespace Pomona.Common
 
         public ReadOnlyDictionary()
         {
-            dictionary = new Dictionary<TKey, TValue>();
+            this.dictionary = new Dictionary<TKey, TValue>();
         }
 
 
@@ -44,23 +48,40 @@ namespace Pomona.Common
             this.dictionary = dictionary;
         }
 
+        #region IEnumerable<KeyValuePair<TKey,TValue>> Members
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            return this.dictionary.GetEnumerator();
+        }
+
+        #endregion
+
+        #region IEnumerable Members
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (this.dictionary as IEnumerable).GetEnumerator();
+        }
+
+        #endregion
+
         #region IDictionary<TKey,TValue> Members
 
         public TValue this[TKey key]
         {
-            get { return dictionary[key]; }
+            get { return this.dictionary[key]; }
             set { throw new NotSupportedException("This dictionary is read-only"); }
         }
 
-
         public ICollection<TKey> Keys
         {
-            get { return dictionary.Keys; }
+            get { return this.dictionary.Keys; }
         }
 
         public ICollection<TValue> Values
         {
-            get { return dictionary.Values; }
+            get { return this.dictionary.Values; }
         }
 
 
@@ -72,7 +93,7 @@ namespace Pomona.Common
 
         public bool ContainsKey(TKey key)
         {
-            return dictionary.ContainsKey(key);
+            return this.dictionary.ContainsKey(key);
         }
 
 
@@ -84,7 +105,7 @@ namespace Pomona.Common
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            return dictionary.TryGetValue(key, out value);
+            return this.dictionary.TryGetValue(key, out value);
         }
 
         #endregion
@@ -93,7 +114,7 @@ namespace Pomona.Common
 
         public int Count
         {
-            get { return dictionary.Count; }
+            get { return this.dictionary.Count; }
         }
 
         public bool IsReadOnly
@@ -116,37 +137,19 @@ namespace Pomona.Common
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            return dictionary.Contains(item);
+            return this.dictionary.Contains(item);
         }
 
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            dictionary.CopyTo(array, arrayIndex);
+            this.dictionary.CopyTo(array, arrayIndex);
         }
 
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
             throw new NotSupportedException("This dictionary is read-only");
-        }
-
-        #endregion
-
-        #region IEnumerable<KeyValuePair<TKey,TValue>> Members
-
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            return dictionary.GetEnumerator();
-        }
-
-        #endregion
-
-        #region IEnumerable Members
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return (dictionary as IEnumerable).GetEnumerator();
         }
 
         #endregion

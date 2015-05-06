@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
 using Pomona.Common.Serialization;
 
 namespace Pomona.Common.Proxies
@@ -43,43 +44,43 @@ namespace Pomona.Common.Proxies
         protected virtual TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             object value;
-            if (!propMap.TryGetValue(property.Name, out value))
+            if (!this.propMap.TryGetValue(property.Name, out value))
             {
                 var propertyType = property.PropertyInfo.PropertyType;
 
-                if (propertyType.IsGenericInstanceOf(typeof (IDictionary<,>)))
+                if (propertyType.IsGenericInstanceOf(typeof(IDictionary<,>)))
                 {
                     var newDictType =
-                        typeof (PostResourceDictionary<,>).MakeGenericType(propertyType.GetGenericArguments());
+                        typeof(PostResourceDictionary<,>).MakeGenericType(propertyType.GetGenericArguments());
                     var newDict = Activator.CreateInstance(newDictType,
                                                            BindingFlags.Instance | BindingFlags.NonPublic |
                                                            BindingFlags.CreateInstance, null,
                                                            new object[] { this, property.Name }, null);
-                    propMap[property.Name] = newDict;
+                    this.propMap[property.Name] = newDict;
                     return (TPropType)newDict;
                 }
-                if (propertyType.IsGenericInstanceOf(typeof (ICollection<>), typeof (IList<>)))
+                if (propertyType.IsGenericInstanceOf(typeof(ICollection<>), typeof(IList<>)))
                 {
-                    var newListType = typeof (PostResourceList<>).MakeGenericType(propertyType.GetGenericArguments());
+                    var newListType = typeof(PostResourceList<>).MakeGenericType(propertyType.GetGenericArguments());
                     var newList = Activator.CreateInstance(newListType,
                                                            BindingFlags.Instance | BindingFlags.NonPublic |
                                                            BindingFlags.CreateInstance, null,
                                                            new object[] { this, property.Name }, null);
-                    propMap[property.Name] = newList;
+                    this.propMap[property.Name] = newList;
                     return (TPropType)newList;
                 }
-                if (typeof (IClientResource).IsAssignableFrom(propertyType))
+                if (typeof(IClientResource).IsAssignableFrom(propertyType))
                 {
                     var resourceInfo =
-                        propertyType.GetCustomAttributes(typeof (ResourceInfoAttribute), false)
+                        propertyType.GetCustomAttributes(typeof(ResourceInfoAttribute), false)
                                     .OfType<ResourceInfoAttribute>()
                                     .FirstOrDefault();
 
                     if (resourceInfo != null && resourceInfo.IsValueObject)
                     {
                         var valueObjectForm = Activator.CreateInstance(resourceInfo.PostFormType);
-                        propMap[property.Name] = valueObjectForm;
-                        dirtyMap[property.Name] = true;
+                        this.propMap[property.Name] = valueObjectForm;
+                        this.dirtyMap[property.Name] = true;
                         return (TPropType)valueObjectForm;
                     }
                 }
@@ -92,21 +93,21 @@ namespace Pomona.Common.Proxies
 
         protected virtual void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
-            propMap[property.Name] = value;
-            dirtyMap[property.Name] = true;
+            this.propMap[property.Name] = value;
+            this.dirtyMap[property.Name] = true;
         }
 
 
         internal void SetDirty(string propertyName)
         {
-            dirtyMap[propertyName] = true;
+            this.dirtyMap[propertyName] = true;
         }
 
         #region Implementation of IPomonaSerializable
 
         bool IPomonaSerializable.PropertyIsSerialized(string propertyName)
         {
-            return dirtyMap.SafeGet(propertyName);
+            return this.dirtyMap.SafeGet(propertyName);
         }
 
         #endregion

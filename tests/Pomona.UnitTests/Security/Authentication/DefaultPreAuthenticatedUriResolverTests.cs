@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@ namespace Pomona.UnitTests.Security.Authentication
                 "http://api/entities/0?$token=XYZ");
             var resolver = new DefaultPreAuthenticatedUriResolver(uriResolverMock, preAuthenticatedUriProviderMock);
             Assert.That(resolver.GetPreAuthenticatedUriFor(critter, null),
-                Is.EqualTo("http://api/entities/0?$token=XYZ"));
+                        Is.EqualTo("http://api/entities/0?$token=XYZ"));
         }
     }
 }

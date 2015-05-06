@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -62,16 +62,6 @@ namespace Pomona.UnitTests.Expressions
             });
 
 
-        private void AssertRewrite<TInput, TExpected>(Expression<Func<TInput>> input,
-                                                      Expression<Func<TExpected>> expected,
-                                                      params IExpressionRewriter[] rewriters)
-        {
-            var visitor = new RecursiveRewriteVisitor(rewriters);
-            var visitedBody = visitor.Visit(input.Body);
-            visitedBody.AssertEquals(expected.Body);
-        }
-
-
         [Test]
         public void Visit_Expression_MatchingMultipleRules_ReturnsVisitedExpression()
         {
@@ -96,6 +86,16 @@ namespace Pomona.UnitTests.Expressions
         public void Visit_Expression_MatchingSingleRule_ReturnsVisitedExpression()
         {
             AssertRewrite(() => "lala", () => "LALA", this.stringConstantToUpperRewriter);
+        }
+
+
+        private void AssertRewrite<TInput, TExpected>(Expression<Func<TInput>> input,
+                                                      Expression<Func<TExpected>> expected,
+                                                      params IExpressionRewriter[] rewriters)
+        {
+            var visitor = new RecursiveRewriteVisitor(rewriters);
+            var visitedBody = visitor.Visit(input.Body);
+            visitedBody.AssertEquals(expected.Body);
         }
     }
 }

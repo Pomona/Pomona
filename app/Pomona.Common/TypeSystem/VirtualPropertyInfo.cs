@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -80,36 +80,6 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override Module Module
-        {
-            get { return GetType().Module; }
-        }
-
-        public override int MetadataToken
-        {
-            get { return this.metadataToken; }
-        }
-
-        public override string Name
-        {
-            get { return this.name; }
-        }
-
-        public override Type DeclaringType
-        {
-            get { return this.declaringType; }
-        }
-
-        public override Type ReflectedType
-        {
-            get { return this.reflectedType; }
-        }
-
-        public override Type PropertyType
-        {
-            get { return this.propertyType; }
-        }
-
         public override PropertyAttributes Attributes
         {
             get { return this.attributes; }
@@ -123,6 +93,36 @@ namespace Pomona.Common.TypeSystem
         public override bool CanWrite
         {
             get { return this.setMethod != null; }
+        }
+
+        public override Type DeclaringType
+        {
+            get { return this.declaringType; }
+        }
+
+        public override int MetadataToken
+        {
+            get { return this.metadataToken; }
+        }
+
+        public override Module Module
+        {
+            get { return GetType().Module; }
+        }
+
+        public override string Name
+        {
+            get { return this.name; }
+        }
+
+        public override Type PropertyType
+        {
+            get { return this.propertyType; }
+        }
+
+        public override Type ReflectedType
+        {
+            get { return this.reflectedType; }
         }
 
         internal PropertyInfo BaseDefinition
@@ -165,23 +165,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        private static string GetUniqueKey(Type declaringType,
-                                           Type reflectedType,
-                                           Type propertyType,
-                                           bool readable,
-                                           bool writable,
-                                           string name,
-                                           PropertyAttributes attributes)
+        public override MethodInfo[] GetAccessors(bool nonPublic)
         {
-            return string.Format("{0}:{1}:{2}:{3}:{4}:{5}:{6}", declaringType.AssemblyQualifiedName,
-                                 reflectedType.AssemblyQualifiedName, propertyType.AssemblyQualifiedName, readable,
-                                 writable, name, attributes);
-        }
-
-
-        public override IList<CustomAttributeData> GetCustomAttributesData()
-        {
-            return new List<CustomAttributeData>();
+            return new[] { this.getMethod, this.setMethod }.Where(x => x != null && (nonPublic || x.IsPublic)).ToArray();
         }
 
 
@@ -191,9 +177,33 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override bool IsDefined(Type attributeType, bool inherit)
+        public override object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
-            return false;
+            return new object[] { };
+        }
+
+
+        public override IList<CustomAttributeData> GetCustomAttributesData()
+        {
+            return new List<CustomAttributeData>();
+        }
+
+
+        public override MethodInfo GetGetMethod(bool nonPublic)
+        {
+            return this.getMethod;
+        }
+
+
+        public override ParameterInfo[] GetIndexParameters()
+        {
+            return new ParameterInfo[] { };
+        }
+
+
+        public override MethodInfo GetSetMethod(bool nonPublic)
+        {
+            return this.setMethod;
         }
 
 
@@ -208,6 +218,12 @@ namespace Pomona.Common.TypeSystem
             if (this.getMethod == null)
                 throw new InvalidOperationException("Property has no getter.");
             return this.getMethod.Invoke(obj, invokeAttr, binder, null, culture);
+        }
+
+
+        public override bool IsDefined(Type attributeType, bool inherit)
+        {
+            return false;
         }
 
 
@@ -226,33 +242,17 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override MethodInfo[] GetAccessors(bool nonPublic)
+        private static string GetUniqueKey(Type declaringType,
+                                           Type reflectedType,
+                                           Type propertyType,
+                                           bool readable,
+                                           bool writable,
+                                           string name,
+                                           PropertyAttributes attributes)
         {
-            return new[] { this.getMethod, this.setMethod }.Where(x => x != null && (nonPublic || x.IsPublic)).ToArray();
-        }
-
-
-        public override MethodInfo GetGetMethod(bool nonPublic)
-        {
-            return this.getMethod;
-        }
-
-
-        public override MethodInfo GetSetMethod(bool nonPublic)
-        {
-            return this.setMethod;
-        }
-
-
-        public override ParameterInfo[] GetIndexParameters()
-        {
-            return new ParameterInfo[] { };
-        }
-
-
-        public override object[] GetCustomAttributes(Type attributeType, bool inherit)
-        {
-            return new object[] { };
+            return string.Format("{0}:{1}:{2}:{3}:{4}:{5}:{6}", declaringType.AssemblyQualifiedName,
+                                 reflectedType.AssemblyQualifiedName, propertyType.AssemblyQualifiedName, readable,
+                                 writable, name, attributes);
         }
     }
 }

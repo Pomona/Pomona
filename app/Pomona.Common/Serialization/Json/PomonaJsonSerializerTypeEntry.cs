@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,12 +24,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using Newtonsoft.Json;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Serialization.Json
@@ -40,7 +46,6 @@ namespace Pomona.Common.Serialization.Json
         private readonly List<PropertySpec> manuallyWrittenProperties = new List<PropertySpec>();
         private readonly TypeSpec type;
         private Expression<Action<JsonWriter, object, IContainer>> writePropertiesExpression;
-        private Action<JsonWriter, object, IContainer> writePropertiesFunc;
 
 
         public PomonaJsonSerializerTypeEntry(TypeSpec type)
@@ -55,46 +60,27 @@ namespace Pomona.Common.Serialization.Json
 
         public IEnumerable<PropertySpec> ManuallyWrittenProperties
         {
-            get { return manuallyWrittenProperties; }
+            get { return this.manuallyWrittenProperties; }
         }
 
-        public Action<JsonWriter, object, IContainer> WritePropertiesFunc
-        {
-            get { return writePropertiesFunc; }
-        }
-
-
-        private static bool TryGetJsonWriterMethodForWritingType(TypeSpec type, out MethodInfo method)
-        {
-            method = null;
-            if (type.SerializationMode != TypeSerializationMode.Value)
-                return false;
-
-            method = typeof (JsonWriter)
-                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                .Where(x => x.Name == "WriteValue")
-                .FirstOrDefault(
-                    x => x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == type.Type);
-
-            return method != null;
-        }
+        public Action<JsonWriter, object, IContainer> WritePropertiesFunc { get; private set; }
 
 
         private void BuildAcceleratedPropertyWritingAction()
         {
-            var writePropertyNameMethod = typeof (JsonWriter).GetMethod("WritePropertyName",
-                                                                        new[] {typeof (string)});
+            var writePropertyNameMethod = typeof(JsonWriter).GetMethod("WritePropertyName",
+                                                                       new[] { typeof(string) });
 
             var expressions = new List<Expression>();
-            var jsonWriterParam = Expression.Parameter(typeof (JsonWriter));
-            var objValueParam = Expression.Parameter(typeof (object));
+            var jsonWriterParam = Expression.Parameter(typeof(JsonWriter));
+            var objValueParam = Expression.Parameter(typeof(object));
             var containerParam = Expression.Parameter(typeof(IContainer));
-            var valueVariable = Expression.Variable(type.Type);
+            var valueVariable = Expression.Variable(this.type.Type);
 
             expressions.Add(
-                Expression.Assign(valueVariable, Expression.Convert(objValueParam, type.Type)));
+                Expression.Assign(valueVariable, Expression.Convert(objValueParam, this.type.Type)));
 
-            foreach (var prop in type.Properties.Where(p => p.IsSerialized))
+            foreach (var prop in this.type.Properties.Where(p => p.IsSerialized))
             {
                 MethodInfo method;
                 if (TryGetJsonWriterMethodForWritingType(prop.PropertyType, out method))
@@ -104,18 +90,36 @@ namespace Pomona.Common.Serialization.Json
                             jsonWriterParam, writePropertyNameMethod, Expression.Constant(prop.JsonName)));
                     var getter = prop.GetterFunc;
                     expressions.Add(
-                        Expression.Call(jsonWriterParam, method, Expression.Convert(Expression.Invoke(Expression.Constant(getter), valueVariable, containerParam), prop.PropertyType)));
+                        Expression.Call(jsonWriterParam, method,
+                                        Expression.Convert(Expression.Invoke(Expression.Constant(getter), valueVariable, containerParam),
+                                                           prop.PropertyType)));
                 }
                 else
-                    manuallyWrittenProperties.Add(prop);
+                    this.manuallyWrittenProperties.Add(prop);
             }
 
-            writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object, IContainer>>(
-                Expression.Block(new[] {valueVariable}, expressions), jsonWriterParam, objValueParam, containerParam);
+            this.writePropertiesExpression = Expression.Lambda<Action<JsonWriter, object, IContainer>>(
+                Expression.Block(new[] { valueVariable }, expressions), jsonWriterParam, objValueParam, containerParam);
 
-            writePropertiesFunc = writePropertiesExpression.Compile();
+            this.WritePropertiesFunc = this.writePropertiesExpression.Compile();
 
-            manuallyWrittenProperties.Capacity = manuallyWrittenProperties.Count;
+            this.manuallyWrittenProperties.Capacity = this.manuallyWrittenProperties.Count;
+        }
+
+
+        private static bool TryGetJsonWriterMethodForWritingType(TypeSpec type, out MethodInfo method)
+        {
+            method = null;
+            if (type.SerializationMode != TypeSerializationMode.Value)
+                return false;
+
+            method = typeof(JsonWriter)
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                .Where(x => x.Name == "WriteValue")
+                .FirstOrDefault(
+                    x => x.GetParameters().Length == 1 && x.GetParameters()[0].ParameterType == type.Type);
+
+            return method != null;
         }
     }
 }

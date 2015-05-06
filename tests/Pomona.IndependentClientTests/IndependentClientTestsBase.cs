@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -48,14 +48,6 @@ namespace Pomona.IndependentClientTests
 {
     public abstract class IndependentClientTestsBase : CritterServiceTestsBase<CritterClient>
     {
-        private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
-        {
-            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                              e.Request,
-                              (object)e.Response ?? "(nothing received)");
-        }
-
-
         public override CritterClient CreateHttpTestingClient(string baseUri)
         {
             throw new NotImplementedException();
@@ -80,6 +72,14 @@ namespace Pomona.IndependentClientTests
             Client.RequestCompleted -= ClientOnRequestCompleted;
         }
 
+
+        private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
+        {
+            Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
+                              e.Request,
+                              (object)e.Response ?? "(nothing received)");
+        }
+
         #region Nested type: NancyTestingWebClient
 
         public class NancyTestingWebClient : IWebClient
@@ -96,12 +96,12 @@ namespace Pomona.IndependentClientTests
             }
 
 
-            public NetworkCredential Credentials { get; set; }
-
             public HttpHeaders Headers
             {
                 get { return this.headers; }
             }
+
+            public NetworkCredential Credentials { get; set; }
 
 
             public HttpResponse Send(HttpRequest request)
@@ -127,19 +127,19 @@ namespace Pomona.IndependentClientTests
                 var creds = Credentials;
 
                 var browserResponse = browserMethod(uri.LocalPath, bc =>
-                                                    {
-                                                        bc.HttpRequest();
-                                                        if (creds != null)
-                                                            bc.BasicAuth(creds.UserName, creds.Password);
-                                                        ((IBrowserContextValues)bc).QueryString = uri.Query;
-                                                        foreach (var kvp in this.headers.Concat(request.Headers))
-                                                        {
-                                                            foreach (var v in kvp.Value)
-                                                                bc.Header(kvp.Key, v);
-                                                        }
-                                                        if (request.Body != null)
-                                                            bc.Body(new MemoryStream(request.Body));
-                                                    });
+                {
+                    bc.HttpRequest();
+                    if (creds != null)
+                        bc.BasicAuth(creds.UserName, creds.Password);
+                    ((IBrowserContextValues)bc).QueryString = uri.Query;
+                    foreach (var kvp in this.headers.Concat(request.Headers))
+                    {
+                        foreach (var v in kvp.Value)
+                            bc.Header(kvp.Key, v);
+                    }
+                    if (request.Body != null)
+                        bc.Body(new MemoryStream(request.Body));
+                });
 
                 var responseHeaders = new HttpHeaders(
                     browserResponse

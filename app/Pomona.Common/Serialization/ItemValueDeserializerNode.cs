@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 
 using Pomona.Common.TypeSystem;
@@ -38,30 +42,32 @@ namespace Pomona.Common.Serialization
 
         #region Implementation of IDeserializerNode
 
-        public ItemValueDeserializerNode(TypeSpec expectedBaseType, IDeserializationContext context,
-                                         string expandPath = "", IDeserializerNode parent = null)
+        public ItemValueDeserializerNode(TypeSpec expectedBaseType,
+                                         IDeserializationContext context,
+                                         string expandPath = "",
+                                         IDeserializerNode parent = null)
         {
             this.parent = parent;
             this.expectedBaseType = expectedBaseType;
             this.context = context;
             this.expandPath = expandPath;
-            valueType = expectedBaseType;
+            this.valueType = expectedBaseType;
         }
 
 
         public IDeserializationContext Context
         {
-            get { return context; }
+            get { return this.context; }
         }
 
         public TypeSpec ExpectedBaseType
         {
-            get { return expectedBaseType; }
+            get { return this.expectedBaseType; }
         }
 
         public string ExpandPath
         {
-            get { return expandPath; }
+            get { return this.expandPath; }
         }
 
         public string Uri { get; set; }
@@ -86,12 +92,12 @@ namespace Pomona.Common.Serialization
 
         public IDeserializerNode Parent
         {
-            get { return parent; }
+            get { return this.parent; }
         }
 
         public TypeSpec ValueType
         {
-            get { return valueType; }
+            get { return this.valueType; }
         }
 
         public DeserializerNodeOperation Operation { get; set; }
@@ -99,13 +105,13 @@ namespace Pomona.Common.Serialization
 
         public void SetValueType(string typeName)
         {
-            valueType = context.GetTypeByName(typeName);
+            this.valueType = this.context.GetTypeByName(typeName);
         }
 
 
         public void SetValueType(Type type)
         {
-            valueType = context.GetClassMapping(type);
+            this.valueType = this.context.GetClassMapping(type);
         }
 
 
@@ -113,9 +119,10 @@ namespace Pomona.Common.Serialization
         {
         }
 
+
         public void SetProperty(PropertySpec property, object propertyValue)
         {
-            context.SetProperty(this, property, propertyValue);
+            this.context.SetProperty(this, property, propertyValue);
         }
 
         #endregion

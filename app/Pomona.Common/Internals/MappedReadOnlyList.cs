@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,24 +40,24 @@ namespace Pomona.Common.Internals
         }
 
 
-        public TOuter this[int index]
-        {
-            get { return Map(((IList<TInner>)Inner)[index]); }
-            set { throw new NotSupportedException("Collection is read-only"); }
-        }
-
-
         public int IndexOf(TOuter item)
         {
             return
                 Inner.Select((x, i) => new { x, i }).Where(y => EqualityComparer<TOuter>.Default.Equals(Map(y.x), item))
-                    .Select(y => (int?)y.i).FirstOrDefault() ?? -1;
+                     .Select(y => (int?)y.i).FirstOrDefault() ?? -1;
         }
 
 
         public void Insert(int index, TOuter item)
         {
             throw new NotSupportedException("Collection is read-only");
+        }
+
+
+        public TOuter this[int index]
+        {
+            get { return Map(((IList<TInner>)Inner)[index]); }
+            set { throw new NotSupportedException("Collection is read-only"); }
         }
 
 

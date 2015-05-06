@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@ namespace Pomona.Common.Serialization
         : TextSerializerFactoryBase<TSerializer, ITextDeserializer>
         where TSerializer : ITextSerializer
     {
-        public sealed override ITextDeserializer GetDeserializer(ISerializationContextProvider contextProvider)
+        public override sealed ITextDeserializer GetDeserializer(ISerializationContextProvider contextProvider)
         {
             throw new NotSupportedException("Deserialization not supported for format.");
         }
@@ -45,7 +45,6 @@ namespace Pomona.Common.Serialization
         where TDeserializer : ITextDeserializer
     {
         public abstract TDeserializer GetDeserializer(ISerializationContextProvider contextProvider);
-
         public abstract TSerializer GetSerializer(ISerializationContextProvider contextProvider);
 
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,21 +38,21 @@ namespace Pomona.Common.TypeSystem
 {
     public abstract class TypeResolver : ITypeResolver
     {
+        private readonly Lazy<Dictionary<string, TypeSpec>> primitiveNameTypeMap;
         private readonly IEnumerable<ITypeFactory> typeFactories;
         private readonly ConcurrentDictionary<Type, TypeSpec> typeMap = new ConcurrentDictionary<Type, TypeSpec>();
-        private readonly Lazy<Dictionary<string, TypeSpec>> primitiveNameTypeMap;
 
 
         public TypeResolver()
         {
             var typeSpecTypes = new[]
-                                {
-                                    typeof(DictionaryTypeSpec),
-                                    typeof(EnumerableTypeSpec),
-                                    typeof(EnumTypeSpec),
-                                    typeof(RuntimeTypeSpec),
-                                    typeof(QueryResultType)
-                                };
+            {
+                typeof(DictionaryTypeSpec),
+                typeof(EnumerableTypeSpec),
+                typeof(EnumTypeSpec),
+                typeof(RuntimeTypeSpec),
+                typeof(QueryResultType)
+            };
             this.typeFactories =
                 typeSpecTypes
                     .SelectMany(
@@ -65,9 +65,10 @@ namespace Pomona.Common.TypeSystem
                     .ToList();
 
             this.primitiveNameTypeMap = new Lazy<Dictionary<string, TypeSpec>>(() =>
-                TypeUtils.GetNativeTypes()
-                         .Select(FromType)
-                         .ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase));
+                                                                                   TypeUtils.GetNativeTypes()
+                                                                                            .Select(FromType)
+                                                                                            .ToDictionary(x => x.Name, x => x,
+                                                                                                          StringComparer.OrdinalIgnoreCase));
         }
 
 
@@ -96,12 +97,6 @@ namespace Pomona.Common.TypeSystem
         protected virtual Type MapExposedClrType(Type type)
         {
             return type;
-        }
-
-
-        public virtual bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
-        {
-            return this.primitiveNameTypeMap.Value.TryGetValue(typeName, out typeSpec);
         }
 
 
@@ -263,6 +258,12 @@ namespace Pomona.Common.TypeSystem
             if (resourceType == null)
                 throw new ArgumentNullException("resourceType");
             return resourceType.OnLoadUriBaseType();
+        }
+
+
+        public virtual bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
+        {
+            return this.primitiveNameTypeMap.Value.TryGetValue(typeName, out typeSpec);
         }
 
 

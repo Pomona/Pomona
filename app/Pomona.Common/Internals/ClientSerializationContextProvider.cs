@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,18 +36,18 @@ namespace Pomona.Common.Internals
     internal class ClientSerializationContextProvider : ISerializationContextProvider
     {
         private readonly IPomonaClient client;
-        private readonly IResourceLoader resourceLoader;
         private readonly ClientTypeMapper clientTypeMapper;
+        private readonly IResourceLoader resourceLoader;
 
 
         internal ClientSerializationContextProvider(ClientTypeMapper clientTypeMapper, IPomonaClient client, IResourceLoader resourceLoader)
         {
             if (clientTypeMapper == null)
                 throw new ArgumentNullException("clientTypeMapper");
-            
+
             if (client == null)
                 throw new ArgumentNullException("client");
-            
+
             if (resourceLoader == null)
                 throw new ArgumentNullException("resourceLoader");
 

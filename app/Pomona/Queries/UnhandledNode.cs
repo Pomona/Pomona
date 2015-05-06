@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,7 +24,10 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq;
+
 using Antlr.Runtime.Tree;
 
 namespace Pomona.Queries
@@ -32,7 +37,8 @@ namespace Pomona.Queries
         private readonly ITree sourceTreeNode;
 
 
-        public UnhandledNode(ITree sourceTreeNode) : base(NodeType.Unhandled, Enumerable.Empty<NodeBase>())
+        public UnhandledNode(ITree sourceTreeNode)
+            : base(NodeType.Unhandled, Enumerable.Empty<NodeBase>())
         {
             this.sourceTreeNode = sourceTreeNode;
         }
@@ -40,13 +46,13 @@ namespace Pomona.Queries
 
         public ITree SourceTreeNode
         {
-            get { return sourceTreeNode; }
+            get { return this.sourceTreeNode; }
         }
 
 
         public override string ToString()
         {
-            return base.ToString() + " " + sourceTreeNode;
+            return base.ToString() + " " + this.sourceTreeNode;
         }
     }
 }

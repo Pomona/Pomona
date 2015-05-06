@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -41,40 +41,9 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class SearchReplaceVisitorTests
     {
-        public class Customer
-        {
-            public IList<Contact> Contacts { get; set; }
-            public Address PrimaryAddress { get; set; }
-            public Person PrimaryPerson { get; set; }
-        }
-
-        public class Address
-        {
-            public string Street { get; set; }
-        }
-
-        public class Contact
-        {
-            public string FirstName { get; set; }
-            public bool IsPrimary { get; set; }
-            public string LastName { get; set; }
-            public string Street { get; set; }
-        }
-
-        public class Person
-        {
-            public string FullName { get; set; }
-        }
-
-        public class Company
-        {
-            public IList<Customer> Customers { get; set; }
-        }
-
-
         public void AssertVisitor<T>(SearchReplaceVisitor visitor,
-            Expression<Func<T, object>> searchIn,
-            Expression<Func<T, object>> expected)
+                                     Expression<Func<T, object>> searchIn,
+                                     Expression<Func<T, object>> expected)
         {
             var actual = visitor.Visit(searchIn);
             Console.WriteLine("SearchIn: {0}\r\nExpected:{1}\r\nActual:{2}", searchIn, expected, actual);
@@ -93,8 +62,8 @@ namespace Pomona.UnitTests
                     .Build();
 
             AssertVisitor<Customer>(visitor,
-                x => x.GetHashCode() * 2,
-                x => x.GetHashCode() << 1);
+                                    x => x.GetHashCode() * 2,
+                                    x => x.GetHashCode() << 1);
         }
 
 
@@ -110,8 +79,8 @@ namespace Pomona.UnitTests
                     .Build();
 
             AssertVisitor<Customer>(visitor,
-                c => (c.PrimaryPerson.FullName != null ? c.PrimaryPerson.FullName : "(nothing)"),
-                c => c.PrimaryPerson.FullName ?? "(nothing)");
+                                    c => (c.PrimaryPerson.FullName != null ? c.PrimaryPerson.FullName : "(nothing)"),
+                                    c => c.PrimaryPerson.FullName ?? "(nothing)");
             // ReSharper restore ConvertConditionalTernaryToNullCoalescing
         }
 
@@ -127,8 +96,8 @@ namespace Pomona.UnitTests
                     .Build();
 
             AssertVisitor<Customer>(visitor,
-                x => (IEnumerable<int>)(new int[] { 0, 1, 2, 3, 4, 5 }),
-                x => Enumerable.Range(0, 6));
+                                    x => (IEnumerable<int>)(new int[] { 0, 1, 2, 3, 4, 5 }),
+                                    x => Enumerable.Range(0, 6));
         }
 
 
@@ -143,8 +112,8 @@ namespace Pomona.UnitTests
                     .Build();
 
             AssertVisitor<Customer>(visitor,
-                x => new Guid("93f37cd0-43a1-41e6-b2b8-35d131f39a49"),
-                x => Guid.Parse("93f37cd0-43a1-41e6-b2b8-35d131f39a49"));
+                                    x => new Guid("93f37cd0-43a1-41e6-b2b8-35d131f39a49"),
+                                    x => Guid.Parse("93f37cd0-43a1-41e6-b2b8-35d131f39a49"));
         }
 
 
@@ -158,26 +127,26 @@ namespace Pomona.UnitTests
                     .Replace(
                         x => x.PrimaryPerson.FullName,
                         x => x.Contacts
-                            .Where(y => y.IsPrimary)
-                            .Select(z => z.FirstName + " " + z.LastName)
-                            .First()
+                              .Where(y => y.IsPrimary)
+                              .Select(z => z.FirstName + " " + z.LastName)
+                              .First()
                     )
                     .Build();
 
             AssertVisitor<Customer>(visitor,
-                x => x.PrimaryPerson.FullName,
-                x => x.Contacts
-                    .Where(y => y.IsPrimary)
-                    .Select(z => z.FirstName + " " + z.LastName)
-                    .First());
+                                    x => x.PrimaryPerson.FullName,
+                                    x => x.Contacts
+                                          .Where(y => y.IsPrimary)
+                                          .Select(z => z.FirstName + " " + z.LastName)
+                                          .First());
 
             AssertVisitor<Company>(visitor,
-                x => x.Customers.Aggregate(string.Empty, (a, b) => a + "\r\n" + b.PrimaryPerson.FullName),
-                x => x.Customers.Aggregate(string.Empty,
-                    (a, b) => a + "\r\n" + b.Contacts
-                        .Where(y => y.IsPrimary)
-                        .Select(z => z.FirstName + " " + z.LastName)
-                        .First()));
+                                   x => x.Customers.Aggregate(string.Empty, (a, b) => a + "\r\n" + b.PrimaryPerson.FullName),
+                                   x => x.Customers.Aggregate(string.Empty,
+                                                              (a, b) => a + "\r\n" + b.Contacts
+                                                                                      .Where(y => y.IsPrimary)
+                                                                                      .Select(z => z.FirstName + " " + z.LastName)
+                                                                                      .First()));
         }
 
 
@@ -192,8 +161,39 @@ namespace Pomona.UnitTests
                     .Build();
 
             AssertVisitor<Customer>(visitor,
-                x => ~x.Contacts.Count,
-                x => x.Contacts.Count ^ -1);
+                                    x => ~x.Contacts.Count,
+                                    x => x.Contacts.Count ^ -1);
+        }
+
+
+        public class Address
+        {
+            public string Street { get; set; }
+        }
+
+        public class Company
+        {
+            public IList<Customer> Customers { get; set; }
+        }
+
+        public class Contact
+        {
+            public string FirstName { get; set; }
+            public bool IsPrimary { get; set; }
+            public string LastName { get; set; }
+            public string Street { get; set; }
+        }
+
+        public class Customer
+        {
+            public IList<Contact> Contacts { get; set; }
+            public Address PrimaryAddress { get; set; }
+            public Person PrimaryPerson { get; set; }
+        }
+
+        public class Person
+        {
+            public string FullName { get; set; }
         }
     }
 }

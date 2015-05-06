@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,20 +30,14 @@ namespace Pomona.Example.Models
 {
     public class HandledSingleChild : EntityBase
     {
-        private HandledThing handledThing;
-
-        public HandledThing HandledThing
-        {
-            get { return this.handledThing; }
-        }
-
-
         public HandledSingleChild(HandledThing handledThing)
         {
-            this.handledThing = handledThing;
+            HandledThing = handledThing;
         }
 
-        public bool PatchHandlerCalled { get; set; }
+
+        public HandledThing HandledThing { get; private set; }
         public string Name { get; set; }
+        public bool PatchHandlerCalled { get; set; }
     }
 }

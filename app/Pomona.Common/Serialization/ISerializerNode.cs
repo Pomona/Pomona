@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,11 +35,11 @@ namespace Pomona.Common.Serialization
         ISerializationContext Context { get; }
         string ExpandPath { get; }
         TypeSpec ExpectedBaseType { get; }
+        bool IsRemoved { get; }
+        ISerializerNode ParentNode { get; }
         bool SerializeAsReference { get; set; }
         string Uri { get; }
         object Value { get; }
         TypeSpec ValueType { get; }
-        ISerializerNode ParentNode { get; }
-        bool IsRemoved { get; }
     }
 }

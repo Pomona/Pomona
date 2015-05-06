@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@ namespace Pomona.Example.Models
     public class JunkWithNullableInt : EntityBase
     {
         public int? Maybe { get; set; }
-
         public string MentalState { get; set; }
     }
 }

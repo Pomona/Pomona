@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,13 +49,6 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public abstract bool IsLoaded { get; }
-
-        public string Uri
-        {
-            get { return this.uri; }
-        }
-
         protected IResourceLoader ResourceLoader
         {
             get { return this.resourceLoader; }
@@ -72,6 +65,14 @@ namespace Pomona.Common.Proxies
                 return Activator.CreateInstance(typeof(LazyListProxy<>).MakeGenericType(genArgs), uri, clientBase);
 
             throw new NotSupportedException("Unable to create lazy list proxy for collection type " + collectionType);
+        }
+
+
+        public abstract bool IsLoaded { get; }
+
+        public string Uri
+        {
+            get { return this.uri; }
         }
     }
 }

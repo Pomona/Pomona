@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -60,11 +60,6 @@ namespace Pomona.Routing
         }
 
 
-        internal Type DataSource
-        {
-            get { return this.dataSource; }
-        }
-
         public override HttpMethod AllowedMethods
         {
             get { return HttpMethod.Get; }
@@ -78,6 +73,11 @@ namespace Pomona.Routing
         public override TypeSpec ResultType
         {
             get { return this.typeMapper.FromType(typeof(IDictionary<string, object>)); }
+        }
+
+        internal Type DataSource
+        {
+            get { return this.dataSource; }
         }
 
         internal TypeMapper TypeMapper
@@ -107,8 +107,8 @@ namespace Pomona.Routing
         internal IEnumerable<ResourceType> GetRootResourceBaseTypes()
         {
             return this.typeMapper.SourceTypes
-                .OfType<ResourceType>()
-                .Where(x => x.IsUriBaseType && x.ParentResourceType == null);
+                       .OfType<ResourceType>()
+                       .Where(x => x.IsUriBaseType && x.ParentResourceType == null);
         }
     }
 }

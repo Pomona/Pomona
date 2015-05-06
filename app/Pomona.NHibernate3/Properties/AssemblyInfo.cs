@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -29,8 +33,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("Pomona.NHibernate3")]
-[assembly: AssemblyDescription("Pomona helper library for NH3 querying.")]
+[assembly : AssemblyTitle("Pomona.NHibernate3")]
+[assembly : AssemblyDescription("Pomona helper library for NH3 querying.")]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0b939d88-50c9-4ebf-8564-53bb3d3911b6")]
+
+[assembly : Guid("0b939d88-50c9-4ebf-8564-53bb3d3911b6")]

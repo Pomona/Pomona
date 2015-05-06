@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,6 @@ namespace Pomona.Routing
     public abstract class RouteAction : IPomonaRequestProcessor
     {
         public abstract bool CanProcess(PomonaContext context);
-        public abstract PomonaResponse Process(PomonaContext context);
 
 
         public static RouteAction Create(Func<PomonaContext, PomonaResponse> func,
@@ -52,5 +51,7 @@ namespace Pomona.Routing
         }
 
         #endregion
+
+        public abstract PomonaResponse Process(PomonaContext context);
     }
 }

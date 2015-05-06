@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,9 +26,11 @@
 
 #endregion
 
-using Critters.Client;
-using NUnit.Framework;
 using System.Linq;
+
+using Critters.Client;
+
+using NUnit.Framework;
 
 namespace Pomona.SystemTests
 {
@@ -39,7 +41,7 @@ namespace Pomona.SystemTests
         public void PostCaptureCommandToCritter_IsSuccessful()
         {
             var critterResource = Client.Critters.Query().First();
-            critterResource = (ICritter)Client.Critters.Post(critterResource, new CritterCaptureCommandForm() {FooBar = "lalala"});
+            critterResource = (ICritter)Client.Critters.Post(critterResource, new CritterCaptureCommandForm() { FooBar = "lalala" });
             Assert.That(critterResource.IsCaptured, Is.True);
         }
 

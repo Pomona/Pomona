@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,6 @@ using Nancy.Extensions;
 using Newtonsoft.Json;
 
 using Pomona.Common;
-using Pomona.Common.Expressions;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
@@ -63,21 +62,60 @@ namespace Pomona
         }
 
 
+        private HashSet<Type> SourceTypes
+        {
+            get { return this.sourceTypesCached; }
+        }
+
+
+        private bool IsNativelySupportedType(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
+        }
+
+
+        private bool IsNullableAllowedNativeType(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return IsNullableType(type) &&
+                   TypeIsMapped(type.GetGenericArguments()[0]);
+        }
+
+
+        private static bool IsNullableType(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            return type.IsGenericType &&
+                   type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
+
+
         public virtual string ApiVersion
         {
             get { return "0.1.0"; }
         }
+
+        public ITypeMappingFilter BaseFilter { get; set; }
 
         public virtual ClientMetadata ClientMetadata
         {
             get { return new ClientMetadata(informationalVersion : ApiVersion); }
         }
 
-        public ITypeMappingFilter BaseFilter { get; set; }
 
-        private HashSet<Type> SourceTypes
+        public virtual bool GenerateIndependentClient()
         {
-            get { return this.sourceTypesCached; }
+            return true;
+        }
+
+
+        public virtual DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
+        {
+            return DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
         }
 
         #region ITypeMappingFilter Members
@@ -458,42 +496,5 @@ namespace Pomona
         }
 
         #endregion
-
-        public virtual bool GenerateIndependentClient()
-        {
-            return true;
-        }
-
-
-        public virtual DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode()
-        {
-            return DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
-        }
-
-
-        private static bool IsNullableType(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            return type.IsGenericType &&
-                   type.GetGenericTypeDefinition() == typeof(Nullable<>);
-        }
-
-
-        private bool IsNativelySupportedType(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
-        }
-
-
-        private bool IsNullableAllowedNativeType(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            return IsNullableType(type) &&
-                   TypeIsMapped(type.GetGenericArguments()[0]);
-        }
     }
 }

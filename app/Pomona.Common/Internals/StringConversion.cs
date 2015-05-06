@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@ namespace Pomona.Common.Internals
             typeof(Int32), typeof(UInt32), typeof(Int64), typeof(UInt64)
         };
 
-        private static ConcurrentDictionary<Type, IStringConverter> converterCache =
+        private static readonly ConcurrentDictionary<Type, IStringConverter> converterCache =
             new ConcurrentDictionary<Type, IStringConverter>();
 
 
@@ -96,7 +96,8 @@ namespace Pomona.Common.Internals
         private static IStringConverter GetCachedConverter(Type toType)
         {
             return converterCache.GetOrAdd(toType,
-                t => (IStringConverter)Activator.CreateInstance(typeof(StringConverter<>).MakeGenericType(toType)));
+                                           t =>
+                                               (IStringConverter)Activator.CreateInstance(typeof(StringConverter<>).MakeGenericType(toType)));
         }
 
         #region Nested type: IStringConverter
@@ -121,10 +122,10 @@ namespace Pomona.Common.Internals
             static StringConverter()
             {
                 var tryParseMethods = typeof(T).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                    .Where(x => x.Name == "TryParse" && x.ReturnType == typeof(bool)).ToArray();
+                                               .Where(x => x.Name == "TryParse" && x.ReturnType == typeof(bool)).ToArray();
 
                 tryParseWithNumberStyleMethod = RecognizeTryParseWithNumberStyleMethod(tryParseMethods,
-                    out defaultNumberStyle);
+                                                                                       out defaultNumberStyle);
                 tryParseMethod = RecognizeTryParseWithNoExtraArguments(tryParseMethods);
             }
 
@@ -174,8 +175,8 @@ namespace Pomona.Common.Internals
                 if (typeof(T) == typeof(string))
                 {
                     return (TryParseDelegate)Delegate.CreateDelegate(typeof(TryParseDelegate),
-                        typeof(StringConverter<T>),
-                        "TryParseString");
+                                                                     typeof(StringConverter<T>),
+                                                                     "TryParseString");
                 }
 
                 var parseMethod = tryParseMethods

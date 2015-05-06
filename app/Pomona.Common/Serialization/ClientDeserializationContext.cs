@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,10 @@ namespace Pomona.Common.Serialization
     public class ClientDeserializationContext : IDeserializationContext
     {
         private readonly IPomonaClient client;
+
+        private readonly ConcurrentDictionary<Type, Type> clientRepositoryImplementationMap =
+            new ConcurrentDictionary<Type, Type>();
+
         private readonly IResourceLoader resourceLoader;
         private readonly ITypeResolver typeMapper;
 
@@ -63,14 +67,6 @@ namespace Pomona.Common.Serialization
         internal ClientDeserializationContext(ITypeResolver typeMapper, IResourceLoader resourceLoader)
             : this(typeMapper, null, resourceLoader)
         {
-        }
-
-        private readonly ConcurrentDictionary<Type, Type> clientRepositoryImplementationMap =
-            new ConcurrentDictionary<Type, Type>();
-
-        public IResourceNode TargetNode
-        {
-            get { return null; }
         }
 
 
@@ -169,13 +165,13 @@ namespace Pomona.Common.Serialization
                 var repoImplementationType = this.clientRepositoryImplementationMap.GetOrAdd(property.PropertyType,
                                                                                              t =>
                                                                                                  t.Assembly.GetTypes()
-                                                                                                 .First(
-                                                                                                     x =>
-                                                                                                         !x.IsInterface
-                                                                                                         && x.IsClass
-                                                                                                         && t
-                                                                                                         .IsAssignableFrom
-                                                                                                         (x)));
+                                                                                                  .First(
+                                                                                                      x =>
+                                                                                                          !x.IsInterface
+                                                                                                          && x.IsClass
+                                                                                                          && t
+                                                                                                          .IsAssignableFrom
+                                                                                                          (x)));
 
                 var listProxyValue = propertyValue as LazyCollectionProxy;
                 object repo;
@@ -200,6 +196,12 @@ namespace Pomona.Common.Serialization
             }
 
             property.SetValue(target.Value, propertyValue);
+        }
+
+
+        public IResourceNode TargetNode
+        {
+            get { return null; }
         }
     }
 }

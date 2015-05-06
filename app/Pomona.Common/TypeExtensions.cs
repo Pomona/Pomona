@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Internals.Formatting;
@@ -55,9 +54,7 @@ namespace Pomona.Common
         {
             var virtualPropertyInfo = propertyInfo as VirtualPropertyInfo;
             if (virtualPropertyInfo != null)
-            {
                 return virtualPropertyInfo.BaseDefinition;
-            }
             var method = propertyInfo.GetGetMethod(true) ?? propertyInfo.GetSetMethod(true);
             if (method == null)
                 return propertyInfo.NormalizeReflectedType();
@@ -141,7 +138,6 @@ namespace Pomona.Common
             var methodFormatter = new MethodFormatter(method);
             return methodFormatter.ToString();
         }
-
 
 
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
@@ -326,12 +322,6 @@ namespace Pomona.Common
                                                                    typeof(object))).Compile()();
         }
 
-        
-        public static bool IsAnonymousTypeName(string typeName)
-        {
-            return typeName.StartsWith("<>f__AnonymousType") || typeName.StartsWith("<>__AnonType");
-        }
-
 
         public static bool IsAnonymous(this TypeSpec type)
         {
@@ -345,23 +335,9 @@ namespace Pomona.Common
         }
 
 
-        public static bool IsGenericInstanceOf(this Type type, params Type[] genericTypeDefinitions)
+        public static bool IsAnonymousTypeName(string typeName)
         {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            if (genericTypeDefinitions == null)
-                throw new ArgumentNullException("genericTypeDefinitions");
-            return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
-        }
-
-
-        public static bool IsGenericInstanceOf(this MethodInfo type, params MethodInfo[] genericTypeDefinitions)
-        {
-            if (type == null)
-                throw new ArgumentNullException("type");
-            if (genericTypeDefinitions == null)
-                throw new ArgumentNullException("genericTypeDefinitions");
-            return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
+            return typeName.StartsWith("<>f__AnonymousType") || typeName.StartsWith("<>__AnonType");
         }
 
 
@@ -400,11 +376,31 @@ namespace Pomona.Common
                     return false;
                 return
                     a.GetGenericArguments()
-                        .Zip(b.GetGenericArguments(), IsGenericallyEquivalentTo)
-                        .All(x => x);
+                     .Zip(b.GetGenericArguments(), IsGenericallyEquivalentTo)
+                     .All(x => x);
             }
 
             return true;
+        }
+
+
+        public static bool IsGenericInstanceOf(this Type type, params Type[] genericTypeDefinitions)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            if (genericTypeDefinitions == null)
+                throw new ArgumentNullException("genericTypeDefinitions");
+            return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
+        }
+
+
+        public static bool IsGenericInstanceOf(this MethodInfo type, params MethodInfo[] genericTypeDefinitions)
+        {
+            if (type == null)
+                throw new ArgumentNullException("type");
+            if (genericTypeDefinitions == null)
+                throw new ArgumentNullException("genericTypeDefinitions");
+            return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
         }
 
 
@@ -440,7 +436,7 @@ namespace Pomona.Common
                 (TMemberInfo)memberInfo.DeclaringType.GetMember(memberInfo.Name,
                                                                 BindingFlags.Instance | BindingFlags.NonPublic |
                                                                 BindingFlags.Public)
-                    .FirstOrDefault(x => x.MetadataToken == memberInfo.MetadataToken);
+                                       .FirstOrDefault(x => x.MetadataToken == memberInfo.MetadataToken);
         }
 
 
@@ -547,7 +543,7 @@ namespace Pomona.Common
                 var constraints = wantedType.GetGenericParameterConstraints();
                 if (
                     !constraints.Select(x => SubstituteTypeParameters(x, methodTypeArgs))
-                        .All(x => x.IsAssignableFrom(actualType)))
+                                .All(x => x.IsAssignableFrom(actualType)))
                     return false;
 
                 if ((wantedType.GenericParameterAttributes &

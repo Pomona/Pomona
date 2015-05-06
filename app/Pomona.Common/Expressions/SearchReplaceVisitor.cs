@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -108,7 +108,7 @@ namespace Pomona.Common.Expressions
 
 
             public Builder<T> Replace<TRet>(Expression<Func<T, IMatchContext, TRet>> searchFor,
-                Expression<Func<T, IMatchContext, TRet>> replaceWith)
+                                            Expression<Func<T, IMatchContext, TRet>> replaceWith)
             {
                 return new Builder<T>(this, () => TreePatternMatcher.FromLambda(searchFor, replaceWith));
             }

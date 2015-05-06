@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 #if !DISABLE_PROXY_GENERATION
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,14 +48,12 @@ namespace Pomona.Common.Proxies
     public class ProxyBuilder
     {
         private readonly bool isPublic;
-
         private readonly ModuleDefinition module;
 
         private readonly Action<PropertyInfo, PropertyDefinition, TypeReference, TypeReference>
             onGeneratePropertyMethodsFunc;
 
         private readonly TypeReference proxyBaseTypeDef;
-
         private readonly string proxyNamespace;
         private string proxyNameFormat;
 
@@ -169,6 +168,58 @@ namespace Pomona.Common.Proxies
         }
 
 
+        /// <summary>
+        /// Create property with explicit implementation of getter and setter, with no method defined.
+        /// </summary>
+        private PropertyDefinition AddProperty(TypeDefinition declaringType,
+                                               string name,
+                                               TypeReference propertyType,
+                                               string explicitPrefix,
+                                               PropertyInfo overridedProp)
+        {
+            var proxyPropDef = declaringType.DefineProperty(explicitPrefix + name,
+                                                            PropertyAttributes.None | PropertyAttributes.SpecialName,
+                                                            propertyType,
+                                                            null);
+            const MethodAttributes methodAttributes = MethodAttributes.Private
+                                                      | MethodAttributes.HideBySig
+                                                      | MethodAttributes.NewSlot
+                                                      | MethodAttributes.Virtual
+                                                      | MethodAttributes.Final
+                                                      | MethodAttributes.SpecialName;
+
+            var overridedGetMethod = overridedProp.GetGetMethod();
+            if (overridedGetMethod != null)
+            {
+                var proxyPropGetter = declaringType.DefineMethod(
+                    string.Format("{0}get_{1}", explicitPrefix, name),
+                    methodAttributes,
+                    propertyType,
+                    Type.EmptyTypes);
+                declaringType.DefineMethodOverride(proxyPropGetter, overridedGetMethod);
+
+                proxyPropDef.SetGetMethod(proxyPropGetter);
+            }
+
+            var overridedSetMethod = overridedProp.GetSetMethod();
+
+            if (overridedSetMethod != null)
+            {
+                var proxyPropSetter = declaringType.DefineMethod(
+                    string.Format("{0}set_{1}", explicitPrefix, name),
+                    methodAttributes,
+                    null,
+                    new[] { propertyType });
+
+                proxyPropSetter.DefineParameter(0, ParameterAttributes.None, "value");
+                declaringType.DefineMethodOverride(proxyPropSetter, overridedSetMethod);
+                proxyPropDef.SetSetMethod(proxyPropSetter);
+            }
+
+            return proxyPropDef;
+        }
+
+
         private static void AdjustParameterTypes(ParameterInfo[] parameters,
                                                  Func<Type, Type> typeReplacer,
                                                  MethodDefinition method)
@@ -191,13 +242,13 @@ namespace Pomona.Common.Proxies
         private static bool BaseTypeHasMatchingPublicMethod(Type baseDef, MethodInfo targetMethod)
         {
             return baseDef.GetMethods()
-                .Any(
-                    x =>
-                        x.Name == targetMethod.Name &&
-                        x.ReturnType == targetMethod.ReturnType &&
-                        x.GetParameters()
-                        .Select(y => y.ParameterType)
-                        .SequenceEqual(targetMethod.GetParameters().Select(y => y.ParameterType)));
+                          .Any(
+                              x =>
+                                  x.Name == targetMethod.Name &&
+                                  x.ReturnType == targetMethod.ReturnType &&
+                                  x.GetParameters()
+                                   .Select(y => y.ParameterType)
+                                   .SequenceEqual(targetMethod.GetParameters().Select(y => y.ParameterType)));
         }
 
 
@@ -219,7 +270,7 @@ namespace Pomona.Common.Proxies
                                                                                                             paramBuilder,
                                                                                                             target
                                                                                                         })
-                        .ToList();
+                          .ToList();
                 foreach (var arg in items)
                 {
                     arg.paramBuilder.SetGenericParameterAttributes(arg.target.GenericParameterAttributes);
@@ -290,78 +341,6 @@ namespace Pomona.Common.Proxies
         }
 
 
-        private static IEnumerable<TypeReference> GetAllInterfacesRecursive(TypeReference typeDefinition)
-        {
-            return typeDefinition
-                .WrapAsEnumerable()
-                .Concat(typeDefinition.GetInterfaces().SelectMany(GetAllInterfacesRecursive));
-        }
-
-
-        private static IEnumerable<MethodInfo> GetPropertyMethods(PropertyInfo propertyInfo)
-        {
-            var getMethod = propertyInfo.GetGetMethod();
-            var setMethod = propertyInfo.GetSetMethod();
-
-            if (getMethod != null)
-                yield return getMethod;
-            if (setMethod != null)
-                yield return setMethod;
-        }
-
-
-        /// <summary>
-        /// Create property with explicit implementation of getter and setter, with no method defined.
-        /// </summary>
-        private PropertyDefinition AddProperty(TypeDefinition declaringType,
-                                               string name,
-                                               TypeReference propertyType,
-                                               string explicitPrefix,
-                                               PropertyInfo overridedProp)
-        {
-            var proxyPropDef = declaringType.DefineProperty(explicitPrefix + name,
-                                                            PropertyAttributes.None | PropertyAttributes.SpecialName,
-                                                            propertyType,
-                                                            null);
-            const MethodAttributes methodAttributes = MethodAttributes.Private
-                                                      | MethodAttributes.HideBySig
-                                                      | MethodAttributes.NewSlot
-                                                      | MethodAttributes.Virtual
-                                                      | MethodAttributes.Final
-                                                      | MethodAttributes.SpecialName;
-
-            var overridedGetMethod = overridedProp.GetGetMethod();
-            if (overridedGetMethod != null)
-            {
-                var proxyPropGetter = declaringType.DefineMethod(
-                    string.Format("{0}get_{1}", explicitPrefix, name),
-                    methodAttributes,
-                    propertyType,
-                    Type.EmptyTypes);
-                declaringType.DefineMethodOverride(proxyPropGetter, overridedGetMethod);
-
-                proxyPropDef.SetGetMethod(proxyPropGetter);
-            }
-
-            var overridedSetMethod = overridedProp.GetSetMethod();
-
-            if (overridedSetMethod != null)
-            {
-                var proxyPropSetter = declaringType.DefineMethod(
-                    string.Format("{0}set_{1}", explicitPrefix, name),
-                    methodAttributes,
-                    null,
-                    new[] { propertyType });
-
-                proxyPropSetter.DefineParameter(0, ParameterAttributes.None, "value");
-                declaringType.DefineMethodOverride(proxyPropSetter, overridedSetMethod);
-                proxyPropDef.SetSetMethod(proxyPropSetter);
-            }
-
-            return proxyPropDef;
-        }
-
-
         private void GenerateProxyMethods(IEnumerable<Type> interfaces, TypeDefinition proxyType)
         {
             var methodsExcludingGetters = interfaces
@@ -381,9 +360,9 @@ namespace Pomona.Common.Proxies
                 if (targetMethod.DeclaringType.IsGenericType)
                 {
                     var declTypeGenArgs = targetMethod.DeclaringType
-                        .GetGenericArguments()
-                        .Zip(targetMethod.DeclaringType.GetGenericTypeDefinition().GetGenericArguments(),
-                             (a, p) => new { a, p });
+                                                      .GetGenericArguments()
+                                                      .Zip(targetMethod.DeclaringType.GetGenericTypeDefinition().GetGenericArguments(),
+                                                           (a, p) => new { a, p });
 
                     foreach (var declTypeGenArg in declTypeGenArgs)
                         genArgMapping.Add(declTypeGenArg.p, declTypeGenArg.a);
@@ -420,6 +399,26 @@ namespace Pomona.Common.Proxies
 
                 GenerateInvokeMethodIl(method, paramTypes, parameters, proxyOnGetMethod);
             }
+        }
+
+
+        private static IEnumerable<TypeReference> GetAllInterfacesRecursive(TypeReference typeDefinition)
+        {
+            return typeDefinition
+                .WrapAsEnumerable()
+                .Concat(typeDefinition.GetInterfaces().SelectMany(GetAllInterfacesRecursive));
+        }
+
+
+        private static IEnumerable<MethodInfo> GetPropertyMethods(PropertyInfo propertyInfo)
+        {
+            var getMethod = propertyInfo.GetGetMethod();
+            var setMethod = propertyInfo.GetSetMethod();
+
+            if (getMethod != null)
+                yield return getMethod;
+            if (setMethod != null)
+                yield return setMethod;
         }
     }
 }

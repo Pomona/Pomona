@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@ using System.Linq;
 using Nancy.Validation;
 
 using Pomona.Example.Models;
-using Pomona.Example.Models.Existence;
 using Pomona.Queries;
 
 namespace Pomona.Example
@@ -65,8 +64,10 @@ namespace Pomona.Example
             if (typeof(T) == typeof(FailingThing))
                 throw new Exception("Stupid exception from failing thing;");
             if (typeof(T) == typeof(HandledThing) || typeof(T) == typeof(HandledChild))
+            {
                 throw new InvalidOperationException(
                     "HandledThing and HandledChild should not be handled by DataSource because they have custom handlers.");
+            }
 
             var newCritter = newObject as Critter;
             if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
@@ -79,7 +80,7 @@ namespace Pomona.Example
         public IQueryable<T> Query<T>()
             where T : class
         {
-            if (typeof(T)== typeof(HandledThing))
+            if (typeof(T) == typeof(HandledThing))
                 throw new InvalidOperationException("Error: Should not call data source when querying HandledThing.");
             return this.store.Query<T>();
         }

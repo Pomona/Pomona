@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -58,28 +58,17 @@ namespace Pomona.Routing
         }
 
 
-        public virtual bool IsSingle
-        {
-            get { return !(ResultType is EnumerableTypeSpec); }
-        }
-
-        public virtual TypeSpec ResultItemType
-        {
-            get { return ResultType.GetItemType(); }
-        }
-
         public abstract HttpMethod AllowedMethods { get; }
-
-        public IEnumerable<Route> Children
-        {
-            get { return this.childrenSortedByPriority.Value; }
-        }
-
         public abstract TypeSpec InputType { get; }
 
         public bool IsRoot
         {
             get { return this.parent == null; }
+        }
+
+        public virtual bool IsSingle
+        {
+            get { return !(ResultType is EnumerableTypeSpec); }
         }
 
         public PathNodeType NodeType
@@ -92,14 +81,14 @@ namespace Pomona.Routing
             }
         }
 
-        public Route Parent
-        {
-            get { return this.parent; }
-        }
-
         public int Priority
         {
             get { return this.priority; }
+        }
+
+        public virtual TypeSpec ResultItemType
+        {
+            get { return ResultType.GetItemType(); }
         }
 
         public abstract TypeSpec ResultType { get; }
@@ -107,14 +96,6 @@ namespace Pomona.Routing
         private ReadOnlyDictionary<string, IEnumerable<Route>> LiteralRouteMap
         {
             get { return this.literalRouteMap.Value; }
-        }
-
-
-        public override sealed string ToString()
-        {
-            if (this.parent != null)
-                return this.parent.ToString() + "/" + PathSegmentToString();
-            return PathSegmentToString();
         }
 
 
@@ -128,9 +109,16 @@ namespace Pomona.Routing
         }
 
 
+        public override sealed string ToString()
+        {
+            if (this.parent != null)
+                return this.parent.ToString() + "/" + PathSegmentToString();
+            return PathSegmentToString();
+        }
+
+
         protected abstract IEnumerable<Route> LoadChildren();
         protected abstract bool Match(string pathSegment);
-
         protected abstract string PathSegmentToString();
 
 
@@ -153,6 +141,17 @@ namespace Pomona.Routing
                                           out IEnumerable<Route> matchChildren)
         {
             return LiteralRouteMap.TryGetValue(pathSegment, out matchChildren);
+        }
+
+
+        public IEnumerable<Route> Children
+        {
+            get { return this.childrenSortedByPriority.Value; }
+        }
+
+        public Route Parent
+        {
+            get { return this.parent; }
         }
     }
 }

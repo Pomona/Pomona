@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,14 +24,16 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
 
 namespace Pomona.Common.Serialization.Patch
 {
     public interface IDictionaryDelta<TKey, TValue> : IDelta
     {
+        IEnumerable<KeyValuePair<TKey, TValue>> ModifiedItems { get; }
         new IDictionary<TKey, TValue> Original { get; }
         IEnumerable<TKey> RemovedKeys { get; }
-        IEnumerable<KeyValuePair<TKey, TValue>> ModifiedItems { get; }
     }
 }

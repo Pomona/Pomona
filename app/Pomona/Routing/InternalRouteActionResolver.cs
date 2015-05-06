@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@ using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona.Routing
 {
@@ -60,18 +59,35 @@ namespace Pomona.Routing
         }
 
 
-        public IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
+        private IEnumerable<RouteAction> ResolveNonCached(Route route, HttpMethod method)
         {
-            return this.routeActionCache[method].GetOrAdd(route, r => ResolveNonCached(r, method));
+            // First check whether there's a matching handler for type
+            if (!route.AllowedMethods.HasFlag(method))
+            {
+                return
+                    RouteAction.Create(pr => ThrowMethodNotAllowedForType(method, route.AllowedMethods)).WrapAsArray();
+            }
+
+            var routeActions = this.nestedActionResolvers
+                                   .SelectMany(x => x.Resolve(route, method).EmptyIfNull()).ToList();
+            if (routeActions.Count > 0)
+                return routeActions;
+
+            return RouteAction.Create(x =>
+            {
+                throw new PomonaServerException("Unable to resolve action for route.",
+                                                null,
+                                                statusCode : HttpStatusCode.Forbidden);
+            }).WrapAsArray();
         }
 
 
         private static PomonaResponse ThrowMethodNotAllowedForType(HttpMethod requestMethod, HttpMethod allowedMethods)
         {
             var httpMethods = Enum.GetValues(typeof(HttpMethod))
-                .Cast<HttpMethod>()
-                .Where(x => allowedMethods.HasFlag(x))
-                .Select(x => x.ToString().ToUpper());
+                                  .Cast<HttpMethod>()
+                                  .Where(x => allowedMethods.HasFlag(x))
+                                  .Select(x => x.ToString().ToUpper());
 
             var allowedMethodsString = String.Join(", ", httpMethods);
 
@@ -85,26 +101,9 @@ namespace Pomona.Routing
         }
 
 
-        private IEnumerable<RouteAction> ResolveNonCached(Route route, HttpMethod method)
+        public IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
         {
-            // First check whether there's a matching handler for type
-            if (!route.AllowedMethods.HasFlag(method))
-            {
-                return
-                    RouteAction.Create(pr => ThrowMethodNotAllowedForType(method, route.AllowedMethods)).WrapAsArray();
-            }
-
-            var routeActions = this.nestedActionResolvers
-                .SelectMany(x => x.Resolve(route, method).EmptyIfNull()).ToList();
-            if (routeActions.Count > 0)
-                return routeActions;
-
-            return RouteAction.Create(x =>
-            {
-                throw new PomonaServerException("Unable to resolve action for route.",
-                                                null,
-                                                statusCode : HttpStatusCode.Forbidden);
-            }).WrapAsArray();
+            return this.routeActionCache[method].GetOrAdd(route, r => ResolveNonCached(r, method));
         }
     }
 }

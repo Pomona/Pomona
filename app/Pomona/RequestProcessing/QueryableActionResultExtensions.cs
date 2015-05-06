@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -67,7 +67,7 @@ namespace Pomona.RequestProcessing
             }
             return
                 (IQueryableActionResult)wrapActionResultGenericMethod.MakeGenericMethod(source.ElementType, resultType)
-                    .Invoke(null, new object[] { source, projection, defaultPageSize});
+                                                                     .Invoke(null, new object[] { source, projection, defaultPageSize });
         }
 
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -57,11 +57,6 @@ namespace Pomona.Routing
         }
 
 
-        public string RelativePath
-        {
-            get { return string.Join("/", pathSegments.Take(pathSegmentIndex + 1)); }
-        }
-
         private UrlSegment(Route route,
                            string[] pathSegments,
                            int pathSegmentIndex,
@@ -86,11 +81,6 @@ namespace Pomona.Routing
             this.parent = parent;
         }
 
-
-        public TypeSpec InputType
-        {
-            get { return route.InputType; }
-        }
 
         /// <summary>
         /// The actual result type, not only the expected one.
@@ -135,9 +125,14 @@ namespace Pomona.Routing
             }
         }
 
-        public UrlSegment SelectedFinalMatch
+        public IEnumerable<UrlSegment> FinalMatchCandidates
         {
-            get { return this.WalkTree(x => x.SelectedChild).LastOrDefault(x => x.IsLastSegment); }
+            get { return Leafs.Where(x => x.IsLastSegment); }
+        }
+
+        public TypeSpec InputType
+        {
+            get { return this.route.InputType; }
         }
 
         public bool IsLastSegment
@@ -155,11 +150,6 @@ namespace Pomona.Routing
             get { return this.parent != null; }
         }
 
-        public IEnumerable<UrlSegment> FinalMatchCandidates
-        {
-            get { return Leafs.Where(x => x.IsLastSegment); }
-        }
-
         public IEnumerable<UrlSegment> Leafs
         {
             get
@@ -170,9 +160,9 @@ namespace Pomona.Routing
             }
         }
 
-        public UrlSegment Parent
+        public UrlSegment NextConflict
         {
-            get { return this.parent; }
+            get { return this.WalkTree(x => x.SelectedChild).Skip(1).LastOrDefault(x => !x.IsLastSegment && x.SelectedChild == null); }
         }
 
         public string PathSegment
@@ -180,29 +170,19 @@ namespace Pomona.Routing
             get { return this.pathSegmentIndex >= 0 ? this.pathSegments[this.pathSegmentIndex] : string.Empty; }
         }
 
+        public string RelativePath
+        {
+            get { return string.Join("/", this.pathSegments.Take(this.pathSegmentIndex + 1)); }
+        }
+
         public TypeSpec ResultItemType
         {
             get { return this.route.ResultItemType; }
         }
 
-        public TypeSpec ResultType
-        {
-            get { return this.route.ResultType; }
-        }
-
-        public UrlSegment Root
-        {
-            get { return this.tree.Root; }
-        }
-
         public Route Route
         {
             get { return this.route; }
-        }
-
-        public UrlSegment NextConflict
-        {
-            get { return this.WalkTree(x => x.SelectedChild).Skip(1).LastOrDefault(x => !x.IsLastSegment && x.SelectedChild == null); }
         }
 
         public UrlSegment SelectedChild
@@ -216,44 +196,14 @@ namespace Pomona.Routing
             }
         }
 
+        public UrlSegment SelectedFinalMatch
+        {
+            get { return this.WalkTree(x => x.SelectedChild).LastOrDefault(x => x.IsLastSegment); }
+        }
+
         public IPomonaSession Session
         {
             get { return this.tree.Session; }
-        }
-
-        public object Value
-        {
-            get
-            {
-                if (!this.valueIsLoaded)
-                {
-                    this.value = Get();
-                    this.valueIsLoaded = true;
-                }
-                return this.value;
-            }
-        }
-
-        IEnumerable<UrlSegment> ITreeNode<UrlSegment>.Children
-        {
-            get { return Children; }
-        }
-
-        IResourceNode IResourceNode.Parent
-        {
-            get { return Parent; }
-        }
-
-
-        public override string ToString()
-        {
-            return string.Join("/",
-                               this.AscendantsAndSelf().Select(
-                                   x =>
-                                       string.Format("{0}{1}({2})",
-                                                     x.GetPrefix(),
-                                                     x.PathSegment,
-                                                     x.GetTypeStringOfRoute())).Reverse());
         }
 
 
@@ -266,6 +216,18 @@ namespace Pomona.Routing
         public IQueryable Query()
         {
             return Session.Query(this);
+        }
+
+
+        public override string ToString()
+        {
+            return string.Join("/",
+                               this.AscendantsAndSelf().Select(
+                                   x =>
+                                       string.Format("{0}{1}({2})",
+                                                     x.GetPrefix(),
+                                                     x.PathSegment,
+                                                     x.GetTypeStringOfRoute())).Reverse());
         }
 
 
@@ -299,6 +261,45 @@ namespace Pomona.Routing
                                  this.route.InputType != null ? this.route.InputType.Name : "void",
                                  this.route.ResultItemType.Name,
                                  this.route.IsSingle ? "?" : "*");
+        }
+
+
+        public UrlSegment Parent
+        {
+            get { return this.parent; }
+        }
+
+        public TypeSpec ResultType
+        {
+            get { return this.route.ResultType; }
+        }
+
+        public UrlSegment Root
+        {
+            get { return this.tree.Root; }
+        }
+
+        public object Value
+        {
+            get
+            {
+                if (!this.valueIsLoaded)
+                {
+                    this.value = Get();
+                    this.valueIsLoaded = true;
+                }
+                return this.value;
+            }
+        }
+
+        IEnumerable<UrlSegment> ITreeNode<UrlSegment>.Children
+        {
+            get { return Children; }
+        }
+
+        IResourceNode IResourceNode.Parent
+        {
+            get { return Parent; }
         }
     }
 }

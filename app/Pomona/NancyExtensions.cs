@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -57,18 +57,6 @@ namespace Pomona
         }
 
 
-        internal static IPomonaSession GetPomonaSession(this NancyContext nancyContext)
-        {
-            return (IPomonaSession)nancyContext.Items[typeof(IPomonaSession).FullName];
-        }
-
-
-        internal static IUriResolver GetUriResolver(this NancyContext nancyContext)
-        {
-            return (IUriResolver)nancyContext.Items[typeof(IUriResolver).FullName];
-        }
-
-
         internal static RuntimeContainerWrapper GetIocContainerWrapper(this NancyContext context)
         {
             object childContainer;
@@ -84,6 +72,18 @@ namespace Pomona
                 childContainer = item.Value;
             }
             return RuntimeContainerWrapper.Create(childContainer);
+        }
+
+
+        internal static IPomonaSession GetPomonaSession(this NancyContext nancyContext)
+        {
+            return (IPomonaSession)nancyContext.Items[typeof(IPomonaSession).FullName];
+        }
+
+
+        internal static IUriResolver GetUriResolver(this NancyContext nancyContext)
+        {
+            return (IUriResolver)nancyContext.Items[typeof(IUriResolver).FullName];
         }
 
 

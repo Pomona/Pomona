@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,6 @@ using System.Linq;
 
 using Pomona.CodeGen;
 using Pomona.Common;
-using Pomona.Example.Models;
 using Pomona.UnitTests.Queries;
 
 namespace Pomona.UnitTests.Client
@@ -82,21 +81,21 @@ namespace Pomona.UnitTests.Client
             public decimal CashAmount { get; set; }
             public Guid Guid { get; set; }
             public int Id { get; set; }
-            public int? NullableInt32 { get; set; }
-            public long? NullableInt64 { get; set; }
-            public bool? NullableBool { get; set; }
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
             public IList<decimal> ListOfDecimals { get; set; }
             public IList<double> ListOfDoubles { get; set; }
             public IList<int> ListOfInts { get; set; }
+            public bool? NullableBool { get; set; }
+            public int? NullableInt32 { get; set; }
+            public long? NullableInt64 { get; set; }
             public bool OnOrOff { get; set; }
             public double Precise { get; set; }
             public TestEnum SomeEnum { get; set; }
             public IList<FooBar> SomeList { get; set; }
             public TestEnum? SomeNullableEnum { get; set; }
-            public StringEnumTemplate SomeStringEnum { get; set; }
             public IQueryableFooBarRepo SomeQueryable { get; set; }
+            public StringEnumTemplate SomeStringEnum { get; set; }
             public IDictionary<string, object> StringObjectAttributes { get; set; }
             public TimeSpan TimeSpan { get; set; }
             public object UnknownProperty { get; set; }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,16 +49,16 @@ namespace Pomona
         public static IPomonaModuleConfigurationBinder Current { get; set; }
 
 
-        public IPomonaSessionFactory GetFactory(PomonaModule module)
-        {
-            return this.moduleFactoryMap.GetOrAdd(module.GetType(), t => CreateFactory(module));
-        }
-
-
         private IPomonaSessionFactory CreateFactory(PomonaModule module)
         {
             var conf = module.GetConfiguration();
             return conf.CreateSessionFactory();
+        }
+
+
+        public IPomonaSessionFactory GetFactory(PomonaModule module)
+        {
+            return this.moduleFactoryMap.GetOrAdd(module.GetType(), t => CreateFactory(module));
         }
     }
 }

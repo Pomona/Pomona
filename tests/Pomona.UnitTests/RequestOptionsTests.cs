@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,26 +38,12 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class RequestOptionsTests
     {
-        private void AssertRequestOptionCall(Action<IRequestOptions> options,
-            Action<HttpRequest> assertions,
-            string uri = "http://whatever")
-        {
-            var requestMessage = new HttpRequest(uri,
-                null,
-                "GET");
-            var requestOptions = new RequestOptions();
-            options(requestOptions);
-            requestOptions.ApplyRequestModifications(requestMessage);
-            assertions(requestMessage);
-        }
-
-
         [Test]
         public void AppendQueryParameter_ToUrlWithExistingQueryString_ResultsInCorrectUrl()
         {
             AssertRequestOptionCall(x => x.AppendQueryParameter("foo", "bar mann"),
-                rm => Assert.That(rm.Uri, Is.EqualTo("http://whatever?blob=knabb&foo=bar+mann")),
-                "http://whatever?blob=knabb");
+                                    rm => Assert.That(rm.Uri, Is.EqualTo("http://whatever?blob=knabb&foo=bar+mann")),
+                                    "http://whatever?blob=knabb");
         }
 
 
@@ -65,7 +51,21 @@ namespace Pomona.UnitTests
         public void AppendQueryParameter_ToUrlWithNoQueryString_ResultsInCorrectUrl()
         {
             AssertRequestOptionCall(x => x.AppendQueryParameter("foo", "bar mann"),
-                rm => Assert.That(rm.Uri, Is.EqualTo("http://whatever?foo=bar+mann")));
+                                    rm => Assert.That(rm.Uri, Is.EqualTo("http://whatever?foo=bar+mann")));
+        }
+
+
+        private void AssertRequestOptionCall(Action<IRequestOptions> options,
+                                             Action<HttpRequest> assertions,
+                                             string uri = "http://whatever")
+        {
+            var requestMessage = new HttpRequest(uri,
+                                                 null,
+                                                 "GET");
+            var requestOptions = new RequestOptions();
+            options(requestOptions);
+            requestOptions.ApplyRequestModifications(requestMessage);
+            assertions(requestMessage);
         }
     }
 }

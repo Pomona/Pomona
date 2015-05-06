@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,22 +38,6 @@ namespace Pomona.Routing
 {
     public static class ResourceTypeExtensions
     {
-        /// <summary>
-        /// Is this property the primary property for a child resource?
-        /// </summary>
-        internal static bool IsPrimaryChildResourceProperty(this PropertySpec property)
-        {
-            if (property == null)
-                throw new ArgumentNullException("property");
-
-            var resourceType = property.PropertyType.GetItemType() as ResourceType;
-            if (resourceType == null)
-                return false;
-
-            return property == resourceType.ParentToChildProperty;
-        }
-
-
         public static IEnumerable<Route> GetRoutes(this ResourceType resourceType, Route parent)
         {
             if (resourceType == null)
@@ -89,6 +73,22 @@ namespace Pomona.Routing
                         y => new GetByIdRoute((ResourceType)y.ItemType, parent, property.ItemAccessMode).WrapAsEnumerable())).OrDefault(
                             Enumerable.Empty<Route>);
             return routes;
+        }
+
+
+        /// <summary>
+        /// Is this property the primary property for a child resource?
+        /// </summary>
+        internal static bool IsPrimaryChildResourceProperty(this PropertySpec property)
+        {
+            if (property == null)
+                throw new ArgumentNullException("property");
+
+            var resourceType = property.PropertyType.GetItemType() as ResourceType;
+            if (resourceType == null)
+                return false;
+
+            return property == resourceType.ParentToChildProperty;
         }
     }
 }

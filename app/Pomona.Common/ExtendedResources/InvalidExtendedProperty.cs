@@ -38,16 +38,17 @@ namespace Pomona.Common.ExtendedResources
     {
         private readonly string errorMessage;
 
-        public string ErrorMessage
-        {
-            get { return this.errorMessage; }
-        }
-
 
         public InvalidExtendedProperty(PropertyInfo property, string errorMessage)
             : base(property)
         {
             this.errorMessage = errorMessage;
+        }
+
+
+        public string ErrorMessage
+        {
+            get { return this.errorMessage; }
         }
 
 

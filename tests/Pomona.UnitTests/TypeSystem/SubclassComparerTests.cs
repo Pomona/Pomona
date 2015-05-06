@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,28 @@ namespace Pomona.UnitTests.TypeSystem
     [TestFixture]
     public class SubclassComparerTests
     {
+        private static IEnumerable<Type> ShuffledTypes
+        {
+            get { return new[] { typeof(B), typeof(A), typeof(D), typeof(C) }; }
+        }
+
+
+        [Test]
+        public void OrderBy_MostSubclassedIsLast()
+        {
+            Assert.That(ShuffledTypes.OrderBy(x => x, new SubclassComparer()),
+                        Is.EqualTo(new[] { typeof(A), typeof(B), typeof(C), typeof(D) }));
+        }
+
+
+        [Test]
+        public void OrderByDescending_MostSubclassedIsFirst()
+        {
+            Assert.That(ShuffledTypes.OrderByDescending(x => x, new SubclassComparer()),
+                        Is.EqualTo(new[] { typeof(D), typeof(C), typeof(B), typeof(A) }));
+        }
+
+
         private class A
         {
         }
@@ -53,27 +75,6 @@ namespace Pomona.UnitTests.TypeSystem
 
         private class D : C
         {
-        }
-
-        private static IEnumerable<Type> ShuffledTypes
-        {
-            get { return new[] { typeof(B), typeof(A), typeof(D), typeof(C) }; }
-        }
-
-
-        [Test]
-        public void OrderByDescending_MostSubclassedIsFirst()
-        {
-            Assert.That(ShuffledTypes.OrderByDescending(x => x, new SubclassComparer()),
-                Is.EqualTo(new[] { typeof(D), typeof(C), typeof(B), typeof(A) }));
-        }
-
-
-        [Test]
-        public void OrderBy_MostSubclassedIsLast()
-        {
-            Assert.That(ShuffledTypes.OrderBy(x => x, new SubclassComparer()),
-                Is.EqualTo(new[] { typeof(A), typeof(B), typeof(C), typeof(D) }));
         }
     }
 }

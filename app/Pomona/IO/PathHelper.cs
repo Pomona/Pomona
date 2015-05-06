@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -56,6 +56,17 @@ namespace Pomona.IO
         }
 
 
+        public static bool MatchUrlPathSpec(string input, string pattern)
+        {
+            if (pattern == null)
+                throw new ArgumentNullException("pattern");
+            if (input == null)
+                throw new ArgumentNullException("input");
+
+            return Regex.IsMatch(input, SpecToRegex(pattern));
+        }
+
+
         public static string SpecToRegex(string spec)
         {
             StringBuilder sb = new StringBuilder();
@@ -103,17 +114,6 @@ namespace Pomona.IO
             }
             else
                 sb.Append(c);
-        }
-
-
-        public static bool MatchUrlPathSpec(string input, string pattern)
-        {
-            if (pattern == null)
-                throw new ArgumentNullException("pattern");
-            if (input == null)
-                throw new ArgumentNullException("input");
-
-            return Regex.IsMatch(input, SpecToRegex(pattern));
         }
     }
 }

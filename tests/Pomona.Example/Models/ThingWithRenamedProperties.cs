@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,23 +34,25 @@ namespace Pomona.Example.Models
     {
         private IList<JunkWithRenamedProperty> relatedJunks;
 
+
         public ThingWithRenamedProperties()
         {
-            relatedJunks = new List<JunkWithRenamedProperty>();
+            this.relatedJunks = new List<JunkWithRenamedProperty>();
         }
+
+
+        /// <summary>
+        /// This property will be called DiscoFunky when mapped.
+        /// </summary>
+        public virtual JunkWithRenamedProperty Junky { get; set; }
 
         /// <summary>
         /// This property will be called PrettyThings when renamed.
         /// </summary>
         public virtual IList<JunkWithRenamedProperty> RelatedJunks
         {
-            get { return relatedJunks; }
-            set { relatedJunks = value; }
+            get { return this.relatedJunks; }
+            set { this.relatedJunks = value; }
         }
-
-        /// <summary>
-        /// This property will be called DiscoFunky when mapped.
-        /// </summary>
-        public virtual JunkWithRenamedProperty Junky { get; set; }
     }
 }

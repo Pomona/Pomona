@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,26 +37,26 @@ namespace Pomona.Example.Rules
         public void Map(ITypeMappingConfigurator<CelestialObject> map)
         {
             map.AsIndependentTypeRoot()
-                .Include(x => x.Name, o => o.AsPrimaryKey())
-                .Include(x => x.ETag, o => o.AsEtag().ReadOnly());
+               .Include(x => x.Name, o => o.AsPrimaryKey())
+               .Include(x => x.ETag, o => o.AsEtag().ReadOnly());
         }
 
 
         public void Map(ITypeMappingConfigurator<PlanetarySystem> map)
         {
             map.AsUriBaseType()
-                .Include(x => x.Planets,
-                         o => o.ExposedAsRepository().Allow(HttpMethod.Post).ItemsAllow(HttpMethod.Delete))
-                .HasChild(x => x.Star, x => x.PlanetarySystem)
-                .AsChildResourceOf(x => x.Galaxy, x => x.PlanetarySystems);
+               .Include(x => x.Planets,
+                        o => o.ExposedAsRepository().Allow(HttpMethod.Post).ItemsAllow(HttpMethod.Delete))
+               .HasChild(x => x.Star, x => x.PlanetarySystem)
+               .AsChildResourceOf(x => x.Galaxy, x => x.PlanetarySystems);
         }
 
 
         public void Map(ITypeMappingConfigurator<Galaxy> map)
         {
             map.AsUriBaseType()
-                .Include(x => x.PlanetarySystems, o => o.ExposedAsRepository())
-                .HasChild(x => x.Info, x => x.Galaxy);
+               .Include(x => x.PlanetarySystems, o => o.ExposedAsRepository())
+               .HasChild(x => x.Info, x => x.Galaxy);
         }
 
 
@@ -71,7 +71,7 @@ namespace Pomona.Example.Rules
             map.HasChildren(x => x.Moons,
                             x => x.Planet,
                             x => x.AsUriBaseType()
-                                .ConstructedUsing(y => new Moon(y.Requires().Name, y.Parent<Planet>())),
+                                  .ConstructedUsing(y => new Moon(y.Requires().Name, y.Parent<Planet>())),
                             x => x.Writable());
             map.ConstructedUsing(x => new Planet(x.Requires().Name, x.Parent<PlanetarySystem>()));
         }

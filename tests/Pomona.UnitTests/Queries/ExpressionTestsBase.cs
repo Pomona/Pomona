@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 
-using Pomona.Common.Expressions;
 using Pomona.Common.Internals;
 using Pomona.TestHelpers;
 
@@ -38,31 +37,23 @@ namespace Pomona.UnitTests.Queries
 {
     public abstract class ExpressionTestsBase
     {
+        protected static void AssertExpressionEquals<T, TReturn>(
+            Expression<Func<T, TReturn>> actual,
+            Expression<Func<T, TReturn>> expected)
+        {
+            AssertExpressionEquals(actual, (Expression)expected);
+        }
+
+
+        protected static void AssertExpressionEquals(Expression actual, Expression expected)
+        {
+            actual.Visit<NormalizeExpressionToRoslynStyle>().AssertEquals(expected.Visit<NormalizeExpressionToRoslynStyle>());
+        }
+
+
         public class NormalizeExpressionToRoslynStyle : ExpressionVisitor
         {
-            protected override Expression VisitUnary(UnaryExpression node)
-            {
-                var nodeUnderlyingType = Nullable.GetUnderlyingType(node.Type);
-                var operandAsConstant = node.Operand as ConstantExpression;
-                if (operandAsConstant != null && nodeUnderlyingType != null && operandAsConstant.Type.IsEnum
-                    && nodeUnderlyingType == operandAsConstant.Type.GetEnumUnderlyingType()
-                    && operandAsConstant.Value != null)
-                {
-                    // Given the expression
-                    //     (Enum? x) => x == Enum.Member => (Enum? x)
-                    // Roslyn will generate:
-                    //     (Enum? x) => (int?)x == (int?)((Enum?)Enum.Member) <--- notice the double cast from Enum to Enum? to int?
-                    // The old compiler will generate:
-                    //     (Enum? x) => (int?)x == (int?)EnumMember <--- just a single cast from Enum to int?
-                    //
-                    // We'll normalize to the way Roslyn does this:
-                    return
-                        Expression.Convert(
-                            Expression.Convert(operandAsConstant,
-                                               typeof(Nullable<>).MakeGenericType(operandAsConstant.Type)), node.Type);
-                }
-                return base.VisitUnary(node);
-            }
+            private static readonly Type[] enumUnderlyingTypes = { typeof(byte), typeof(int), typeof(long) };
 
 
             protected override Expression VisitBinary(BinaryExpression node)
@@ -95,22 +86,34 @@ namespace Pomona.UnitTests.Queries
             }
 
 
-            private void NormalizeReferenceComparisonWithNull(ref Expression left, ref Expression right, bool tryAgainSwapped = true)
+            protected override Expression VisitUnary(UnaryExpression node)
             {
-                var rightAsConstant = right as ConstantExpression;
-                if (!left.Type.IsValueType && left.Type != right.Type && right.Type == typeof(object) && rightAsConstant != null && rightAsConstant.Value == null)
+                var nodeUnderlyingType = Nullable.GetUnderlyingType(node.Type);
+                var operandAsConstant = node.Operand as ConstantExpression;
+                if (operandAsConstant != null && nodeUnderlyingType != null && operandAsConstant.Type.IsEnum
+                    && nodeUnderlyingType == operandAsConstant.Type.GetEnumUnderlyingType()
+                    && operandAsConstant.Value != null)
                 {
-                    right = Expression.Constant(null, left.Type);
-                    return;
+                    // Given the expression
+                    //     (Enum? x) => x == Enum.Member => (Enum? x)
+                    // Roslyn will generate:
+                    //     (Enum? x) => (int?)x == (int?)((Enum?)Enum.Member) <--- notice the double cast from Enum to Enum? to int?
+                    // The old compiler will generate:
+                    //     (Enum? x) => (int?)x == (int?)EnumMember <--- just a single cast from Enum to int?
+                    //
+                    // We'll normalize to the way Roslyn does this:
+                    return
+                        Expression.Convert(
+                            Expression.Convert(operandAsConstant,
+                                               typeof(Nullable<>).MakeGenericType(operandAsConstant.Type)), node.Type);
                 }
-                if (tryAgainSwapped)
-                    NormalizeReferenceComparisonWithNull(ref right, ref left, false);
+                return base.VisitUnary(node);
             }
 
 
-            private static readonly Type[] enumUnderlyingTypes = { typeof(byte), typeof(int), typeof(long) };
-
-            private void NormalizeNonNullableEnumComparisonWithConstant(ref Expression left, ref Expression right, bool tryAgainSwapped = true)
+            private void NormalizeNonNullableEnumComparisonWithConstant(ref Expression left,
+                                                                        ref Expression right,
+                                                                        bool tryAgainSwapped = true)
             {
                 var unaryLeft = left as UnaryExpression;
                 var underlyingType = left.Type;
@@ -124,7 +127,7 @@ namespace Pomona.UnitTests.Queries
                     {
                         var rightConstant = (ConstantExpression)right;
                         right = Expression.Convert(Expression.Constant(Enum.ToObject(unaryLeft.Operand.Type, rightConstant.Value),
-                                                    enumType), underlyingType);
+                                                                       enumType), underlyingType);
                         return;
                     }
                 }
@@ -133,19 +136,19 @@ namespace Pomona.UnitTests.Queries
                     NormalizeNonNullableEnumComparisonWithConstant(ref right, ref left, false);
             }
 
-        }
 
-        protected static void AssertExpressionEquals<T, TReturn>(
-            Expression<Func<T, TReturn>> actual,
-            Expression<Func<T, TReturn>> expected)
-        {
-            AssertExpressionEquals(actual, (Expression)expected);
-        }
-
-
-        protected static void AssertExpressionEquals(Expression actual, Expression expected)
-        {
-            actual.Visit<NormalizeExpressionToRoslynStyle>().AssertEquals(expected.Visit<NormalizeExpressionToRoslynStyle>());
+            private void NormalizeReferenceComparisonWithNull(ref Expression left, ref Expression right, bool tryAgainSwapped = true)
+            {
+                var rightAsConstant = right as ConstantExpression;
+                if (!left.Type.IsValueType && left.Type != right.Type && right.Type == typeof(object) && rightAsConstant != null
+                    && rightAsConstant.Value == null)
+                {
+                    right = Expression.Constant(null, left.Type);
+                    return;
+                }
+                if (tryAgainSwapped)
+                    NormalizeReferenceComparisonWithNull(ref right, ref left, false);
+            }
         }
     }
 }

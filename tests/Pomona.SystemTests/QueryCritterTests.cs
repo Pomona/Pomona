@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -145,25 +145,25 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void QueryCritter_OrderByThenByDescending_ReturnsCrittersInCorrectOrder()
-        {
-            Repository.CreateRandomData(40);
-            var fetchedCritters =
-                Client.Critters.Query().Expand(x => x.Weapons).OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id)
-                    .Take(1000).ToList();
-            var expected = fetchedCritters.OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id).ToList();
-            Assert.That(fetchedCritters.SequenceEqual(expected));
-        }
-
-
-        [Test]
         public void QueryCritter_OrderByThenBy_ReturnsCrittersInCorrectOrder()
         {
             Repository.CreateRandomData(40);
             var fetchedCritters =
                 Client.Critters.Query().Expand(x => x.Weapons).OrderByDescending(x => x.Weapons.Count).ThenBy(x => x.Id)
-                    .Take(1000).ToList();
+                      .Take(1000).ToList();
             var expected = fetchedCritters.OrderByDescending(x => x.Weapons.Count).ThenBy(x => x.Id).ToList();
+            Assert.That(fetchedCritters.SequenceEqual(expected));
+        }
+
+
+        [Test]
+        public void QueryCritter_OrderByThenByDescending_ReturnsCrittersInCorrectOrder()
+        {
+            Repository.CreateRandomData(40);
+            var fetchedCritters =
+                Client.Critters.Query().Expand(x => x.Weapons).OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id)
+                      .Take(1000).ToList();
+            var expected = fetchedCritters.OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id).ToList();
             Assert.That(fetchedCritters.SequenceEqual(expected));
         }
 
@@ -240,7 +240,7 @@ namespace Pomona.SystemTests
         public void QueryCritter_WithIdBetween_ReturnsCorrectResult()
         {
             var orderedCritters = CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).
-                ToList();
+                                                  ToList();
             var maxId = orderedCritters.Max(x => x.Id);
             var minId = orderedCritters.Min(x => x.Id);
 
@@ -260,6 +260,15 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void QueryCritter_WithNameEquals_ReturnsCorrectResult()
+        {
+            var nameOfFirstCritter = CritterEntities.First().Name;
+            var fetchedCritters = Client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
+            Assert.That(fetchedCritters.Any(x => x.Name == nameOfFirstCritter));
+        }
+
+
+        [Test]
         public void QueryCritter_WithNameEqualsOrNameEqualsSomethingElse_ReturnsCorrectResult()
         {
             var nameOfFirstCritter = CritterEntities.First().Name;
@@ -275,26 +284,9 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void QueryCritter_WithNameEquals_ReturnsCorrectResult()
-        {
-            var nameOfFirstCritter = CritterEntities.First().Name;
-            var fetchedCritters = Client.Query<ICritter>(x => x.Name == nameOfFirstCritter);
-            Assert.That(fetchedCritters.Any(x => x.Name == nameOfFirstCritter));
-        }
-
-
-        [Test]
         public void QueryCritter_WithNameStartsWithA_ReturnsCrittersWithNameStartingWithA()
         {
             TestQuery<ICritter, Critter>(x => x.Name.StartsWith("A"), x => x.Name.StartsWith("A"));
-        }
-
-
-        [Test]
-        public void QueryCritter_WithOrderByIntDesc_ReturnsCrittersInCorrectOrder()
-        {
-            var fetchedCritters = Client.Critters.Query().OrderByDescending(x => x.Id).Take(1000).ToList();
-            AssertIsOrderedBy(fetchedCritters, x => x.Id, SortOrder.Descending);
         }
 
 
@@ -307,10 +299,10 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void QueryCritter_WithOrderByStringDesc_ReturnsCrittersInCorrectOrder()
+        public void QueryCritter_WithOrderByIntDesc_ReturnsCrittersInCorrectOrder()
         {
-            var fetchedCritters = Client.Critters.Query().OrderByDescending(x => x.Name).Take(1000).ToList();
-            AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Descending);
+            var fetchedCritters = Client.Critters.Query().OrderByDescending(x => x.Id).Take(1000).ToList();
+            AssertIsOrderedBy(fetchedCritters, x => x.Id, SortOrder.Descending);
         }
 
 
@@ -319,6 +311,14 @@ namespace Pomona.SystemTests
         {
             var fetchedCritters = Client.Critters.Query().OrderBy(x => x.Name).Take(1000);
             AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Ascending);
+        }
+
+
+        [Test]
+        public void QueryCritter_WithOrderByStringDesc_ReturnsCrittersInCorrectOrder()
+        {
+            var fetchedCritters = Client.Critters.Query().OrderByDescending(x => x.Name).Take(1000).ToList();
+            AssertIsOrderedBy(fetchedCritters, x => x.Name, SortOrder.Descending);
         }
 
 

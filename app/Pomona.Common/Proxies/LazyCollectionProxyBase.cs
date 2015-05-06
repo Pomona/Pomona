@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -46,19 +46,9 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public int Count
-        {
-            get { return WrappedList.Count; }
-        }
-
         public override bool IsLoaded
         {
             get { return this.dontTouchwrappedList != null; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return true; }
         }
 
         public TCollection WrappedList
@@ -66,7 +56,7 @@ namespace Pomona.Common.Proxies
             get
             {
                 if (this.dontTouchwrappedList == null)
-                    this.dontTouchwrappedList = this.ResourceLoader.Get<TCollection>(Uri);
+                    this.dontTouchwrappedList = ResourceLoader.Get<TCollection>(Uri);
 
                 return this.dontTouchwrappedList;
             }
@@ -97,9 +87,21 @@ namespace Pomona.Common.Proxies
         }
 
 
+        public int Count
+        {
+            get { return WrappedList.Count; }
+        }
+
+
         public IEnumerator<T> GetEnumerator()
         {
             return WrappedList.GetEnumerator();
+        }
+
+
+        public bool IsReadOnly
+        {
+            get { return true; }
         }
 
 

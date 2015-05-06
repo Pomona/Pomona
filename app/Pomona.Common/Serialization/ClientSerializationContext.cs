@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.TypeSystem;
@@ -43,11 +44,17 @@ namespace Pomona.Common.Serialization
             this.typeMapper = typeMapper;
         }
 
+
+        public T GetInstance<T>()
+        {
+            return new NoContainer().GetInstance<T>();
+        }
+
         #region Implementation of ISerializationContext
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return typeMapper.FromType(type);
+            return this.typeMapper.FromType(type);
         }
 
 
@@ -74,17 +81,10 @@ namespace Pomona.Common.Serialization
         {
             if (node.Value is IClientResource && !(node.Value is PostResourceBase) && !(node.Value is IDelta) &&
                 !node.IsRemoved)
-            {
                 node.SerializeAsReference = true;
-            }
             serializeNodeAction(node);
         }
 
         #endregion
-
-        public T GetInstance<T>()
-        {
-            return new NoContainer().GetInstance<T>();
-        }
     }
 }

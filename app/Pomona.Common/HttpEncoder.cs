@@ -1,35 +1,30 @@
-//
-// Authors:
-//   Patrik Torstensson (Patrik.Torstensson@labs2.com)
-//   Wictor Wilén (decode/encode functions) (wictor@ibizkit.se)
-//   Tim Coleman (tim@timcoleman.com)
-//   Gonzalo Paniagua Javier (gonzalo@ximian.com)
+#region License
 
-//   Marek Habersack <mhabersack@novell.com>
-//
-// (C) 2005-2010 Novell, Inc (http://novell.com/)
-//
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2015 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
 
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-// 
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -45,16 +40,14 @@ namespace Pomona.Common
 
     internal class HttpEncoder
     {
-        private static char[] hexChars = "0123456789abcdef".ToCharArray();
-        private static object entitiesLock = new object();
+        private static readonly char[] hexChars = "0123456789abcdef".ToCharArray();
+        private static readonly object entitiesLock = new object();
         private static SortedDictionary<string, char> entities;
 #if NET_4_0
 		static Lazy <HttpEncoder> defaultEncoder;
 		static Lazy <HttpEncoder> currentEncoderLazy;
 #else
-        private static HttpEncoder defaultEncoder;
 #endif
-        private static HttpEncoder currentEncoder;
 
         private static IDictionary<string, char> Entities
         {
@@ -70,16 +63,7 @@ namespace Pomona.Common
             }
         }
 
-        public static HttpEncoder Current
-        {
-            get
-            {
-#if NET_4_0
-				if (currentEncoder == null)
-					currentEncoder = currentEncoderLazy.Value;
-#endif
-                return currentEncoder;
-            }
+        public static HttpEncoder Current { get; private set;
 #if NET_4_0
 			set {
 				if (value == null)
@@ -89,17 +73,7 @@ namespace Pomona.Common
 #endif
         }
 
-        public static HttpEncoder Default
-        {
-            get
-            {
-#if NET_4_0
-				return defaultEncoder.Value;
-#else
-                return defaultEncoder;
-#endif
-            }
-        }
+        public static HttpEncoder Default { get; private set; }
 
 
         static HttpEncoder()
@@ -108,8 +82,8 @@ namespace Pomona.Common
 			defaultEncoder = new Lazy <HttpEncoder> (() => new HttpEncoder ());
 			currentEncoderLazy = new Lazy <HttpEncoder> (new Func <HttpEncoder> (GetCustomEncoderFromConfig));
 #else
-            defaultEncoder = new HttpEncoder();
-            currentEncoder = defaultEncoder;
+            Default = new HttpEncoder();
+            Current = Default;
 #endif
         }
 
@@ -125,7 +99,10 @@ namespace Pomona.Common
         internal static
 #endif
             void HeaderNameValueEncode(
-            string headerName, string headerValue, out string encodedHeaderName, out string encodedHeaderValue)
+            string headerName,
+            string headerValue,
+            out string encodedHeaderName,
+            out string encodedHeaderValue)
         {
             if (String.IsNullOrEmpty(headerName))
                 encodedHeaderName = headerName;
@@ -158,7 +135,7 @@ namespace Pomona.Common
                 ch = input[i];
 
                 if ((ch < 32 && ch != 9) || ch == 127)
-                    StringBuilderAppend(String.Format("%{0:x2}", (int) ch), ref sb);
+                    StringBuilderAppend(String.Format("%{0:x2}", (int)ch), ref sb);
             }
 
             if (sb != null)
@@ -259,7 +236,7 @@ namespace Pomona.Common
             var result = new MemoryStream(count);
             var end = offset + count;
             for (var i = offset; i < end; i++)
-                UrlEncodeChar((char) bytes[i], result, false);
+                UrlEncodeChar((char)bytes[i], result, false);
 
             return result.ToArray();
         }
@@ -329,7 +306,7 @@ namespace Pomona.Common
                         if (ch > 159 && ch < 256)
                         {
                             output.Append("&#");
-                            output.Append(((int) ch).ToString(CultureInfo.InvariantCulture));
+                            output.Append(((int)ch).ToString(CultureInfo.InvariantCulture));
                             output.Append(";");
                         }
                         else
@@ -516,7 +493,7 @@ namespace Pomona.Common
                             output.Append(";");
                         }
                         else
-                            output.Append((char) number);
+                            output.Append((char)number);
                         state = 0;
                         entity.Length = 0;
 #if NET_4_0
@@ -526,7 +503,7 @@ namespace Pomona.Common
                     }
                     else if (is_hex_value && Uri.IsHexDigit(c))
                     {
-                        number = number*16 + Uri.FromHex(c);
+                        number = number * 16 + Uri.FromHex(c);
                         have_trailing_digits = true;
 #if NET_4_0
 						rawEntity.Append (c);
@@ -534,7 +511,7 @@ namespace Pomona.Common
                     }
                     else if (Char.IsDigit(c))
                     {
-                        number = number*10 + ((int) c - '0');
+                        number = number * 10 + ((int)c - '0');
                         have_trailing_digits = true;
 #if NET_4_0
 						rawEntity.Append (c);
@@ -574,7 +551,7 @@ namespace Pomona.Common
 #if !NET_4_0
                     || c == '\''
 #endif
-                   );
+                );
         }
 
 
@@ -586,29 +563,29 @@ namespace Pomona.Common
                 //if (!isUnicode)
                 //	throw new ArgumentOutOfRangeException ("c", c, "c must be less than 256");
                 int idx;
-                var i = (int) c;
+                var i = (int)c;
 
-                result.WriteByte((byte) '%');
-                result.WriteByte((byte) 'u');
+                result.WriteByte((byte)'%');
+                result.WriteByte((byte)'u');
                 idx = i >> 12;
-                result.WriteByte((byte) hexChars[idx]);
+                result.WriteByte((byte)hexChars[idx]);
                 idx = (i >> 8) & 0x0F;
-                result.WriteByte((byte) hexChars[idx]);
+                result.WriteByte((byte)hexChars[idx]);
                 idx = (i >> 4) & 0x0F;
-                result.WriteByte((byte) hexChars[idx]);
+                result.WriteByte((byte)hexChars[idx]);
                 idx = i & 0x0F;
-                result.WriteByte((byte) hexChars[idx]);
+                result.WriteByte((byte)hexChars[idx]);
                 return;
             }
 
             if (c > ' ' && NotEncoded(c))
             {
-                result.WriteByte((byte) c);
+                result.WriteByte((byte)c);
                 return;
             }
             if (c == ' ')
             {
-                result.WriteByte((byte) '+');
+                result.WriteByte((byte)'+');
                 return;
             }
             if ((c < '0') ||
@@ -618,21 +595,21 @@ namespace Pomona.Common
             {
                 if (isUnicode && c > 127)
                 {
-                    result.WriteByte((byte) '%');
-                    result.WriteByte((byte) 'u');
-                    result.WriteByte((byte) '0');
-                    result.WriteByte((byte) '0');
+                    result.WriteByte((byte)'%');
+                    result.WriteByte((byte)'u');
+                    result.WriteByte((byte)'0');
+                    result.WriteByte((byte)'0');
                 }
                 else
-                    result.WriteByte((byte) '%');
+                    result.WriteByte((byte)'%');
 
-                var idx = ((int) c) >> 4;
-                result.WriteByte((byte) hexChars[idx]);
-                idx = ((int) c) & 0x0F;
-                result.WriteByte((byte) hexChars[idx]);
+                var idx = ((int)c) >> 4;
+                result.WriteByte((byte)hexChars[idx]);
+                idx = ((int)c) & 0x0F;
+                result.WriteByte((byte)hexChars[idx]);
             }
             else
-                result.WriteByte((byte) c);
+                result.WriteByte((byte)c);
         }
 
 
@@ -643,21 +620,21 @@ namespace Pomona.Common
                 var bIn = Encoding.UTF8.GetBytes(c.ToString());
                 for (var i = 0; i < bIn.Length; i++)
                 {
-                    result.WriteByte((byte) '%');
-                    var idx = ((int) bIn[i]) >> 4;
-                    result.WriteByte((byte) hexChars[idx]);
-                    idx = ((int) bIn[i]) & 0x0F;
-                    result.WriteByte((byte) hexChars[idx]);
+                    result.WriteByte((byte)'%');
+                    var idx = ((int)bIn[i]) >> 4;
+                    result.WriteByte((byte)hexChars[idx]);
+                    idx = ((int)bIn[i]) & 0x0F;
+                    result.WriteByte((byte)hexChars[idx]);
                 }
             }
             else if (c == ' ')
             {
-                result.WriteByte((byte) '%');
-                result.WriteByte((byte) '2');
-                result.WriteByte((byte) '0');
+                result.WriteByte((byte)'%');
+                result.WriteByte((byte)'2');
+                result.WriteByte((byte)'0');
             }
             else
-                result.WriteByte((byte) c);
+                result.WriteByte((byte)c);
         }
 
 

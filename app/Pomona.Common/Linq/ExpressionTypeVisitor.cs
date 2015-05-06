@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -156,24 +156,6 @@ namespace Pomona.Common.Linq
         }
 
 
-        protected virtual PropertyInfo VisitProperty(PropertyInfo prop)
-        {
-            var origType = prop.DeclaringType;
-            var replacedType = VisitType(origType);
-            if (replacedType != origType)
-            {
-                return prop.IsStatic()
-                    ? replacedType.GetProperty(prop.Name,
-                                               BindingFlags.Static | BindingFlags.NonPublic
-                                               | BindingFlags.Public)
-                    : replacedType.GetProperty(prop.Name,
-                                               BindingFlags.Instance | BindingFlags.NonPublic
-                                               | BindingFlags.Public);
-            }
-            return prop;
-        }
-
-
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             var replacementMethod = VisitMethod(node.Method);
@@ -206,6 +188,24 @@ namespace Pomona.Common.Linq
             if (serverType != node.Type)
                 return this.replacementParameters.GetOrCreate(node, () => Expression.Parameter(serverType, node.Name));
             return base.VisitParameter(node);
+        }
+
+
+        protected virtual PropertyInfo VisitProperty(PropertyInfo prop)
+        {
+            var origType = prop.DeclaringType;
+            var replacedType = VisitType(origType);
+            if (replacedType != origType)
+            {
+                return prop.IsStatic()
+                    ? replacedType.GetProperty(prop.Name,
+                                               BindingFlags.Static | BindingFlags.NonPublic
+                                               | BindingFlags.Public)
+                    : replacedType.GetProperty(prop.Name,
+                                               BindingFlags.Instance | BindingFlags.NonPublic
+                                               | BindingFlags.Public);
+            }
+            return prop;
         }
     }
 }

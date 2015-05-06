@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -71,16 +71,8 @@ namespace Pomona.Common.Linq
         private readonly List<Action<IRequestOptions>> requestOptionActions;
         private readonly IList<LambdaExpression> whereExpressions;
         private Type aggregateReturnType;
-        private Type elementType;
-        private LambdaExpression groupByKeySelector;
-        private bool includeTotalCount;
-        private QueryProjection projection;
-        private ResultModeType resultMode = ResultModeType.Deserialized;
         private IRestQueryRoot queryRoot;
-        private LambdaExpression selectExpression;
-        private int? skipCount;
-        private int? takeCount;
-        private LambdaExpression wherePredicate;
+        private ResultModeType resultMode = ResultModeType.Deserialized;
 
 
         static RestQueryableTreeParser()
@@ -107,39 +99,26 @@ namespace Pomona.Common.Linq
             this.orderKeySelectors = new List<Tuple<LambdaExpression, SortOrder>>();
             this.requestOptionActions = new List<Action<IRequestOptions>>();
             this.whereExpressions = new List<LambdaExpression>();
-            this.projection = QueryProjection.Enumerable;
+            Projection = QueryProjection.Enumerable;
         }
 
 
-        public Type ElementType
-        {
-            get { return this.elementType; }
-        }
+        public Type ElementType { get; private set; }
 
         public string ExpandedPaths
         {
             get { return this.expandedPaths.ToString(); }
         }
 
-        public LambdaExpression GroupByKeySelector
-        {
-            get { return this.groupByKeySelector; }
-        }
-
-        public bool IncludeTotalCount
-        {
-            get { return this.includeTotalCount; }
-        }
+        public LambdaExpression GroupByKeySelector { get; private set; }
+        public bool IncludeTotalCount { get; private set; }
 
         public List<Tuple<LambdaExpression, SortOrder>> OrderKeySelectors
         {
             get { return this.orderKeySelectors; }
         }
 
-        public QueryProjection Projection
-        {
-            get { return this.projection; }
-        }
+        public QueryProjection Projection { get; private set; }
 
         public string RepositoryUri
         {
@@ -156,10 +135,7 @@ namespace Pomona.Common.Linq
             get { return this.resultMode; }
         }
 
-        public LambdaExpression SelectExpression
-        {
-            get { return this.selectExpression; }
-        }
+        public LambdaExpression SelectExpression { get; private set; }
 
         public Type SelectReturnType
         {
@@ -168,26 +144,15 @@ namespace Pomona.Common.Linq
                 if (this.aggregateReturnType != null)
                     return this.aggregateReturnType;
 
-                if (this.selectExpression == null)
+                if (SelectExpression == null)
                     return ElementType;
-                return this.selectExpression.ReturnType;
+                return SelectExpression.ReturnType;
             }
         }
 
-        public int? SkipCount
-        {
-            get { return this.skipCount; }
-        }
-
-        public int? TakeCount
-        {
-            get { return this.takeCount; }
-        }
-
-        public LambdaExpression WherePredicate
-        {
-            get { return this.wherePredicate; }
-        }
+        public int? SkipCount { get; private set; }
+        public int? TakeCount { get; private set; }
+        public LambdaExpression WherePredicate { get; private set; }
 
 
         protected override Expression VisitConstant(ConstantExpression node)
@@ -198,7 +163,7 @@ namespace Pomona.Common.Linq
             if (restQueryRoot != null)
             {
                 this.queryRoot = restQueryRoot;
-                this.elementType = restQueryRoot.ElementType;
+                ElementType = restQueryRoot.ElementType;
                 return node;
             }
 
@@ -226,9 +191,9 @@ namespace Pomona.Common.Linq
             try
             {
                 var parameters = node.Arguments
-                    .Skip(1)
-                    .Select(ExtractArgumentFromExpression)
-                    .ToArray();
+                                     .Skip(1)
+                                     .Select(ExtractArgumentFromExpression)
+                                     .ToArray();
 
                 visitMethodInstance.Invoke(this, parameters);
             }
@@ -242,8 +207,8 @@ namespace Pomona.Common.Linq
 
         internal void QAny<TSource>()
         {
-            this.takeCount = 1;
-            this.projection = QueryProjection.Any;
+            TakeCount = 1;
+            Projection = QueryProjection.Any;
         }
 
 
@@ -257,7 +222,7 @@ namespace Pomona.Common.Linq
 
         internal void QCount<TSource>()
         {
-            this.projection = QueryProjection.Count;
+            Projection = QueryProjection.Count;
             this.aggregateReturnType = typeof(int);
         }
 
@@ -287,7 +252,7 @@ namespace Pomona.Common.Linq
 
         internal void QFirst<TSource>()
         {
-            this.projection = QueryProjection.First;
+            Projection = QueryProjection.First;
         }
 
 
@@ -300,13 +265,13 @@ namespace Pomona.Common.Linq
 
         internal void QFirstLazy<TSource>()
         {
-            this.projection = QueryProjection.FirstLazy;
+            Projection = QueryProjection.FirstLazy;
         }
 
 
         internal void QFirstOrDefault<TSource>()
         {
-            this.projection = QueryProjection.FirstOrDefault;
+            Projection = QueryProjection.FirstOrDefault;
         }
 
 
@@ -321,29 +286,29 @@ namespace Pomona.Common.Linq
         {
             if (SkipCount.HasValue)
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Skip() before GroupBy()");
-            
+
             if (TakeCount.HasValue)
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Take() before GroupBy()");
-            
-            if (this.groupByKeySelector != null)
+
+            if (GroupByKeySelector != null)
                 throw new NotSupportedException("Pomona LINQ provider does not support multiple chained GroupBy()");
 
             if (this.orderKeySelectors.Any())
                 throw new NotSupportedException("Pomona LINQ provider does not support calling OrderBy before GroupBy()");
 
-            this.groupByKeySelector = keySelector;
+            GroupByKeySelector = keySelector;
         }
 
 
         internal void QIncludeTotalCount<TSource>()
         {
-            this.includeTotalCount = true;
+            IncludeTotalCount = true;
         }
 
 
         internal void QMax<TSource>()
         {
-            this.projection = QueryProjection.Max;
+            Projection = QueryProjection.Max;
         }
 
 
@@ -356,7 +321,7 @@ namespace Pomona.Common.Linq
 
         internal void QMin<TSource>()
         {
-            this.projection = QueryProjection.Min;
+            Projection = QueryProjection.Min;
         }
 
 
@@ -369,20 +334,20 @@ namespace Pomona.Common.Linq
 
         internal void QOfType<TResult>()
         {
-            if (!this.elementType.IsAssignableFrom(typeof(TResult)))
+            if (!ElementType.IsAssignableFrom(typeof(TResult)))
                 throw new NotSupportedException("Only supports OfType'ing to inherited type.");
 
-            if (this.selectExpression != null)
+            if (SelectExpression != null)
                 throw new NotSupportedException("Does only support OfType at start of query.");
 
-            if (this.wherePredicate != null)
+            if (WherePredicate != null)
             {
-                var newParam = Expression.Parameter(typeof(TResult), this.wherePredicate.Parameters[0].Name);
-                var replacer = new LamdbaParameterReplacer(this.wherePredicate.Parameters[0], newParam);
-                this.wherePredicate = Expression.Lambda(replacer.Visit(this.wherePredicate.Body), newParam);
+                var newParam = Expression.Parameter(typeof(TResult), WherePredicate.Parameters[0].Name);
+                var replacer = new LamdbaParameterReplacer(WherePredicate.Parameters[0], newParam);
+                WherePredicate = Expression.Lambda(replacer.Visit(WherePredicate.Body), newParam);
             }
 
-            this.elementType = typeof(TResult);
+            ElementType = typeof(TResult);
         }
 
 
@@ -414,13 +379,13 @@ namespace Pomona.Common.Linq
         {
             if (this.expandedPaths.Length > 0)
                 throw new NotSupportedException("Pomona LINQ provider does not support using Expand() before Select()");
-            this.selectExpression = this.selectExpression != null ? MergeWhereAfterSelect(selector) : selector;
+            SelectExpression = SelectExpression != null ? MergeWhereAfterSelect(selector) : selector;
         }
 
 
         internal void QSingle<TSource>()
         {
-            this.projection = QueryProjection.Single;
+            Projection = QueryProjection.Single;
         }
 
 
@@ -440,7 +405,7 @@ namespace Pomona.Common.Linq
 
         internal void QSingleOrDefault<TSource>()
         {
-            this.projection = QueryProjection.SingleOrDefault;
+            Projection = QueryProjection.SingleOrDefault;
         }
 
 
@@ -450,7 +415,7 @@ namespace Pomona.Common.Linq
                 throw new NotSupportedException("Pomona LINQ provider does not support calling Take() before Skip().");
             if (SkipCount.HasValue)
                 throw new NotSupportedException("Pomona LINQ provider does not support multiple calls to Skip()");
-            this.skipCount = skipCount;
+            SkipCount = skipCount;
         }
 
 
@@ -500,7 +465,7 @@ namespace Pomona.Common.Linq
         {
             if (TakeCount.HasValue)
                 throw new NotSupportedException("Pomona LINQ provider does not support multiple calls to Take()");
-            this.takeCount = takeCount;
+            TakeCount = takeCount;
         }
 
 
@@ -518,20 +483,20 @@ namespace Pomona.Common.Linq
 
         internal void QToJson()
         {
-            this.projection = QueryProjection.Enumerable;
+            Projection = QueryProjection.Enumerable;
             this.resultMode = ResultModeType.ToJson;
         }
 
 
         internal void QToQueryResult<TSource>()
         {
-            this.projection = QueryProjection.Enumerable;
+            Projection = QueryProjection.Enumerable;
         }
 
 
         internal void QToUri<TSource>()
         {
-            this.projection = QueryProjection.Enumerable;
+            Projection = QueryProjection.Enumerable;
             this.resultMode = ResultModeType.ToUri;
         }
 
@@ -546,17 +511,17 @@ namespace Pomona.Common.Linq
                 fixedPredicate = MergeWhereAfterSelect(fixedPredicate);
 
             this.whereExpressions.Add(fixedPredicate);
-            if (this.wherePredicate == null)
-                this.wherePredicate = fixedPredicate;
+            if (WherePredicate == null)
+                WherePredicate = fixedPredicate;
             else
             {
                 var replacer = new LamdbaParameterReplacer(fixedPredicate.Parameters[0],
-                                                           this.wherePredicate.Parameters[0]);
+                                                           WherePredicate.Parameters[0]);
                 var rewrittenPredicateBody = replacer.Visit(fixedPredicate.Body);
-                this.wherePredicate = Expression.Lambda(
-                    this.wherePredicate.Type,
-                    Expression.AndAlso(this.wherePredicate.Body, rewrittenPredicateBody),
-                    this.wherePredicate.Parameters);
+                WherePredicate = Expression.Lambda(
+                    WherePredicate.Type,
+                    Expression.AndAlso(WherePredicate.Body, rewrittenPredicateBody),
+                    WherePredicate.Parameters);
             }
         }
 
@@ -564,6 +529,18 @@ namespace Pomona.Common.Linq
         internal void QWithOptions<TSource>(Action<IRequestOptions> options)
         {
             this.requestOptionActions.Add(options);
+        }
+
+
+        private object ExtractArgumentFromExpression(Expression expression)
+        {
+            if (expression.NodeType == ExpressionType.Quote)
+                return ((UnaryExpression)expression).Operand;
+            if (expression.NodeType == ExpressionType.Lambda)
+                return expression;
+            if (expression.NodeType == ExpressionType.Constant)
+                return ((ConstantExpression)expression).Value;
+            throw new NotSupportedException("Does not know how to unwrap " + expression.NodeType);
         }
 
 
@@ -577,6 +554,56 @@ namespace Pomona.Common.Linq
         {
             if (!TryMapQueryableFunction(method))
                 throw new InvalidOperationException("Unable to find visitmethod to handle " + method.Name);
+        }
+
+
+        private LambdaExpression MergeWhereAfterSelect(LambdaExpression predicate)
+        {
+            var parameter = Expression.Parameter(SelectExpression.Parameters[0].Type,
+                                                 SelectExpression.Parameters[0].Name);
+            var fixedSelectExpr = LamdbaParameterReplacer.Replace(SelectExpression.Body,
+                                                                  SelectExpression.Parameters[0],
+                                                                  parameter);
+            var expandedBody = LamdbaParameterReplacer.Replace(predicate.Body, predicate.Parameters[0], fixedSelectExpr);
+            var newBody = new CollapseDisplayObjectsVisitor().Visit(expandedBody);
+            return Expression.Lambda(newBody, parameter);
+        }
+
+
+        private void OrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector,
+                                            SortOrder sortOrder,
+                                            bool thenBy = false)
+        {
+            if (SkipCount.HasValue)
+            {
+                throw new NotSupportedException(
+                    "Pomona LINQ provider does not support calling Skip() before OrderBy/OrderByDescending");
+            }
+            if (TakeCount.HasValue)
+            {
+                throw new NotSupportedException(
+                    "Pomona LINQ provider does not support calling Take() before OrderBy/OrderByDescending");
+            }
+
+            if (!thenBy)
+                this.orderKeySelectors.Clear();
+
+            if (SelectExpression != null && GroupByKeySelector == null)
+            {
+                // Support order by after select (not when using GroupBy)
+                this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(MergeWhereAfterSelect(keySelector),
+                                                                                  sortOrder));
+            }
+            else
+                this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(keySelector, sortOrder));
+        }
+
+
+        private void Sum(LambdaExpression propertySelector = null)
+        {
+            if (propertySelector != null)
+                QSelect(propertySelector);
+            Projection = QueryProjection.Sum;
         }
 
 
@@ -609,68 +636,6 @@ namespace Pomona.Common.Linq
             return visitorMethodParams
                 .Zip(nodeMethodParams.Skip(1), (x, y) => x.ParameterType.IsGenericallyEquivalentTo(y.ParameterType))
                 .All(x => x);
-        }
-
-
-        private object ExtractArgumentFromExpression(Expression expression)
-        {
-            if (expression.NodeType == ExpressionType.Quote)
-                return ((UnaryExpression)expression).Operand;
-            if (expression.NodeType == ExpressionType.Lambda)
-                return expression;
-            if (expression.NodeType == ExpressionType.Constant)
-                return ((ConstantExpression)expression).Value;
-            throw new NotSupportedException("Does not know how to unwrap " + expression.NodeType);
-        }
-
-
-        private LambdaExpression MergeWhereAfterSelect(LambdaExpression predicate)
-        {
-            var parameter = Expression.Parameter(this.selectExpression.Parameters[0].Type,
-                                                 this.selectExpression.Parameters[0].Name);
-            var fixedSelectExpr = LamdbaParameterReplacer.Replace(this.selectExpression.Body,
-                                                                  this.selectExpression.Parameters[0],
-                                                                  parameter);
-            var expandedBody = LamdbaParameterReplacer.Replace(predicate.Body, predicate.Parameters[0], fixedSelectExpr);
-            var newBody = new CollapseDisplayObjectsVisitor().Visit(expandedBody);
-            return Expression.Lambda(newBody, parameter);
-        }
-
-
-        private void OrderBy<TSource, TKey>(Expression<Func<TSource, TKey>> keySelector,
-                                            SortOrder sortOrder,
-                                            bool thenBy = false)
-        {
-            if (SkipCount.HasValue)
-            {
-                throw new NotSupportedException(
-                    "Pomona LINQ provider does not support calling Skip() before OrderBy/OrderByDescending");
-            }
-            if (TakeCount.HasValue)
-            {
-                throw new NotSupportedException(
-                    "Pomona LINQ provider does not support calling Take() before OrderBy/OrderByDescending");
-            }
-
-            if (!thenBy)
-                this.orderKeySelectors.Clear();
-
-            if (this.selectExpression != null && this.groupByKeySelector == null)
-            {
-                // Support order by after select (not when using GroupBy)
-                this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(MergeWhereAfterSelect(keySelector),
-                                                                                  sortOrder));
-            }
-            else
-                this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(keySelector, sortOrder));
-        }
-
-
-        private void Sum(LambdaExpression propertySelector = null)
-        {
-            if (propertySelector != null)
-                QSelect(propertySelector);
-            this.projection = QueryProjection.Sum;
         }
 
         #region Nested type: CollapseDisplayObjectsVisitor

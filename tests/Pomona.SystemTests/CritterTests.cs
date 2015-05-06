@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,6 @@ using Critters.Client;
 using NUnit.Framework;
 
 using Pomona.Common;
-using Pomona.Common.Linq;
 using Pomona.Example.Models;
 
 namespace Pomona.SystemTests
@@ -82,6 +81,7 @@ namespace Pomona.SystemTests
             var critterEntity = CritterEntities.First(x => x.Id == critter.Id);
             Assert.That(critterEntity.RelativeImageUrl, Is.EqualTo("/new-image.png"));
         }
+
 
         [Test]
         public void UsesCustomSetterForAbsoluteFileUrl_OnPost()

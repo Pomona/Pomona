@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Linq;
 
 namespace Pomona.RequestProcessing
 {
@@ -37,7 +36,9 @@ namespace Pomona.RequestProcessing
         private readonly HandlerParameter targetResourceParameter;
 
 
-        public HandlerMethodTakingFormInvoker(HandlerMethod method, HandlerParameter formParameter, HandlerParameter targetResourceParameter = null)
+        public HandlerMethodTakingFormInvoker(HandlerMethod method,
+                                              HandlerParameter formParameter,
+                                              HandlerParameter targetResourceParameter = null)
             : base(method)
         {
             if (formParameter == null)
@@ -51,26 +52,26 @@ namespace Pomona.RequestProcessing
         }
 
 
+        public override bool CanProcess(PomonaContext context)
+        {
+            object form;
+            return context.TryBindAsType(this.formParameter.TypeSpec, out form);
+        }
+
+
         protected override object OnGetArgument(HandlerParameter parameter, PomonaContext context, InvokeState state)
         {
-            if (parameter == targetResourceParameter)
+            if (parameter == this.targetResourceParameter)
                 return context.Node.Value;
-            if (parameter == formParameter)
+            if (parameter == this.formParameter)
                 return state.Form;
             return base.OnGetArgument(parameter, context, state);
         }
 
 
-        public override bool CanProcess(PomonaContext context)
-        {
-            object form;
-            return context.TryBindAsType(formParameter.TypeSpec, out form);
-        }
-
-
         protected override object OnInvoke(object target, PomonaContext context, InvokeState state)
         {
-            state.Form = context.Bind(formParameter.TypeSpec);
+            state.Form = context.Bind(this.formParameter.TypeSpec);
             return base.OnInvoke(target, context, state);
         }
 

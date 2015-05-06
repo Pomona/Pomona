@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using Pomona.Common.Expressions;
 using Pomona.Common.Internals;
 
 namespace Pomona.Common.Linq.NonGeneric
@@ -110,8 +109,8 @@ namespace Pomona.Common.Linq.NonGeneric
 
 
         public static IOrderedQueryable OrderBy(this IQueryable source,
-            LambdaExpression keySelector,
-            SortOrder sortOrder)
+                                                LambdaExpression keySelector,
+                                                SortOrder sortOrder)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -121,24 +120,6 @@ namespace Pomona.Common.Linq.NonGeneric
             return sortOrder == SortOrder.Descending
                 ? source.OrderByDescending(keySelector)
                 : source.OrderBy(keySelector);
-        }
-
-
-
-        public static object Sum(this IQueryable source)
-        {
-            if (source == null)
-                throw new ArgumentNullException("source");
-
-            var iqType = typeof(IQueryable<>).MakeGenericType(source.ElementType);
-            var method = typeof(Queryable).GetMethod("Sum",
-                BindingFlags.Public | BindingFlags.Static,
-                null,
-                new Type[] { iqType },
-                null);
-            if (method == null)
-                throw new NotSupportedException("Unable to apply Sum to " + iqType);
-            return method.Invoke(null, new object[] { source });
         }
 
 
@@ -204,6 +185,23 @@ namespace Pomona.Common.Linq.NonGeneric
         }
 
 
+        public static object Sum(this IQueryable source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+
+            var iqType = typeof(IQueryable<>).MakeGenericType(source.ElementType);
+            var method = typeof(Queryable).GetMethod("Sum",
+                                                     BindingFlags.Public | BindingFlags.Static,
+                                                     null,
+                                                     new Type[] { iqType },
+                                                     null);
+            if (method == null)
+                throw new NotSupportedException("Unable to apply Sum to " + iqType);
+            return method.Invoke(null, new object[] { source });
+        }
+
+
         public static IQueryable Take(this IQueryable source, int count)
         {
             if (source == null)
@@ -234,8 +232,8 @@ namespace Pomona.Common.Linq.NonGeneric
 
 
         public static IOrderedQueryable ThenBy(this IOrderedQueryable source,
-            LambdaExpression keySelector,
-            SortOrder sortOrder)
+                                               LambdaExpression keySelector,
+                                               SortOrder sortOrder)
         {
             if (source == null)
                 throw new ArgumentNullException("source");

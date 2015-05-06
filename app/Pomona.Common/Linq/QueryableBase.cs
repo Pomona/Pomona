@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,16 +36,6 @@ namespace Pomona.Common.Linq
 {
     public abstract class QueryableBase<T> : IOrderedQueryable<T>
     {
-        public abstract Expression Expression { get; }
-
-        public abstract IQueryProvider Provider { get; }
-
-        Type IQueryable.ElementType
-        {
-            get { return typeof(T); }
-        }
-
-
         public override string ToString()
         {
             if (Expression.NodeType == ExpressionType.Constant &&
@@ -55,9 +45,20 @@ namespace Pomona.Common.Linq
         }
 
 
+        public abstract Expression Expression { get; }
+
+
         public IEnumerator<T> GetEnumerator()
         {
             return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
+        }
+
+
+        public abstract IQueryProvider Provider { get; }
+
+        Type IQueryable.ElementType
+        {
+            get { return typeof(T); }
         }
 
 

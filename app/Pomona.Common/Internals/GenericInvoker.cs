@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,14 +37,6 @@ namespace Pomona.Common.Internals
 {
     public static class GenericInvoker
     {
-        internal static GenericInvokerBase Create(Type delegateType, MethodInfo method)
-        {
-            return
-                (GenericInvokerBase)
-                    Activator.CreateInstance(typeof(GenericInvoker<>).MakeGenericType(delegateType), method);
-        }
-
-
         public static MethodInfo ExtractMethodInfo(this LambdaExpression expr)
         {
             return ReflectionHelper.GetMethodDefinition(expr);
@@ -54,6 +46,14 @@ namespace Pomona.Common.Internals
         public static InstanceMethodFactory<TInstance> Instance<TInstance>()
         {
             return new InstanceMethodFactory<TInstance>();
+        }
+
+
+        internal static GenericInvokerBase Create(Type delegateType, MethodInfo method)
+        {
+            return
+                (GenericInvokerBase)
+                    Activator.CreateInstance(typeof(GenericInvoker<>).MakeGenericType(delegateType), method);
         }
 
         #region Nested type: InstanceMethodFactory
@@ -161,6 +161,7 @@ namespace Pomona.Common.Internals
                 return WrapInstanceGenericMethod<Func<Type, Type, TInstance, T1, T2, T3, TReturn>>(2, expr);
             }
 
+
             public Func<Type, Type, TInstance, T1, T2, T3, T4, TReturn> CreateFunc2<T1, T2, T3, T4, TReturn>(
                 Expression<Func<TInstance, object>> expr)
             {
@@ -179,6 +180,7 @@ namespace Pomona.Common.Internals
                 return wrappedFunc;
             }
 
+
             private TDel WrapInstanceGenericMethod<TDel>(int typeArgCount, LambdaExpression expr)
                 where TDel : class
             {
@@ -195,11 +197,11 @@ namespace Pomona.Common.Internals
 
                 return
                     Expression.Lambda<TDel>(Expression.Invoke(Expression.Call(Expression.Constant(gi),
-                        "GetDelegate",
-                        null,
-                        Expression.NewArrayInit(typeof(Type), typeParams)),
-                        forwardParams),
-                        typeParams.Concat(forwardParams)).Compile();
+                                                                              "GetDelegate",
+                                                                              null,
+                                                                              Expression.NewArrayInit(typeof(Type), typeParams)),
+                                                              forwardParams),
+                                            typeParams.Concat(forwardParams)).Compile();
             }
         }
 
@@ -267,9 +269,7 @@ namespace Pomona.Common.Internals
             if (method.IsStatic)
                 body = Expression.Call(method, args);
             else
-            {
                 body = Expression.Call(instanceParam, method, args);
-            }
             if (returnType != typeof(void))
                 body = Expression.Convert(body, returnType);
             return Expression.Lambda<T>(body, lambdaParams);
@@ -279,7 +279,9 @@ namespace Pomona.Common.Internals
         public T GetDelegate(Type[] typeArgs)
         {
             return this.methodInstanceCache.GetOrAdd(typeArgs,
-                k => CreateCallWrapper(this.methodDefinition.MakeGenericMethod(k), inArgs, delReturnType).Compile());
+                                                     k =>
+                                                         CreateCallWrapper(this.methodDefinition.MakeGenericMethod(k), inArgs, delReturnType)
+                                                         .Compile());
         }
 
 

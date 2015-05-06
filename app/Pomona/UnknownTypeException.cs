@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+
 using Nancy;
 
 namespace Pomona
@@ -36,14 +37,17 @@ namespace Pomona
     [Serializable]
     public class UnknownTypeException : PomonaServerException
     {
-        public UnknownTypeException(string message, Exception innerException = null,
+        public UnknownTypeException(string message,
+                                    Exception innerException = null,
                                     HttpStatusCode statusCode = HttpStatusCode.BadRequest,
                                     IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
             : base(message, innerException, statusCode, responseHeaders)
         {
         }
 
-        protected UnknownTypeException(SerializationInfo info, StreamingContext context) : base(info, context)
+
+        protected UnknownTypeException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
     }

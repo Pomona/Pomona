@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,173 +24,26 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using NUnit.Framework;
-using Pomona.Common.Internals;
+
 using Pomona.Common.TypeSystem;
-using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.TypeSystem
 {
     [TestFixture]
     public class ConstructorSpecTests
     {
-        public abstract class Super
-        {
-            protected Super(int theUntouchable, int theOverridable)
-            {
-                TheUntouchable = theUntouchable;
-                TheOverridable = theOverridable;
-            }
-
-
-            public virtual int TheOverridable { get; set; }
-            public abstract int TheAbstract { get; set; }
-            public int TheUntouchable { get; set; }
-        }
-
-        public class Inherited : Super
-        {
-            private int theAbstract;
-
-
-            public Inherited(int theUntouchable,
-                int theOverridable,
-                int theAbstract,
-                string theRequired,
-                string theOptional = null)
-                : base(theUntouchable, theOverridable)
-            {
-                this.theAbstract = theAbstract;
-                TheRequired = theRequired;
-                TheOptional = theOptional;
-            }
-
-
-            public override int TheAbstract
-            {
-                get { return theAbstract; }
-                set { theAbstract = value; }
-            }
-
-            public string TheOptional { get; set; }
-            public string TheRequired { get; set; }
-        }
-
-
-        private static ConstructorSpec GetConstructorSpecWithFiveArguments()
-        {
-            Expression<Func<IConstructorControl<Inherited>, Inherited>> expr =
-                c =>
-                    new Inherited(c.Requires().TheUntouchable,
-                        c.Requires().TheOverridable,
-                        c.Requires().TheAbstract,
-                        c.Requires().TheRequired,
-                        c.Optional().TheOptional);
-            var constructorSpec = new ConstructorSpec(expr);
-            return constructorSpec;
-        }
-
-
-        public class MockedPropertySourceHavingZeroProperties<T> : IConstructorPropertySource<T>
-        {
-            public T Requires()
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public T Optional()
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public TParentType Parent<TParentType>()
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public TContext Context<TContext>()
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
-            {
-                if (defaultFactory == null)
-                    throw new NotImplementedException();
-                return defaultFactory();
-            }
-        }
-
-        public class MockedPropertySource : IConstructorPropertySource<Inherited>
-        {
-            private Inherited source;
-
-            public MockedPropertySource(Inherited source)
-            {
-                this.source = source;
-            }
-
-            public Inherited Requires()
-            {
-                throw new NotImplementedException();
-            }
-
-            public Inherited Optional()
-            {
-                throw new NotImplementedException();
-            }
-
-            public TParentType Parent<TParentType>()
-            {
-                throw new NotImplementedException();
-            }
-
-            public TContext Context<TContext>()
-            {
-                throw new NotImplementedException();
-            }
-
-            public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
-            {
-                return (TProperty) propertyInfo.GetValue(source, null);
-            }
-        }
-
-        private static void AssertConstructorSpecWithFiveArguments(ConstructorSpec constructorSpec)
-        {
-            var pspecs = constructorSpec.ParameterSpecs.ToList();
-
-            Assert.That(pspecs.Count, Is.EqualTo(5));
-            Assert.That(pspecs[0].PropertyInfo.Name, Is.EqualTo("TheUntouchable"));
-            Assert.That(pspecs[0].IsRequired, Is.True);
-
-            Assert.That(pspecs[1].PropertyInfo.Name, Is.EqualTo("TheOverridable"));
-            Assert.That(pspecs[1].IsRequired, Is.True);
-
-            Assert.That(pspecs[2].PropertyInfo.Name, Is.EqualTo("TheAbstract"));
-            Assert.That(pspecs[2].IsRequired, Is.True);
-
-            Assert.That(pspecs[3].PropertyInfo.Name, Is.EqualTo("TheRequired"));
-            Assert.That(pspecs[3].IsRequired, Is.True);
-
-            Assert.That(pspecs[4].PropertyInfo.Name, Is.EqualTo("TheOptional"));
-            Assert.That(pspecs[4].IsRequired, Is.False);
-
-            Assert.That(pspecs.Select((x, i) => new {x.Position, i}).All(x => x.Position == x.i), Is.True);
-        }
-
         [Test]
         public void FromConstructorInfo_ReturnsCorrectConstructorSpec()
         {
-            var cspec = ConstructorSpec.FromConstructorInfo(typeof (Inherited).GetConstructors().First());
+            var cspec = ConstructorSpec.FromConstructorInfo(typeof(Inherited).GetConstructors().First());
             AssertConstructorSpecWithFiveArguments(cspec);
         }
 
@@ -197,7 +52,7 @@ namespace Pomona.UnitTests.TypeSystem
         public void GetParameterSpec_FromConstructorControl_UsingDeclaredProperty_IsSuccessful()
         {
             var cspec = GetConstructorSpecWithFiveArguments();
-            var propInfo = typeof (Inherited).GetProperty("TheRequired");
+            var propInfo = typeof(Inherited).GetProperty("TheRequired");
             var pspec = cspec.GetParameterSpec(propInfo);
             Assert.That(pspec, Is.Not.Null);
         }
@@ -207,33 +62,29 @@ namespace Pomona.UnitTests.TypeSystem
         public void GetParameterSpec_FromConstructorControl_UsingInheritedProperty_IsSuccessful()
         {
             var cspec = GetConstructorSpecWithFiveArguments();
-            var propInfo = typeof (Inherited).GetProperty("TheUntouchable");
+            var propInfo = typeof(Inherited).GetProperty("TheUntouchable");
             var pspec = cspec.GetParameterSpec(propInfo);
             Assert.That(pspec, Is.Not.Null);
         }
+
 
         [Test]
         public void GetParameterSpec_FromConstructorControl_UsingOverridedAbstractProperty_IsSuccessful()
         {
             var cspec = GetConstructorSpecWithFiveArguments();
-            var propInfo = typeof (Inherited).GetProperty("TheAbstract");
+            var propInfo = typeof(Inherited).GetProperty("TheAbstract");
             var pspec = cspec.GetParameterSpec(propInfo);
             Assert.That(pspec, Is.Not.Null);
         }
 
-        public class NullableTestClass
+
+        [Test]
+        public void GetParameterSpec_FromConstructorControl_UsingOverridedProperty_IsSuccessful()
         {
-            private int foo;
-
-            public NullableTestClass(int? foo)
-            {
-                this.foo = foo ?? 1337;
-            }
-
-            public int Foo
-            {
-                get { return this.foo; }
-            }
+            var cspec = GetConstructorSpecWithFiveArguments();
+            var propInfo = typeof(Inherited).GetProperty("TheOverridable");
+            var pspec = cspec.GetParameterSpec(propInfo);
+            Assert.That(pspec, Is.Not.Null);
         }
 
 
@@ -252,15 +103,6 @@ namespace Pomona.UnitTests.TypeSystem
             Assert.That(result.Foo, Is.EqualTo(1337));
         }
 
-
-        [Test]
-        public void GetParameterSpec_FromConstructorControl_UsingOverridedProperty_IsSuccessful()
-        {
-            var cspec = GetConstructorSpecWithFiveArguments();
-            var propInfo = typeof (Inherited).GetProperty("TheOverridable");
-            var pspec = cspec.GetParameterSpec(propInfo);
-            Assert.That(pspec, Is.Not.Null);
-        }
 
         [Test]
         public void InjectingConstructorExpression_IsCorrectlyTransformed()
@@ -283,6 +125,173 @@ namespace Pomona.UnitTests.TypeSystem
         {
             var constructorSpec = GetConstructorSpecWithFiveArguments();
             AssertConstructorSpecWithFiveArguments(constructorSpec);
+        }
+
+
+        private static void AssertConstructorSpecWithFiveArguments(ConstructorSpec constructorSpec)
+        {
+            var pspecs = constructorSpec.ParameterSpecs.ToList();
+
+            Assert.That(pspecs.Count, Is.EqualTo(5));
+            Assert.That(pspecs[0].PropertyInfo.Name, Is.EqualTo("TheUntouchable"));
+            Assert.That(pspecs[0].IsRequired, Is.True);
+
+            Assert.That(pspecs[1].PropertyInfo.Name, Is.EqualTo("TheOverridable"));
+            Assert.That(pspecs[1].IsRequired, Is.True);
+
+            Assert.That(pspecs[2].PropertyInfo.Name, Is.EqualTo("TheAbstract"));
+            Assert.That(pspecs[2].IsRequired, Is.True);
+
+            Assert.That(pspecs[3].PropertyInfo.Name, Is.EqualTo("TheRequired"));
+            Assert.That(pspecs[3].IsRequired, Is.True);
+
+            Assert.That(pspecs[4].PropertyInfo.Name, Is.EqualTo("TheOptional"));
+            Assert.That(pspecs[4].IsRequired, Is.False);
+
+            Assert.That(pspecs.Select((x, i) => new { x.Position, i }).All(x => x.Position == x.i), Is.True);
+        }
+
+
+        private static ConstructorSpec GetConstructorSpecWithFiveArguments()
+        {
+            Expression<Func<IConstructorControl<Inherited>, Inherited>> expr =
+                c =>
+                    new Inherited(c.Requires().TheUntouchable,
+                                  c.Requires().TheOverridable,
+                                  c.Requires().TheAbstract,
+                                  c.Requires().TheRequired,
+                                  c.Optional().TheOptional);
+            var constructorSpec = new ConstructorSpec(expr);
+            return constructorSpec;
+        }
+
+
+        public class Inherited : Super
+        {
+            private int theAbstract;
+
+
+            public Inherited(int theUntouchable,
+                             int theOverridable,
+                             int theAbstract,
+                             string theRequired,
+                             string theOptional = null)
+                : base(theUntouchable, theOverridable)
+            {
+                this.theAbstract = theAbstract;
+                TheRequired = theRequired;
+                TheOptional = theOptional;
+            }
+
+
+            public override int TheAbstract
+            {
+                get { return this.theAbstract; }
+                set { this.theAbstract = value; }
+            }
+
+            public string TheOptional { get; set; }
+            public string TheRequired { get; set; }
+        }
+
+        public class MockedPropertySource : IConstructorPropertySource<Inherited>
+        {
+            private readonly Inherited source;
+
+
+            public MockedPropertySource(Inherited source)
+            {
+                this.source = source;
+            }
+
+
+            public TContext Context<TContext>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
+            {
+                return (TProperty)propertyInfo.GetValue(this.source, null);
+            }
+
+
+            public Inherited Optional()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TParentType Parent<TParentType>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public Inherited Requires()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class MockedPropertySourceHavingZeroProperties<T> : IConstructorPropertySource<T>
+        {
+            public TContext Context<TContext>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory)
+            {
+                if (defaultFactory == null)
+                    throw new NotImplementedException();
+                return defaultFactory();
+            }
+
+
+            public T Optional()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public TParentType Parent<TParentType>()
+            {
+                throw new NotImplementedException();
+            }
+
+
+            public T Requires()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class NullableTestClass
+        {
+            public NullableTestClass(int? foo)
+            {
+                Foo = foo ?? 1337;
+            }
+
+
+            public int Foo { get; private set; }
+        }
+
+        public abstract class Super
+        {
+            protected Super(int theUntouchable, int theOverridable)
+            {
+                TheUntouchable = theUntouchable;
+                TheOverridable = theOverridable;
+            }
+
+
+            public abstract int TheAbstract { get; set; }
+            public virtual int TheOverridable { get; set; }
+            public int TheUntouchable { get; set; }
         }
     }
 }

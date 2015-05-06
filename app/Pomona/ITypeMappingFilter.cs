@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,18 @@ namespace Pomona
 {
     public interface ITypeMappingFilter : ITypeConventions, IPropertyConventions, IResourceConventions
     {
+        #region ApiMetadataConfiguration
+
+        string ApiVersion { get; }
+
+        #endregion
+
+        #region ProxyTypeResolver
+
+        Type ResolveRealTypeForProxy(Type type);
+
+        #endregion
+
         #region Undecided stuff:
 
         DefaultPropertyInclusionMode GetDefaultPropertyInclusionMode();
@@ -58,12 +70,6 @@ namespace Pomona
         HttpMethod GetPropertyItemAccessMode(Type type, PropertyInfo propertyInfo);
         bool PatchOfTypeIsAllowed(Type type);
         bool PostOfTypeIsAllowed(Type type);
-
-        #endregion
-
-        #region ApiMetadataConfiguration
-
-        string ApiVersion { get; }
 
         #endregion
 
@@ -92,13 +98,6 @@ namespace Pomona
         bool ClientEnumIsGeneratedAsStringEnum(Type enumType);
         IEnumerable<CustomAttributeData> GetClientLibraryAttributes(MemberInfo member);
         Type GetClientLibraryType(Type type);
-
-        #endregion
-
-
-        #region ProxyTypeResolver
-
-        Type ResolveRealTypeForProxy(Type type);
 
         #endregion
 

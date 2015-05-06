@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -41,53 +41,16 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class TypeExtensionsTests
     {
-        public interface ITheInterface<T1, T2>
+        private static MethodInfo GenericTestMethodInfo
         {
-        }
-
-        public class TheBaseClass<T3> : ITheInterface<int, string>
-        {
-        }
-
-        public class TheInheritedClass : TheBaseClass<double>
-        {
-            public TheInheritedClass(string s, int i, decimal d)
+            get
             {
-            }
-
-
-            public void GenericMethod<T1, T2, T3>()
-            {
-            }
-
-
-            public void GenericMethodWithParameters<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
-            {
-            }
-
-
-            public void PlainMethod()
-            {
-            }
-
-
-            public void PlainMethodWithParameters(string s, int i)
-            {
-            }
-
-
-            protected virtual void ProtectedVirtualMethod<T1, T2, T3>(string s, int i)
-            {
+                var method = typeof(TypeExtensionsTests).GetMethod("GenericTestMethod");
+                Assert.That(method, Is.Not.Null);
+                Assert.That(method.IsGenericMethodDefinition, Is.True);
+                return method;
             }
         }
-
-
-        public void GenericTestMethodWithAdvancedConstraint<T1, TList>(T1 arg1, TList list)
-            where TList : IList<T1>
-        {
-            throw new InvalidOperationException("Not to be run, only to be reflected upon.");
-        }
-
 
         private static MethodInfo GenericTestMethodWithAdvancedConstraintInfo
         {
@@ -98,12 +61,6 @@ namespace Pomona.UnitTests
                 Assert.That(method.IsGenericMethodDefinition, Is.True);
                 return method;
             }
-        }
-
-
-        public void NonGenericTestMethod(int a, Stream s)
-        {
-            throw new InvalidOperationException("Not to be run, only to be reflected upon.");
         }
 
 
@@ -122,15 +79,10 @@ namespace Pomona.UnitTests
         }
 
 
-        private static MethodInfo GenericTestMethodInfo
+        public void GenericTestMethodWithAdvancedConstraint<T1, TList>(T1 arg1, TList list)
+            where TList : IList<T1>
         {
-            get
-            {
-                var method = typeof(TypeExtensionsTests).GetMethod("GenericTestMethod");
-                Assert.That(method, Is.Not.Null);
-                Assert.That(method.IsGenericMethodDefinition, Is.True);
-                return method;
-            }
+            throw new InvalidOperationException("Not to be run, only to be reflected upon.");
         }
 
 
@@ -183,16 +135,6 @@ namespace Pomona.UnitTests
 
 
         [Test]
-        public void GetFullNameWithSignature_MethodHasGenericArgumentsAndGenericParameters_ReturnsExpectedString()
-        {
-            var result = typeof(TheInheritedClass).GetMethod("GenericMethodWithParameters").GetFullNameWithSignature();
-
-            Assert.That(result, Is.EqualTo(
-                "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.GenericMethodWithParameters<T1, T2, T3>(T1, T2, T3)"));
-        }
-
-
-        [Test]
         public void GetFullNameWithSignature_MethodHasComplexArgumentsAndGenericParameters_ReturnsExpectedString()
         {
             var result = typeof(Queryable).GetMethods().Last(x => x.Name == "OrderBy").GetFullNameWithSignature();
@@ -200,6 +142,16 @@ namespace Pomona.UnitTests
 
             Assert.That(result, Is.EqualTo(
                 "System.Linq.IOrderedQueryable<TSource> System.Linq.Queryable.OrderBy<TSource, TKey>(System.Linq.IQueryable<TSource>, System.Linq.Expressions.Expression<System.Func<TSource, TKey>>, System.Collections.Generic.IComparer<TKey>)"));
+        }
+
+
+        [Test]
+        public void GetFullNameWithSignature_MethodHasGenericArgumentsAndGenericParameters_ReturnsExpectedString()
+        {
+            var result = typeof(TheInheritedClass).GetMethod("GenericMethodWithParameters").GetFullNameWithSignature();
+
+            Assert.That(result, Is.EqualTo(
+                "System.Void Pomona.UnitTests.TypeExtensionsTests+TheInheritedClass.GenericMethodWithParameters<T1, T2, T3>(T1, T2, T3)"));
         }
 
 
@@ -330,6 +282,12 @@ namespace Pomona.UnitTests
             Type type = null;
             var exception = Assert.Throws<ArgumentNullException>(() => type.GetGenericInstanceMethod(""));
             Assert.That(exception.ParamName, Is.EqualTo("type"));
+        }
+
+
+        public void NonGenericTestMethod(int a, Stream s)
+        {
+            throw new InvalidOperationException("Not to be run, only to be reflected upon.");
         }
 
 
@@ -513,6 +471,47 @@ namespace Pomona.UnitTests
             Assert.That(GenericTestMethodInfo.TryResolveGenericMethod(typeArgs, out methodInstance), Is.EqualTo(true));
             Assert.That(methodInstance.GetGenericArguments(),
                         Is.EquivalentTo(new[] { typeof(int), typeof(MemoryStream), typeof(Guid) }));
+        }
+
+
+        public interface ITheInterface<T1, T2>
+        {
+        }
+
+        public class TheBaseClass<T3> : ITheInterface<int, string>
+        {
+        }
+
+        public class TheInheritedClass : TheBaseClass<double>
+        {
+            public TheInheritedClass(string s, int i, decimal d)
+            {
+            }
+
+
+            public void GenericMethod<T1, T2, T3>()
+            {
+            }
+
+
+            public void GenericMethodWithParameters<T1, T2, T3>(T1 t1, T2 t2, T3 t3)
+            {
+            }
+
+
+            public void PlainMethod()
+            {
+            }
+
+
+            public void PlainMethodWithParameters(string s, int i)
+            {
+            }
+
+
+            protected virtual void ProtectedVirtualMethod<T1, T2, T3>(string s, int i)
+            {
+            }
         }
     }
 }

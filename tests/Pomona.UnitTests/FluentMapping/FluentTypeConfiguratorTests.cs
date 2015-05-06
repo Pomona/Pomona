@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -42,21 +42,6 @@ namespace Pomona.UnitTests.FluentMapping
     public class FluentTypeConfiguratorTests : FluentMappingTestsBase
     {
         [Test]
-        public void HasChildren_TypeMappingOptionsAreApplied()
-        {
-            CheckHowChangeInTypeRuleAffectsFilter<TestEntityBase, string>(
-                x => x.HasChildren(y => y.Children, y => y.Parent, y =>
-                {
-                    Console.WriteLine(y.GetType());
-                    return y.Named("SuperChild");
-                }),
-                (y, t) => y.GetTypeMappedName(typeof(ChildEntity)),
-                "ChildEntity",
-                "SuperChild");
-        }
-
-
-        [Test]
         public void AsAbstract_GivenTypeThatWouldBeConcreteByConvention_MakesTypeAbstract()
         {
             CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(
@@ -71,46 +56,6 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
-        public void ExposedAt_WillModifyUrlRelativePath()
-        {
-            CheckHowChangeInTypeRuleAffectsFilter<Top, string>(
-                x => x.ExposedAt("newpath"),
-                (f, t) => f.GetUrlRelativePath(t),
-                (origValue, changedValue) =>
-                {
-                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
-                    Assert.That(changedValue, Is.EqualTo("newpath"));
-                });
-        }
-
-
-        [Test]
-        public void ExposedAt_WithLeadingPathSeparator_LeadingPathSeparatorIsStrippedFromMappedType()
-        {
-            CheckHowChangeInTypeRuleAffectsFilter<Top, ResourceType>(
-                x => x.ExposedAt("/newpath"),
-                (f, t) => (ResourceType)new TypeMapper(f, new []  {typeof(Top)}, null).FromType<Top>(),
-                (origValue, changedValue) =>
-                {
-                    Assert.That(changedValue.UrlRelativePath, Is.Not.EqualTo(origValue),
-                                "Test no use if change in filter has no effect");
-                    Assert.That(changedValue.UrlRelativePath, Is.EqualTo("newpath"));
-                });
-        }
-
-
-        [Test]
-        public void ExposedAt_Root_ResultsInEmptyString()
-        {
-            CheckHowChangeInTypeRuleAffectsFilter<Top, string>(
-                x => x.ExposedAt("/"),
-                (f, t) =>
-                    ((ResourceType)new TypeMapper(f, new[] { typeof(Top) }, null).FromType<Top>())
-                    .UrlRelativePath, "tops", "");
-        }
-
-
-        [Test]
         public void AsConcrete_GivenTypeThatWouldBeAbstractByConvention_MakesTypeNonAbstract()
         {
             CheckHowChangeInTypeRuleAffectsFilter<TestEntityBase, bool>(
@@ -121,6 +66,14 @@ namespace Pomona.UnitTests.FluentMapping
                     Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
                     Assert.That(changedValue, Is.EqualTo(false));
                 });
+        }
+
+
+        [Test]
+        public void AsSingleton_SetsIsSingletonToTrue()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(x => x.AsSingleton(),
+                                                             (f, t) => f.TypeIsSingletonResource(t), false, true);
         }
 
 
@@ -168,20 +121,77 @@ namespace Pomona.UnitTests.FluentMapping
 
 
         [Test]
+        public void ExposedAt_Root_ResultsInEmptyString()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, string>(
+                x => x.ExposedAt("/"),
+                (f, t) =>
+                    ((ResourceType)new TypeMapper(f, new[] { typeof(Top) }, null).FromType<Top>())
+                    .UrlRelativePath, "tops", "");
+        }
+
+
+        [Test]
+        public void ExposedAt_WillModifyUrlRelativePath()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, string>(
+                x => x.ExposedAt("newpath"),
+                (f, t) => f.GetUrlRelativePath(t),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue, Is.Not.EqualTo(origValue), "Test no use if change in filter has no effect");
+                    Assert.That(changedValue, Is.EqualTo("newpath"));
+                });
+        }
+
+
+        [Test]
+        public void ExposedAt_WithLeadingPathSeparator_LeadingPathSeparatorIsStrippedFromMappedType()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, ResourceType>(
+                x => x.ExposedAt("/newpath"),
+                (f, t) => (ResourceType)new TypeMapper(f, new[] { typeof(Top) }, null).FromType<Top>(),
+                (origValue, changedValue) =>
+                {
+                    Assert.That(changedValue.UrlRelativePath, Is.Not.EqualTo(origValue),
+                                "Test no use if change in filter has no effect");
+                    Assert.That(changedValue.UrlRelativePath, Is.EqualTo("newpath"));
+                });
+        }
+
+
+        [Test]
+        public void HasChildren_TypeMappingOptionsAreApplied()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<TestEntityBase, string>(
+                x => x.HasChildren(y => y.Children, y => y.Parent, y =>
+                {
+                    Console.WriteLine(y.GetType());
+                    return y.Named("SuperChild");
+                }),
+                (y, t) => y.GetTypeMappedName(typeof(ChildEntity)),
+                "ChildEntity",
+                "SuperChild");
+        }
+
+
+        [Test]
+        public void Include_non_existant_property_makes_GetAllPropertiesOfType_return_a_new_virtual_property()
+        {
+            CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(x => x.Include<int>("Virtual", o => o.OnGet(y => 1234)),
+                                                             (x, t) =>
+                                                                 x.GetAllPropertiesOfType(t, default(BindingFlags)).Any(
+                                                                     y => y.Name == "Virtual"), false, true);
+        }
+
+
+        [Test]
         public void Named_OverridesDefaultNameOfType()
         {
             CheckHowChangeInTypeRuleAffectsFilter<Top, string>(x => x.Named("HolaHola"),
                                                                (x, t) => x.GetTypeMappedName(t),
                                                                "Top",
                                                                "HolaHola");
-        }
-
-
-        [Test]
-        public void AsSingleton_SetsIsSingletonToTrue()
-        {
-            CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(x => x.AsSingleton(),
-                                                             (f, t) => f.TypeIsSingletonResource(t), false, true);
         }
 
 
@@ -226,16 +236,6 @@ namespace Pomona.UnitTests.FluentMapping
                 FluentTypeMappingFilter.BuildPropertyMappingTemplate(
                     CritterRepository.GetEntityTypes().Where(x => !x.IsEnum));
             Console.Write(code);
-        }
-
-
-        [Test]
-        public void Include_non_existant_property_makes_GetAllPropertiesOfType_return_a_new_virtual_property()
-        {
-            CheckHowChangeInTypeRuleAffectsFilter<Top, bool>(x => x.Include<int>("Virtual", o => o.OnGet(y => 1234)),
-                                                             (x, t) =>
-                                                                 x.GetAllPropertiesOfType(t, default(BindingFlags)).Any(
-                                                                     y => y.Name == "Virtual"), false, true);
         }
 
 

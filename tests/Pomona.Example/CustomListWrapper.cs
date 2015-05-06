@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,73 +39,72 @@ namespace Pomona.Example
 
         public T this[int index]
         {
-            get { return wrappedList[index]; }
-            set { wrappedList[index] = value; }
+            get { return this.wrappedList[index]; }
+            set { this.wrappedList[index] = value; }
         }
-
 
         public int Count
         {
-            get { return wrappedList.Count; }
+            get { return this.wrappedList.Count; }
         }
 
         public bool IsReadOnly
         {
-            get { return ((IList<T>)wrappedList).IsReadOnly; }
+            get { return ((IList<T>)this.wrappedList).IsReadOnly; }
         }
 
 
         public void Add(T item)
         {
-            wrappedList.Add(item);
+            this.wrappedList.Add(item);
         }
 
 
         public void Clear()
         {
-            wrappedList.Clear();
+            this.wrappedList.Clear();
         }
 
 
         public bool Contains(T item)
         {
-            return wrappedList.Contains(item);
+            return this.wrappedList.Contains(item);
         }
 
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            wrappedList.CopyTo(array, arrayIndex);
+            this.wrappedList.CopyTo(array, arrayIndex);
         }
 
 
         public IEnumerator<T> GetEnumerator()
         {
-            return wrappedList.GetEnumerator();
+            return this.wrappedList.GetEnumerator();
         }
 
 
         public int IndexOf(T item)
         {
-            return wrappedList.IndexOf(item);
+            return this.wrappedList.IndexOf(item);
         }
 
 
         public void Insert(int index, T item)
         {
-            wrappedList.Insert(index, item);
+            this.wrappedList.Insert(index, item);
         }
 
 
         public bool Remove(T item)
         {
-            return wrappedList.Remove(item);
+            return this.wrappedList.Remove(item);
         }
 
 
         public void RemoveAt(int index)
         {
-            wrappedList.RemoveAt(index);
+            this.wrappedList.RemoveAt(index);
         }
 
 

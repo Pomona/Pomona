@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,6 @@ namespace Pomona.Common.Internals
     public class MappedReadOnlyCollection<TOuter, TInner> : ICollection<TOuter>
     {
         private readonly ICollection<TInner> inner;
-
         private readonly Func<TInner, TOuter> map;
 
 
@@ -50,16 +49,6 @@ namespace Pomona.Common.Internals
             this.map = map;
         }
 
-
-        public int Count
-        {
-            get { return this.inner.Count; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
 
         protected ICollection<TInner> Inner
         {
@@ -96,9 +85,21 @@ namespace Pomona.Common.Internals
         }
 
 
+        public int Count
+        {
+            get { return this.inner.Count; }
+        }
+
+
         public IEnumerator<TOuter> GetEnumerator()
         {
             return this.inner.Select(this.map).GetEnumerator();
+        }
+
+
+        public bool IsReadOnly
+        {
+            get { return true; }
         }
 
 

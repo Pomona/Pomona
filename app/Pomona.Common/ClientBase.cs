@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@ using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Loading;
 using Pomona.Common.Proxies;
-using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.Serialization.Patch;
 using Pomona.Common.Web;
@@ -54,21 +53,11 @@ namespace Pomona.Common
 
 
         public abstract string BaseUri { get; }
-
-        public ClientSettings Settings
-        {
-            get { return this.settings; }
-        }
-
         public abstract IWebClient WebClient { get; }
-        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
         public abstract void Delete<T>(T resource)
             where T : class, IClientResource;
-
-
-        public abstract object Get(string uri, Type type, RequestOptions requestOptions);
 
 
         public abstract T GetLazy<T>(string uri)
@@ -83,10 +72,8 @@ namespace Pomona.Common
             where T : class, IClientResource;
 
 
-        public abstract IQueryable<T> Query<T>();
         public abstract IQueryable<T> Query<T>(string uri);
-        public abstract T Reload<T>(T resource);
-        public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 
 
         protected void RaiseRequestCompleted(HttpRequest request,
@@ -105,6 +92,18 @@ namespace Pomona.Common
 
         internal abstract object Post<T>(string uri, T form, RequestOptions requestOptions)
             where T : class, IClientResource;
+
+
+        public abstract object Get(string uri, Type type, RequestOptions requestOptions);
+        public abstract IQueryable<T> Query<T>();
+        public abstract T Reload<T>(T resource);
+
+        public ClientSettings Settings
+        {
+            get { return this.settings; }
+        }
+
+        public abstract bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo);
     }
 
     public abstract class ClientBase<TClient> : ClientBase
@@ -113,7 +112,6 @@ namespace Pomona.Common
         private readonly string baseUri;
         private readonly IRequestDispatcher dispatcher;
         // private readonly ISerializationContextProvider serializationContextProvider;
-
 
         static ClientBase()
         {
@@ -189,9 +187,7 @@ namespace Pomona.Common
             if (requestOptions == null)
                 requestOptions = new RequestOptions(type);
             else if (type != null && requestOptions.ExpectedResponseType == null)
-            {
                 requestOptions.ExpectedResponseType = type;
-            }
 
             var serializationContextProvider = GetSerializationContextProvider(requestOptions);
             return this.dispatcher.SendRequest(uri, "GET", null, serializationContextProvider, requestOptions);
@@ -204,6 +200,13 @@ namespace Pomona.Common
             var proxy = (LazyProxyBase)Activator.CreateInstance(typeInfo.LazyProxyType);
             proxy.Initialize(uri, this, typeInfo.PocoType);
             return (T)(object)proxy;
+        }
+
+
+        public string GetRelativeUriForType(Type type)
+        {
+            var resourceInfo = this.GetResourceInfoForType(type);
+            return resourceInfo.UrlRelativePath;
         }
 
 
@@ -263,20 +266,13 @@ namespace Pomona.Common
                 throw new ArgumentException("Type should be an interface inherited from a known resource type.");
 
             var resourceType = this.GetMostInheritedResourceInterface(typeof(T));
-            return (T)this.Get(resourceWithUri.Uri, resourceType, new RequestOptions(typeof(T)));
+            return (T)Get(resourceWithUri.Uri, resourceType, new RequestOptions(typeof(T)));
         }
 
 
         public override bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
             return typeMapper.TryGetResourceInfoForType(type, out resourceInfo);
-        }
-
-
-        public string GetRelativeUriForType(Type type)
-        {
-            var resourceInfo = this.GetResourceInfoForType(type);
-            return resourceInfo.UrlRelativePath;
         }
 
 
@@ -300,15 +296,6 @@ namespace Pomona.Common
         }
 
 
-        private static IRequestDispatcher CreateDefaultRequestDispatcher(IWebClient webClient = null)
-        {
-            return new RequestDispatcher(
-                typeMapper,
-                webClient ?? new HttpWebRequestClient(),
-                new PomonaJsonSerializerFactory());
-        }
-
-
         private void AddIfMatchToPatch(object postForm, RequestOptions requestOptions)
         {
             string etagValue = null;
@@ -321,6 +308,27 @@ namespace Pomona.Common
                 requestOptions.ModifyRequest(
                     request => request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)));
             }
+        }
+
+
+        private static IRequestDispatcher CreateDefaultRequestDispatcher(IWebClient webClient = null)
+        {
+            return new RequestDispatcher(
+                typeMapper,
+                webClient ?? new HttpWebRequestClient(),
+                new PomonaJsonSerializerFactory());
+        }
+
+
+        private ClientSerializationContextProvider GetSerializationContextProvider(RequestOptions requestOptions)
+        {
+            var resourceLoader = requestOptions == null || requestOptions.ResourceLoader == null
+                ? Settings.LazyMode == LazyMode.Disabled
+                    ? (IResourceLoader)new DisabledResourceLoader()
+                    : new DefaultResourceLoader(this)
+                : requestOptions.ResourceLoader;
+
+            return new ClientSerializationContextProvider(typeMapper, this, resourceLoader);
         }
 
 
@@ -349,7 +357,8 @@ namespace Pomona.Common
         {
             var generatedAssembly = GetType().Assembly;
             var repoTypes = generatedAssembly.GetTypes()
-                .Where(x => typeof(IClientRepository).IsAssignableFrom(x) && !x.IsInterface && !x.IsGenericType).ToList();
+                                             .Where(x => typeof(IClientRepository).IsAssignableFrom(x) && !x.IsInterface && !x.IsGenericType)
+                                             .ToList();
             var repositoryImplementations = repoTypes.Select(x => new
             {
                 Interface = x.GetInterfaces().First(y => y.Assembly == generatedAssembly && y.Name == "I" + x.Name),
@@ -385,18 +394,6 @@ namespace Pomona.Common
             AddIfMatchToPatch(form, requestOptions);
             var serializationContextProvider = GetSerializationContextProvider(requestOptions);
             return (T)this.dispatcher.SendRequest(uri, "PATCH", form, serializationContextProvider, requestOptions);
-        }
-
-
-        private ClientSerializationContextProvider GetSerializationContextProvider(RequestOptions requestOptions)
-        {
-            var resourceLoader = requestOptions == null || requestOptions.ResourceLoader == null
-                ? Settings.LazyMode == LazyMode.Disabled
-                    ? (IResourceLoader)new DisabledResourceLoader()
-                    : new DefaultResourceLoader(this)
-                : requestOptions.ResourceLoader;
-
-            return new ClientSerializationContextProvider(typeMapper, this, resourceLoader);
         }
     }
 }

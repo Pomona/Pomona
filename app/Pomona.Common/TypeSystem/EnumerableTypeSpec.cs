@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,8 +24,9 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
-using System.Collections.Generic;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -35,7 +38,8 @@ namespace Pomona.Common.TypeSystem
         private EnumerableTypeSpec(ITypeResolver typeResolver, Type type, Lazy<TypeSpec> itemType)
             : base(typeResolver, type)
         {
-            if (itemType == null) throw new ArgumentNullException("itemType");
+            if (itemType == null)
+                throw new ArgumentNullException("itemType");
             this.itemType = itemType;
         }
 
@@ -50,6 +54,22 @@ namespace Pomona.Common.TypeSystem
             get { return false; }
         }
 
+        public override bool IsCollection
+        {
+            get { return true; }
+        }
+
+        public virtual TypeSpec ItemType
+        {
+            get { return this.itemType.Value; }
+        }
+
+
+        public new static ITypeFactory GetFactory()
+        {
+            return new EnumerableTypeSpecFactory();
+        }
+
 
         protected override TypeSerializationMode OnLoadSerializationMode()
         {
@@ -59,39 +79,27 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override bool IsCollection
-        {
-            get { return true; }
-        }
-
-        public virtual TypeSpec ItemType
-        {
-            get { return itemType.Value; }
-        }
-
-        public new static ITypeFactory GetFactory()
-        {
-            return new EnumerableTypeSpecFactory();
-        }
-
         public class EnumerableTypeSpecFactory : ITypeFactory
         {
-            public int Priority
-            {
-                get { return 50; }
-            }
-
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
-                if (typeResolver == null) throw new ArgumentNullException("typeResolver");
-                if (type == null) throw new ArgumentNullException("type");
+                if (typeResolver == null)
+                    throw new ArgumentNullException("typeResolver");
+                if (type == null)
+                    throw new ArgumentNullException("type");
 
                 Type itemTypeLocal;
-                if (type == typeof (string) || !type.TryGetEnumerableElementType(out itemTypeLocal))
+                if (type == typeof(string) || !type.TryGetEnumerableElementType(out itemTypeLocal))
                     return null;
 
                 return new EnumerableTypeSpec(typeResolver, type,
-                    CreateLazy(() => typeResolver.FromType(itemTypeLocal)));
+                                              CreateLazy(() => typeResolver.FromType(itemTypeLocal)));
+            }
+
+
+            public int Priority
+            {
+                get { return 50; }
             }
         }
     }

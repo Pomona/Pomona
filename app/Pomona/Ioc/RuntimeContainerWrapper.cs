@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -52,8 +52,6 @@ namespace Pomona.Ioc
         private static readonly ConcurrentDictionary<Type, Func<object, RuntimeContainerWrapper>> ctorCache =
             new ConcurrentDictionary<Type, Func<object, RuntimeContainerWrapper>>();
 
-        public abstract object GetInstance(Type serviceType);
-
 
         public static RuntimeContainerWrapper Create(object container)
         {
@@ -63,10 +61,7 @@ namespace Pomona.Ioc
         }
 
 
-        object IServiceProvider.GetService(Type serviceType)
-        {
-            return GetInstance(serviceType);
-        }
+        public abstract object GetInstance(Type serviceType);
 
 
         private static Func<object, RuntimeContainerWrapper> CreateWrapperCtor(Type containerType)
@@ -76,15 +71,21 @@ namespace Pomona.Ioc
                 ?? containerType;
             var wrapperTypeInstance = typeof(RuntimeContainerWrapper<>).MakeGenericType(interfaceType);
             var ctor = wrapperTypeInstance.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance,
-                null,
-                new Type[] { interfaceType },
-                null);
+                                                          null,
+                                                          new Type[] { interfaceType },
+                                                          null);
             var ctorFuncParam = Expression.Parameter(typeof(object));
             var ctorFunc = Expression.Lambda<Func<object, RuntimeContainerWrapper>>(
                 Expression.Convert(Expression.New(ctor, Expression.Convert(ctorFuncParam, interfaceType)),
-                    typeof(RuntimeContainerWrapper)),
+                                   typeof(RuntimeContainerWrapper)),
                 ctorFuncParam).Compile();
             return ctorFunc;
+        }
+
+
+        object IServiceProvider.GetService(Type serviceType)
+        {
+            return GetInstance(serviceType);
         }
     }
 
@@ -102,9 +103,9 @@ namespace Pomona.Ioc
             else
             {
                 resolveByTypeMethod = GetMethodWithSignature<Func<T, Type, object>>("GetInstance",
-                    "Resolve",
-                    "Get",
-                    "GetService");
+                                                                                    "Resolve",
+                                                                                    "Get",
+                                                                                    "GetService");
             }
         }
 
@@ -137,20 +138,20 @@ namespace Pomona.Ioc
             // Mega linq that will find a matching extension method. Breath calmly.
             var extensionMethod =
                 typeof(T).Assembly.GetTypes()
-                    .Where(t => t.Namespace == ns && t.IsClass && t.IsSealed && t.IsAbstract && t.IsPublic)
-                    .SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public))
-                    .Where(x => x.GetCustomAttributes(typeof(ExtensionAttribute), false).Any())
-                    .Select(x => new { p = x.GetParameters(), m = x })
-                    .Where(x => !x.m.IsGenericMethodDefinition
-                                && x.p.Length == delParams.Length
-                                && x.p[0].ParameterType.Assembly == containerAssembly
-                                && x.p[0].ParameterType.IsAssignableFrom(delParams[0].ParameterType)
-                                && x.p.Select(y => y.ParameterType)
-                                    .Skip(1)
-                                    .SequenceEqual(delParams.Select(y => y.ParameterType).Skip(1))
-                                && x.m.ReturnType == delSignature.ReturnType)
-                    .Select(x => x.m)
-                    .FirstOrDefault();
+                         .Where(t => t.Namespace == ns && t.IsClass && t.IsSealed && t.IsAbstract && t.IsPublic)
+                         .SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public))
+                         .Where(x => x.GetCustomAttributes(typeof(ExtensionAttribute), false).Any())
+                         .Select(x => new { p = x.GetParameters(), m = x })
+                         .Where(x => !x.m.IsGenericMethodDefinition
+                                     && x.p.Length == delParams.Length
+                                     && x.p[0].ParameterType.Assembly == containerAssembly
+                                     && x.p[0].ParameterType.IsAssignableFrom(delParams[0].ParameterType)
+                                     && x.p.Select(y => y.ParameterType)
+                                         .Skip(1)
+                                         .SequenceEqual(delParams.Select(y => y.ParameterType).Skip(1))
+                                     && x.m.ReturnType == delSignature.ReturnType)
+                         .Select(x => x.m)
+                         .FirstOrDefault();
 
             var exprParams = delSignature.GetParameters().Select(x => Expression.Parameter(x.ParameterType)).ToList();
             return Expression.Lambda<TDel>(Expression.Call(extensionMethod, exprParams), exprParams).Compile();
@@ -176,7 +177,7 @@ namespace Pomona.Ioc
             var lambdaParams = delSignature.GetParameters().Select(x => Expression.Parameter(x.ParameterType)).ToList();
             return
                 Expression.Lambda<TDel>(Expression.Call(lambdaParams[0], method, lambdaParams.Skip(1)), lambdaParams)
-                    .Compile();
+                          .Compile();
         }
     }
 }

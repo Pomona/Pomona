@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -66,6 +66,11 @@ namespace Pomona.Common.TypeSystem
 
         public abstract IEnumerable<Attribute> InheritedAttributes { get; }
 
+        public MemberInfo Member
+        {
+            get { return this.member; }
+        }
+
         public string Name
         {
             get { return this.name.Value; }
@@ -79,11 +84,6 @@ namespace Pomona.Common.TypeSystem
         public ITypeResolver TypeResolver
         {
             get { return this.typeResolver; }
-        }
-
-        public MemberInfo Member
-        {
-            get { return this.member; }
         }
 
 

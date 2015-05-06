@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -48,31 +48,10 @@ namespace Pomona.FluentMapping
         private readonly ConcurrentDictionary<string, PropertyMappingOptions> propertyOptions =
             new ConcurrentDictionary<string, PropertyMappingOptions>();
 
-        private ConstructorSpec constructor;
+        private readonly List<VirtualPropertyInfo> virtualProperties = new List<VirtualPropertyInfo>();
 
         private DefaultPropertyInclusionMode defaultPropertyInclusionMode =
             DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
-
-        private bool? deleteAllowed;
-        private bool? isAbstract;
-
-        private bool? isExposedAsRepository;
-
-        private bool? isIndependentTypeRoot;
-
-        private bool? isUriBaseType;
-        private bool? isValueObject;
-        private string name;
-        private Action<object> onDeserialized;
-
-        private bool? patchAllowed;
-
-        private string pluralName;
-        private bool? postAllowed;
-        private Type postResponseType;
-        private string urlRelativePath;
-        private bool? isSingleton;
-        private List<VirtualPropertyInfo> virtualProperties = new List<VirtualPropertyInfo>();
 
 
         public TypeMappingOptions(Type declaringType)
@@ -82,11 +61,7 @@ namespace Pomona.FluentMapping
 
 
         public PropertyInfo ChildToParentProperty { get; set; }
-
-        public ConstructorSpec Constructor
-        {
-            get { return this.constructor; }
-        }
+        public ConstructorSpec Constructor { get; private set; }
 
         public Type DeclaringType
         {
@@ -99,85 +74,35 @@ namespace Pomona.FluentMapping
             set { this.defaultPropertyInclusionMode = value; }
         }
 
-        public bool? DeleteAllowed
-        {
-            get { return this.deleteAllowed; }
-        }
+        public bool? DeleteAllowed { get; private set; }
 
         public List<Type> HandlerTypes
         {
             get { return this.handlerTypes; }
         }
 
-        public bool? IsAbstract
-        {
-            get { return this.isAbstract; }
-        }
-
-        public bool? IsExposedAsRepository
-        {
-            get { return this.isExposedAsRepository; }
-        }
-
-        public bool? IsIndependentTypeRoot
-        {
-            get { return this.isIndependentTypeRoot; }
-        }
-
-        public bool? IsUriBaseType
-        {
-            get { return this.isUriBaseType; }
-        }
-
-        public bool? IsValueObject
-        {
-            get { return this.isValueObject; }
-        }
-
-        public bool? IsSingleton
-        {
-            get { return this.isSingleton; }
-        }
-
-        public Action<object> OnDeserialized
-        {
-            get { return this.onDeserialized; }
-        }
-
+        public bool? IsAbstract { get; private set; }
+        public bool? IsExposedAsRepository { get; private set; }
+        public bool? IsIndependentTypeRoot { get; private set; }
+        public bool? IsSingleton { get; private set; }
+        public bool? IsUriBaseType { get; private set; }
+        public bool? IsValueObject { get; private set; }
+        public Action<object> OnDeserialized { get; private set; }
         public PropertyInfo ParentToChildProperty { get; internal set; }
-
-        public bool? PatchAllowed
-        {
-            get { return this.patchAllowed; }
-        }
-
-        public string PluralName
-        {
-            get { return this.pluralName; }
-        }
-
-        public bool? PostAllowed
-        {
-            get { return this.postAllowed; }
-        }
-
-        public Type PostResponseType
-        {
-            get { return this.postResponseType; }
-        }
-
-        internal string Name
-        {
-            get { return this.name; }
-        }
-
-        public string UrlRelativePath { get { return urlRelativePath; } }
+        public bool? PatchAllowed { get; private set; }
+        public string PluralName { get; private set; }
+        public bool? PostAllowed { get; private set; }
+        public Type PostResponseType { get; private set; }
+        public string UrlRelativePath { get; private set; }
 
         public ICollection<VirtualPropertyInfo> VirtualProperties
         {
             get { return this.virtualProperties; }
         }
-        
+
+        internal string Name { get; private set; }
+
+
         internal object GetConfigurator(Type exposedAsType)
         {
             if (exposedAsType == null)
@@ -257,14 +182,7 @@ namespace Pomona.FluentMapping
 
             public override ITypeMappingConfigurator<TDeclaringType> AsAbstract()
             {
-                this.owner.isAbstract = true;
-                return this;
-            }
-
-
-            public override ITypeMappingConfigurator<TDeclaringType> ExposedAt(string path)
-            {
-                this.owner.urlRelativePath = path;
+                this.owner.IsAbstract = true;
                 return this;
             }
 
@@ -299,7 +217,7 @@ namespace Pomona.FluentMapping
 
             public override ITypeMappingConfigurator<TDeclaringType> AsConcrete()
             {
-                this.owner.isAbstract = false;
+                this.owner.IsAbstract = false;
                 return this;
             }
 
@@ -314,28 +232,28 @@ namespace Pomona.FluentMapping
             {
                 if (IsMappingSubclass())
                     return this;
-                this.owner.isIndependentTypeRoot = true;
-                return this;
-            }
-
-
-            public override ITypeMappingConfigurator<TDeclaringType> AsUriBaseType()
-            {
-                this.owner.isUriBaseType = true;
+                this.owner.IsIndependentTypeRoot = true;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> AsSingleton()
             {
-                this.owner.isSingleton = true;
+                this.owner.IsSingleton = true;
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> AsUriBaseType()
+            {
+                this.owner.IsUriBaseType = true;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> AsValueObject()
             {
-                this.owner.isValueObject = true;
+                this.owner.IsValueObject = true;
                 return this;
             }
 
@@ -345,7 +263,7 @@ namespace Pomona.FluentMapping
             {
                 if (IsMappingSubclass())
                     return this;
-                this.owner.constructor = new ConstructorSpec(constructExpr);
+                this.owner.Constructor = new ConstructorSpec(constructExpr);
                 return this;
             }
 
@@ -363,14 +281,14 @@ namespace Pomona.FluentMapping
 
             public override ITypeMappingConfigurator<TDeclaringType> DeleteAllowed()
             {
-                this.owner.deleteAllowed = true;
+                this.owner.DeleteAllowed = true;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> DeleteDenied()
             {
-                this.owner.deleteAllowed = false;
+                this.owner.DeleteAllowed = false;
                 return this;
             }
 
@@ -388,7 +306,14 @@ namespace Pomona.FluentMapping
 
             public override ITypeMappingConfigurator<TDeclaringType> ExposedAsRepository()
             {
-                this.owner.isExposedAsRepository = true;
+                this.owner.IsExposedAsRepository = true;
+                return this;
+            }
+
+
+            public override ITypeMappingConfigurator<TDeclaringType> ExposedAt(string path)
+            {
+                this.owner.UrlRelativePath = path;
                 return this;
             }
 
@@ -400,7 +325,13 @@ namespace Pomona.FluentMapping
             }
 
 
-            public override ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(string name, Func<IPropertyOptionsBuilder<TDeclaringType, TPropertyType>, IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options)
+            public override ITypeMappingConfigurator<TDeclaringType> Include<TPropertyType>(string name,
+                                                                                            Func
+                                                                                                <
+                                                                                                IPropertyOptionsBuilder
+                                                                                                <TDeclaringType, TPropertyType>,
+                                                                                                IPropertyOptionsBuilder
+                                                                                                <TDeclaringType, TPropertyType>> options)
             {
                 if (name == null)
                     throw new ArgumentNullException("name");
@@ -415,7 +346,7 @@ namespace Pomona.FluentMapping
                 Expression<Func<TDeclaringType, TPropertyType>> property,
                 Func
                     <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
-                        IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
+                    IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
             {
                 if (property == null)
                     throw new ArgumentNullException("property");
@@ -428,7 +359,7 @@ namespace Pomona.FluentMapping
                 Expression<Func<TDeclaringType, object>> property,
                 Func
                     <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
-                        IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
+                    IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
             {
                 if (property == null)
                     throw new ArgumentNullException("property");
@@ -439,7 +370,7 @@ namespace Pomona.FluentMapping
 
             public override ITypeMappingConfigurator<TDeclaringType> Named(string exposedTypeName)
             {
-                this.owner.name = exposedTypeName;
+                this.owner.Name = exposedTypeName;
                 return this;
             }
 
@@ -448,35 +379,35 @@ namespace Pomona.FluentMapping
             {
                 if (action == null)
                     throw new ArgumentNullException("action");
-                this.owner.onDeserialized = x => action((TDeclaringType)x);
+                this.owner.OnDeserialized = x => action((TDeclaringType)x);
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> PatchAllowed()
             {
-                this.owner.patchAllowed = true;
+                this.owner.PatchAllowed = true;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> PatchDenied()
             {
-                this.owner.patchAllowed = false;
+                this.owner.PatchAllowed = false;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> PostAllowed()
             {
-                this.owner.postAllowed = true;
+                this.owner.PostAllowed = true;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> PostDenied()
             {
-                this.owner.postAllowed = false;
+                this.owner.PostAllowed = false;
                 return this;
             }
 
@@ -489,14 +420,14 @@ namespace Pomona.FluentMapping
 
             public override ITypeMappingConfigurator<TDeclaringType> PostReturns(Type type)
             {
-                this.owner.postResponseType = type;
+                this.owner.PostResponseType = type;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> WithPluralName(string pluralName)
             {
-                this.owner.pluralName = pluralName;
+                this.owner.PluralName = pluralName;
                 return this;
             }
 
@@ -518,7 +449,7 @@ namespace Pomona.FluentMapping
                 Func<ITypeMappingConfigurator<TItem>, ITypeMappingConfigurator<TItem>> childConfig,
                 Func
                     <IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>,
-                        IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
+                    IPropertyOptionsBuilder<TDeclaringType, IEnumerable<TItem>>> options)
             {
                 return Include(property, options);
             }
@@ -528,7 +459,7 @@ namespace Pomona.FluentMapping
                 PropertyInfo propInfo,
                 Func
                     <IPropertyOptionsBuilder<TDeclaringType, TPropertyType>,
-                        IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null,
+                    IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null,
                 Type propertyType = null)
             {
                 var propOptions = this.owner.GetPropertyOptions(propInfo);

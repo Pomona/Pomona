@@ -1,8 +1,9 @@
 ﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,11 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
 #endregion
 
 using System;
-
-using Nancy;
 
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -35,13 +35,16 @@ namespace Pomona
 {
     public class ServerSerializationContextProvider : ISerializationContextProvider
     {
+        private readonly IContainer container;
+        private readonly IResourceResolver resourceResolver;
         private readonly TypeMapper typeMapper;
         private readonly IUriResolver uriResolver;
-        private readonly IResourceResolver resourceResolver;
-        private readonly IContainer container;
 
 
-        public ServerSerializationContextProvider(TypeMapper typeMapper, IUriResolver uriResolver, IResourceResolver resourceResolver, IContainer container)
+        public ServerSerializationContextProvider(TypeMapper typeMapper,
+                                                  IUriResolver uriResolver,
+                                                  IResourceResolver resourceResolver,
+                                                  IContainer container)
         {
             if (typeMapper == null)
                 throw new ArgumentNullException("typeMapper");
@@ -61,14 +64,15 @@ namespace Pomona
         public IDeserializationContext GetDeserializationContext(DeserializeOptions options)
         {
             options = options ?? new DeserializeOptions();
-            return new ServerDeserializationContext(typeMapper, resourceResolver, options.TargetNode, container);
+            return new ServerDeserializationContext(this.typeMapper, this.resourceResolver, options.TargetNode, this.container);
         }
 
 
         public ISerializationContext GetSerializationContext(SerializeOptions options)
         {
             options = options ?? new SerializeOptions();
-            return new ServerSerializationContext(typeMapper, options.ExpandedPaths ?? string.Empty, false, uriResolver, container);
+            return new ServerSerializationContext(this.typeMapper, options.ExpandedPaths ?? string.Empty, false, this.uriResolver,
+                                                  this.container);
         }
     }
 }

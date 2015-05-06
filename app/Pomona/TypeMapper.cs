@@ -105,12 +105,6 @@ namespace Pomona
         }
 
 
-        public override bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
-        {
-            return base.TryGetTypeByName(typeName, out typeSpec) || this.typeNameMap.TryGetValue(typeName, out typeSpec);
-        }
-
-
         public override TypeSpec LoadBaseType(TypeSpec typeSpec)
         {
             if (typeSpec is StructuredType)
@@ -332,6 +326,12 @@ namespace Pomona
         {
             Type uriBaseType = this.filter.GetUriBaseType(resourceType.Type);
             return uriBaseType != null ? (ResourceType)FromType(uriBaseType) : null;
+        }
+
+
+        public override bool TryGetTypeByName(string typeName, out TypeSpec typeSpec)
+        {
+            return base.TryGetTypeByName(typeName, out typeSpec) || this.typeNameMap.TryGetValue(typeName, out typeSpec);
         }
 
 

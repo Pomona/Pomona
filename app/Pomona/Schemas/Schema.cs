@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,17 +24,18 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 
 using Pomona.Common;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona.Schemas
 {
@@ -44,28 +47,21 @@ namespace Pomona.Schemas
         }
 
 
-        internal static HttpMethod MethodsArrayToHttpAccessMode(string[] methods)
-        {
-            if (methods == null)
-                return default(HttpMethod);
-
-            return methods.Select(x => (HttpMethod)Enum.Parse(typeof(HttpMethod), x, true))
-                .Aggregate(
-                    default(HttpMethod),
-                    (a, b) => a | b);
-        }
-
-
-        internal static string[] HttpAccessModeToMethodsArray(HttpMethod httpMethod)
-        {
-            if (httpMethod == 0)
-                return new string[] { };
-            return httpMethod.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(
-                        x => x.Trim().ToUpperInvariant()).ToArray();
-        }
-
         public IList<SchemaTypeEntry> Types { get; set; }
         public string Version { get; set; }
+
+
+        public static Schema FromJson(string jsonString)
+        {
+            var serializer = GetSerializer();
+            var stringReader = new StringReader(jsonString);
+            var schema = (Schema)serializer.Deserialize(stringReader, typeof(Schema));
+            // Fix property names (they're not serialized as this would be redundant)..
+            foreach (var propKvp in schema.Types.SelectMany(x => x.Properties))
+                propKvp.Value.Name = propKvp.Key;
+            return schema;
+        }
+
 
         public bool IsBackwardsCompatibleWith(Schema oldSchema, TextWriter errorLog)
         {
@@ -127,8 +123,57 @@ namespace Pomona.Schemas
             return isBackwardsCompatible;
         }
 
-        private static void PropertiesAreBackwardsCompatible(TextWriter errorLog, SchemaTypeEntry oldType,
-                                                             SchemaTypeEntry newType, ref bool isBackwardsCompatible,
+
+        public string ToJson()
+        {
+            var serializer = GetSerializer();
+            var stringWriter = new StringWriter();
+            serializer.Serialize(stringWriter, this);
+            return stringWriter.ToString();
+        }
+
+
+        internal static string[] HttpAccessModeToMethodsArray(HttpMethod httpMethod)
+        {
+            if (httpMethod == 0)
+                return new string[] { };
+            return httpMethod.ToString().Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(
+                x => x.Trim().ToUpperInvariant()).ToArray();
+        }
+
+
+        internal static HttpMethod MethodsArrayToHttpAccessMode(string[] methods)
+        {
+            if (methods == null)
+                return default(HttpMethod);
+
+            return methods.Select(x => (HttpMethod)Enum.Parse(typeof(HttpMethod), x, true))
+                          .Aggregate(
+                              default(HttpMethod),
+                              (a, b) => a | b);
+        }
+
+
+        private static JsonSerializer GetSerializer()
+        {
+            var serializer =
+                JsonSerializer.Create(
+                    new JsonSerializerSettings
+                    {
+                        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                        NullValueHandling = NullValueHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+                        Converters = { new StringEnumConverter() }
+                    });
+            serializer.Formatting = Formatting.Indented;
+            return serializer;
+        }
+
+
+        private static void PropertiesAreBackwardsCompatible(TextWriter errorLog,
+                                                             SchemaTypeEntry oldType,
+                                                             SchemaTypeEntry newType,
+                                                             ref bool isBackwardsCompatible,
                                                              string typeName)
         {
             var propertyNames =
@@ -194,42 +239,6 @@ namespace Pomona.Schemas
                         propName, typeName, oldPropEntry.Type, newPropEntry.Type);
                 }
             }
-        }
-
-        public static Schema FromJson(string jsonString)
-        {
-            var serializer = GetSerializer();
-            var stringReader = new StringReader(jsonString);
-            var schema = (Schema) serializer.Deserialize(stringReader, typeof (Schema));
-            // Fix property names (they're not serialized as this would be redundant)..
-            foreach (var propKvp in schema.Types.SelectMany(x => x.Properties))
-                propKvp.Value.Name = propKvp.Key;
-            return schema;
-        }
-
-
-        public string ToJson()
-        {
-            var serializer = GetSerializer();
-            var stringWriter = new StringWriter();
-            serializer.Serialize(stringWriter, this);
-            return stringWriter.ToString();
-        }
-
-
-        private static JsonSerializer GetSerializer()
-        {
-            var serializer =
-                JsonSerializer.Create(
-                    new JsonSerializerSettings
-                        {
-                            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                            NullValueHandling = NullValueHandling.Ignore,
-                            DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
-                            Converters = { new StringEnumConverter() }
-                        });
-            serializer.Formatting = Formatting.Indented;
-            return serializer;
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,38 +40,27 @@ namespace Pomona.UnitTests.TestHelpers.Web
     public abstract class JsonConverterTestsBase<TObject>
     {
         public JsonConverter Converter { get; private set; }
-        protected abstract JsonConverter CreateConverter();
 
 
         [SetUp]
         public void SetUp()
         {
-            this.Converter = CreateConverter();
-        }
-
-
-        protected TObject ReadJson(JToken token)
-        {
-            var jsonSerializer = new JsonSerializer() { Converters = { this.Converter } };
-            using (var jsonReader = new JTokenReader(token))
-            {
-                return (TObject)this.Converter.ReadJson(jsonReader, typeof(TObject), null, jsonSerializer);
-            }
-        }
-
-
-        private JObject WriteJson(TObject value)
-        {
-            var jsonSerializer = new JsonSerializer() { Converters = { this.Converter } };
-            using (var jsonWriter = new JTokenWriter())
-            {
-                this.Converter.WriteJson(jsonWriter, value, jsonSerializer);
-                return (JObject)jsonWriter.Token;
-            }
+            Converter = CreateConverter();
         }
 
 
         protected abstract void AssertObjectEquals(TObject expected, TObject actual);
+        protected abstract JsonConverter CreateConverter();
+
+
+        protected TObject ReadJson(JToken token)
+        {
+            var jsonSerializer = new JsonSerializer() { Converters = { Converter } };
+            using (var jsonReader = new JTokenReader(token))
+            {
+                return (TObject)Converter.ReadJson(jsonReader, typeof(TObject), null, jsonSerializer);
+            }
+        }
 
 
         protected void ReadJsonAssertEquals(string input, TObject expected)
@@ -96,6 +85,17 @@ namespace Pomona.UnitTests.TestHelpers.Web
             }
 
             Assert.That(JToken.DeepEquals(result, expected), string.Format("Expected:\r\n{0}\r\nActual:\r\n{1}\r\n", expected, result));
+        }
+
+
+        private JObject WriteJson(TObject value)
+        {
+            var jsonSerializer = new JsonSerializer() { Converters = { Converter } };
+            using (var jsonWriter = new JTokenWriter())
+            {
+                Converter.WriteJson(jsonWriter, value, jsonSerializer);
+                return (JObject)jsonWriter.Token;
+            }
         }
     }
 }

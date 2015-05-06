@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,7 @@ namespace Pomona.UnitTests.Linq.Queries.Rewriters
     {
         protected readonly IQueryable<Animal> Animals = Q<Animal>();
 
+
         protected override IExpressionRewriter CreateRewriter()
         {
             return new TRewriter();
@@ -65,15 +66,6 @@ namespace Pomona.UnitTests.Linq.Queries.Rewriters
         }
 
 
-        protected abstract IExpressionRewriter CreateRewriter();
-
-
-        protected static IQueryable<T> Q<T>()
-        {
-            return Enumerable.Empty<T>().AsQueryable();
-        }
-
-
         protected void AssertDoesNotRewrite<TInput>(Expression<Func<TInput>> input)
         {
             var closureEvaluator = new EvaluateClosureMemberVisitor();
@@ -91,13 +83,23 @@ namespace Pomona.UnitTests.Linq.Queries.Rewriters
             visitedBody.AssertEquals(closureEvaluator.Visit(expected.Body));
         }
 
+
         protected void AssertRewriteRecursive<TInput, TExpected>(Expression<Func<TInput>> input,
-                                                        Expression<Func<TExpected>> expected)
+                                                                 Expression<Func<TExpected>> expected)
         {
             var closureEvaluator = new EvaluateClosureMemberVisitor();
             var recursiveRewriter = new RecursiveRewriteVisitor(Rewriter);
             var visitedBody = recursiveRewriter.Visit(closureEvaluator.Visit(input.Body));
             visitedBody.AssertEquals(closureEvaluator.Visit(expected.Body));
+        }
+
+
+        protected abstract IExpressionRewriter CreateRewriter();
+
+
+        protected static IQueryable<T> Q<T>()
+        {
+            return Enumerable.Empty<T>().AsQueryable();
         }
 
         #region Nested type: Animal

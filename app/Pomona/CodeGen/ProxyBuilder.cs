@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -121,9 +121,9 @@ namespace Pomona.CodeGen
 
             var interfaces =
                 interfacesToImplement.SelectMany(GetAllInterfacesRecursive)
-                    .Except(proxyBase.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())))
-                    .Distinct()
-                    .ToList();
+                                     .Except(proxyBase.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())))
+                                     .Distinct()
+                                     .ToList();
 
             var propertiesToCreate = interfaces.SelectMany(x => x.Properties).ToList();
             foreach (var targetProp in propertiesToCreate)
@@ -154,14 +154,6 @@ namespace Pomona.CodeGen
             }
 
             this.onGeneratePropertyMethods(targetProp, proxyProp, proxyBaseType, proxyTargetType);
-        }
-
-
-        private static IEnumerable<TypeDefinition> GetAllInterfacesRecursive(TypeDefinition typeDefinition)
-        {
-            return
-                typeDefinition.WrapAsEnumerable().Concat(
-                    typeDefinition.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())));
         }
 
 
@@ -196,6 +188,14 @@ namespace Pomona.CodeGen
             declaringType.Methods.Add(proxyPropSetter);
             declaringType.Properties.Add(proxyPropDef);
             return proxyPropDef;
+        }
+
+
+        private static IEnumerable<TypeDefinition> GetAllInterfacesRecursive(TypeDefinition typeDefinition)
+        {
+            return
+                typeDefinition.WrapAsEnumerable().Concat(
+                    typeDefinition.Interfaces.SelectMany(x => GetAllInterfacesRecursive(x.Resolve())));
         }
     }
 }

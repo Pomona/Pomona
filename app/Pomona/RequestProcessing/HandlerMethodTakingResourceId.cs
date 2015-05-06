@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,11 +26,6 @@
 
 #endregion
 
-using System;
-
-using Nancy.Routing;
-
-using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
@@ -55,9 +50,7 @@ namespace Pomona.RequestProcessing
                 {
                     object parsedId;
                     if (!node.PathSegment.TryParse(primaryIdType, out parsedId))
-                    {
                         throw new HandlerMethodInvocationException(context, this, "Unable to parse id from url segment");
-                    }
                     return parsedId;
                 }
             }

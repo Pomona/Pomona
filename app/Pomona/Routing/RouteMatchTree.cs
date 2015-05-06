@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,10 @@ namespace Pomona.Routing
         public RouteMatchTree(Route route, string path, IPomonaSession session)
         {
             this.session = session;
-            this.root = new UrlSegment(route, path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries).Select(HttpUtility.UrlDecode).ToArray(), this);
+            this.root = new UrlSegment(route,
+                                       path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                                           .Select(HttpUtility.UrlDecode)
+                                           .ToArray(), this);
         }
 
 

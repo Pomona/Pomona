@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,13 +37,13 @@ namespace Pomona.Example.Models
 
         public ThingWithCustomIList()
         {
-            loners = new CustomListWrapper<Loner> { new Loner("Hooha", 387, "lalala") };
+            this.loners = new CustomListWrapper<Loner> { new Loner("Hooha", 387, "lalala") };
         }
 
 
         public IList<Loner> Loners
         {
-            get { return loners; }
+            get { return this.loners; }
         }
     }
 }

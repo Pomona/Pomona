@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -72,8 +72,8 @@ namespace Pomona.Common.ExtendedResources
                     new object[] { transformedExpression });
 
             var wrapResource = this.extendedResourceMapper.WrapResource(result,
-                transformedReturnType,
-                returnType);
+                                                                        transformedReturnType,
+                                                                        returnType);
             return wrapResource;
         }
     }

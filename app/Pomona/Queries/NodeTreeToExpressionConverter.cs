@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,14 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
-using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -42,7 +44,6 @@ namespace Pomona.Queries
         private readonly string parsedString;
         private readonly IQueryTypeResolver propertyResolver;
         private Dictionary<string, ParameterExpression> parameters;
-
         private ParameterExpression thisParam;
 
 
@@ -77,140 +78,6 @@ namespace Pomona.Queries
             }
         }
 
-        private Expression ParseExpressionUnsafe(NodeBase node, Expression memberExpression, Type expectedType)
-        {
-            if (memberExpression == null)
-                memberExpression = thisParam;
-
-            if (node.NodeType == NodeType.ArrayLiteral)
-                return ParseArrayLiteral((ArrayNode) node);
-
-            if (node.NodeType == NodeType.MethodCall)
-                return ParseMethodCallNode((MethodCallNode) node, memberExpression);
-
-            if (node.NodeType == NodeType.IndexerAccess)
-                return ParseIndexerAccessNode((IndexerAccessNode) node, memberExpression);
-
-            if (node.NodeType == NodeType.Symbol)
-            {
-                var dictionaryInterface =
-                    memberExpression.Type.GetInterfacesOfGeneric(typeof (IDictionary<,>)).FirstOrDefault();
-                if (node.Children.Count == 0 && dictionaryInterface != null)
-                {
-                    return ResolveDictionaryAccess((SymbolNode) node, memberExpression, dictionaryInterface);
-                }
-
-                return ResolveSymbolNode((SymbolNode) node, memberExpression);
-            }
-
-            var binaryOperatorNode = node as BinaryOperatorNode;
-
-            if (binaryOperatorNode != null)
-                return ParseBinaryOperator(binaryOperatorNode, memberExpression);
-
-            if (node.NodeType == NodeType.GuidLiteral)
-            {
-                var guidNode = (GuidNode) node;
-                return Expression.Constant(guidNode.Value);
-            }
-
-            if (node.NodeType == NodeType.DateTimeLiteral)
-            {
-                var dateTimeNode = (DateTimeNode) node;
-                return Expression.Constant(dateTimeNode.Value);
-            }
-
-            if (node.NodeType == NodeType.StringLiteral)
-            {
-                var stringNode = (StringNode) node;
-
-                if (expectedType != null && expectedType != typeof (string))
-                {
-                    if (expectedType.IsEnum)
-                    {
-                        return Expression.Constant(Enum.Parse(expectedType, stringNode.Value, true));
-                    }
-                    throw CreateParseException(stringNode,
-                                               "Don't know what to do with string node when expected type is " +
-                                               expectedType.FullName);
-                }
-                return Expression.Constant(stringNode.Value);
-            }
-
-            if (node.NodeType == NodeType.NumberLiteral)
-            {
-                var intNode = (NumberNode) node;
-                return Expression.Constant(intNode.Parse());
-            }
-
-            if (node.NodeType == NodeType.TypeNameLiteral)
-            {
-                var typeNameNode = (TypeNameNode) node;
-                return Expression.Constant(ResolveType(typeNameNode), typeof (Type));
-            }
-
-            if (node.NodeType == NodeType.Lambda)
-            {
-                var lambdaNode = (LambdaNode) node;
-                return ParseLambda(lambdaNode, memberExpression, expectedType);
-            }
-
-            if (node.NodeType == NodeType.Not)
-            {
-                var notNode = (NotNode) node;
-                return Expression.Not(ParseExpression(notNode.Children[0]));
-            }
-
-            throw new NotImplementedException();
-        }
-
-        private Type ResolveType(TypeNameNode typeNameNode)
-        {
-            return propertyResolver.ResolveType(typeNameNode.Value);
-        }
-
-        private Expression ResolveDictionaryAccess(SymbolNode node, Expression memberExpression, Type dictionaryType)
-        {
-            var key = node.Name;
-
-            var method = OdataFunctionMapping.SafeGetMethod.MakeGenericMethod(dictionaryType.GetGenericArguments());
-
-            return Expression.Call(method, memberExpression, Expression.Constant(key));
-        }
-
-
-        private Expression ParseArrayLiteral(ArrayNode node, Type expectedElementType = null)
-        {
-            var arrayElements = node.Children.Select(x => ParseExpression(x, thisParam, expectedElementType)).ToList();
-
-            if (arrayElements.Count == 0 && expectedElementType == null)
-                throw new NotSupportedException("Does not support empty arrays.");
-
-            var elementType = expectedElementType ?? typeof(object);
-
-            // TODO: Check that all array members are of same type
-
-            if (arrayElements.All(x => x is ConstantExpression))
-            {
-                var array = Array.CreateInstance(elementType, arrayElements.Count);
-                var index = 0;
-                foreach (var elementValue in arrayElements.OfType<ConstantExpression>().Select(x => x.Value))
-                {
-                    array.SetValue(elementValue, index++);
-                }
-                return Expression.Constant(array);
-            }
-            
-            // Box value elements
-            if (elementType == typeof(object))
-            {
-                arrayElements =
-                    arrayElements.Select(x => x.Type.IsValueType ? Expression.Convert(x, elementType) : x).ToList();
-            }
-
-            return Expression.NewArrayInit(elementType, arrayElements);
-        }
-
 
         public LambdaExpression ToLambdaExpression(Type thisType, NodeBase node)
         {
@@ -232,7 +99,7 @@ namespace Pomona.Queries
             try
             {
                 this.thisParam = thisParam;
-                parameters =
+                this.parameters =
                     lamdbaParameters
                         .Where(x => x != thisParam)
                         .Concat(outerParameters ?? Enumerable.Empty<ParameterExpression>())
@@ -248,22 +115,96 @@ namespace Pomona.Queries
 
 
         private Exception CreateParseException(NodeBase node,
-            string message,
-            Exception innerException = null,
-            QueryParseErrorReason? errorReason = null,
-            string memberName = null)
+                                               string message,
+                                               Exception innerException = null,
+                                               QueryParseErrorReason? errorReason = null,
+                                               string memberName = null)
         {
             if (node != null && node.ParserNode != null && this.parsedString != null)
             {
                 return QueryParseException.Create(node.ParserNode,
-                    message,
-                    this.parsedString,
-                    innerException,
-                    errorReason,
-                    memberName);
+                                                  message,
+                                                  this.parsedString,
+                                                  innerException,
+                                                  errorReason,
+                                                  memberName);
             }
 
             return new QueryParseException(message, innerException, QueryParseErrorReason.GenericError, null);
+        }
+
+
+        private void FixBinaryOperatorConversion(ref Expression left,
+                                                 ref Expression right,
+                                                 bool callSwappedRecursively = true)
+        {
+            var leftType = left.Type;
+
+            if (leftType.IsNullable() && Nullable.GetUnderlyingType(leftType) == right.Type)
+                right = Expression.Convert(right, leftType);
+            else if (leftType == typeof(object) && right.Type != typeof(object))
+            {
+                var newType = right.Type;
+                if (newType.IsValueType && !newType.IsNullable())
+                {
+                    newType = typeof(Nullable<>).MakeGenericType(newType);
+                    right = Expression.Convert(right, newType);
+                }
+                if (left.NodeType != ExpressionType.Constant || ((ConstantExpression)left).Value != null)
+                    left = Expression.TypeAs(left, newType);
+            }
+            else if (callSwappedRecursively)
+                FixBinaryOperatorConversion(ref right, ref left, callSwappedRecursively : false);
+        }
+
+
+        private Expression MakePropertyAccess(SymbolNode currentNode, Expression target, string expressionPath = null)
+        {
+            expressionPath = expressionPath ?? currentNode.Name;
+            StructuredProperty prop;
+            if (!this.propertyResolver.TryResolveProperty(target.Type, expressionPath, out prop))
+                throw CreateParseException(currentNode, "Property not recognized.");
+
+            if (!prop.Flags.HasFlag(PropertyFlags.AllowsFiltering) || !prop.AccessMode.HasFlag(HttpMethod.Get))
+            {
+                throw CreateParseException(currentNode,
+                                           "Property " + prop.JsonName + " is not allowed for query.",
+                                           errorReason : QueryParseErrorReason.MemberNotAllowedInQuery,
+                                           memberName : prop.JsonName);
+            }
+
+            return prop.CreateGetterExpression(target);
+        }
+
+
+        private Expression ParseArrayLiteral(ArrayNode node, Type expectedElementType = null)
+        {
+            var arrayElements = node.Children.Select(x => ParseExpression(x, this.thisParam, expectedElementType)).ToList();
+
+            if (arrayElements.Count == 0 && expectedElementType == null)
+                throw new NotSupportedException("Does not support empty arrays.");
+
+            var elementType = expectedElementType ?? typeof(object);
+
+            // TODO: Check that all array members are of same type
+
+            if (arrayElements.All(x => x is ConstantExpression))
+            {
+                var array = Array.CreateInstance(elementType, arrayElements.Count);
+                var index = 0;
+                foreach (var elementValue in arrayElements.OfType<ConstantExpression>().Select(x => x.Value))
+                    array.SetValue(elementValue, index++);
+                return Expression.Constant(array);
+            }
+
+            // Box value elements
+            if (elementType == typeof(object))
+            {
+                arrayElements =
+                    arrayElements.Select(x => x.Type.IsValueType ? Expression.Convert(x, elementType) : x).ToList();
+            }
+
+            return Expression.NewArrayInit(elementType, arrayElements);
         }
 
 
@@ -276,7 +217,7 @@ namespace Pomona.Queries
             {
                 if (rightNode.NodeType == NodeType.MethodCall)
                 {
-                    var origCallNode = (MethodCallNode) rightNode;
+                    var origCallNode = (MethodCallNode)rightNode;
                     // Rewrite extension method call to static method call of tree:
                     // We do this by taking inserting the first node before arg nodes of extension method call.
                     var staticMethodArgs = leftNode.WrapAsEnumerable()
@@ -295,16 +236,13 @@ namespace Pomona.Queries
                     throw CreateParseException(binaryOperatorNode, "Right side of as operator is required to be a type literal.");
 
                 return Expression.TypeAs(ParseExpression(leftNode),
-                                         ResolveType((TypeNameNode) rightNode));
+                                         ResolveType((TypeNameNode)rightNode));
             }
             if (binaryOperatorNode.NodeType == NodeType.In)
-            {
                 return ParseInOperator(binaryOperatorNode);
-            }
 
             var leftChild = ParseExpression(leftNode);
             var rightChild = ParseExpression(rightNode);
-
 
             FixBinaryOperatorConversion(ref leftChild, ref rightChild);
 
@@ -345,44 +283,129 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ParseCaseInsensitiveEqualOperator(Expression leftChild, Expression rightChild)
+        private Expression ParseBinaryOperator(Expression leftChild, Expression rightChild, ExpressionType expressionType)
         {
             return ParseBinaryOperator(leftChild,
-                rightChild,
-                (l, r) =>
-                    Expression.Call(OdataFunctionMapping.StringEqualsTakingComparisonTypeMethod,
-                        l,
-                        r,
-                        Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
+                                       rightChild,
+                                       (l, r) => Expression.MakeBinary(expressionType, l, r));
         }
 
 
-        private void FixBinaryOperatorConversion(ref Expression left, ref Expression right,
-                                                 bool callSwappedRecursively = true)
+        private Expression ParseBinaryOperator(Expression leftChild,
+                                               Expression rightChild,
+                                               Func<Expression, Expression, Expression> exprCreator)
         {
-            var leftType = left.Type;
+            TryDetectAndConvertEnumComparison(ref leftChild, ref rightChild, true);
+            TryDetectAndConvertNullableEnumComparison(ref leftChild, ref rightChild, true);
+            return exprCreator(leftChild, rightChild);
+        }
 
-            if (leftType.IsNullable() && Nullable.GetUnderlyingType(leftType) == right.Type)
+
+        private Expression ParseCaseInsensitiveEqualOperator(Expression leftChild, Expression rightChild)
+        {
+            return ParseBinaryOperator(leftChild,
+                                       rightChild,
+                                       (l, r) =>
+                                           Expression.Call(OdataFunctionMapping.StringEqualsTakingComparisonTypeMethod,
+                                                           l,
+                                                           r,
+                                                           Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
+        }
+
+
+        private Expression ParseExpressionUnsafe(NodeBase node, Expression memberExpression, Type expectedType)
+        {
+            if (memberExpression == null)
+                memberExpression = this.thisParam;
+
+            if (node.NodeType == NodeType.ArrayLiteral)
+                return ParseArrayLiteral((ArrayNode)node);
+
+            if (node.NodeType == NodeType.MethodCall)
+                return ParseMethodCallNode((MethodCallNode)node, memberExpression);
+
+            if (node.NodeType == NodeType.IndexerAccess)
+                return ParseIndexerAccessNode((IndexerAccessNode)node, memberExpression);
+
+            if (node.NodeType == NodeType.Symbol)
             {
-                right = Expression.Convert(right, leftType);
+                var dictionaryInterface =
+                    memberExpression.Type.GetInterfacesOfGeneric(typeof(IDictionary<,>)).FirstOrDefault();
+                if (node.Children.Count == 0 && dictionaryInterface != null)
+                    return ResolveDictionaryAccess((SymbolNode)node, memberExpression, dictionaryInterface);
+
+                return ResolveSymbolNode((SymbolNode)node, memberExpression);
             }
-            else if (leftType == typeof (object) && right.Type != typeof (object))
+
+            var binaryOperatorNode = node as BinaryOperatorNode;
+
+            if (binaryOperatorNode != null)
+                return ParseBinaryOperator(binaryOperatorNode, memberExpression);
+
+            if (node.NodeType == NodeType.GuidLiteral)
             {
-                var newType = right.Type;
-                if (newType.IsValueType && !newType.IsNullable())
+                var guidNode = (GuidNode)node;
+                return Expression.Constant(guidNode.Value);
+            }
+
+            if (node.NodeType == NodeType.DateTimeLiteral)
+            {
+                var dateTimeNode = (DateTimeNode)node;
+                return Expression.Constant(dateTimeNode.Value);
+            }
+
+            if (node.NodeType == NodeType.StringLiteral)
+            {
+                var stringNode = (StringNode)node;
+
+                if (expectedType != null && expectedType != typeof(string))
                 {
-                    newType = typeof (Nullable<>).MakeGenericType(newType);
-                    right = Expression.Convert(right, newType);
+                    if (expectedType.IsEnum)
+                        return Expression.Constant(Enum.Parse(expectedType, stringNode.Value, true));
+                    throw CreateParseException(stringNode,
+                                               "Don't know what to do with string node when expected type is " +
+                                               expectedType.FullName);
                 }
-                if (left.NodeType != ExpressionType.Constant || ((ConstantExpression) left).Value != null)
-                {
-                    left = Expression.TypeAs(left, newType);
-                }
+                return Expression.Constant(stringNode.Value);
             }
-            else if (callSwappedRecursively)
+
+            if (node.NodeType == NodeType.NumberLiteral)
             {
-                FixBinaryOperatorConversion(ref right, ref left, callSwappedRecursively: false);
+                var intNode = (NumberNode)node;
+                return Expression.Constant(intNode.Parse());
             }
+
+            if (node.NodeType == NodeType.TypeNameLiteral)
+            {
+                var typeNameNode = (TypeNameNode)node;
+                return Expression.Constant(ResolveType(typeNameNode), typeof(Type));
+            }
+
+            if (node.NodeType == NodeType.Lambda)
+            {
+                var lambdaNode = (LambdaNode)node;
+                return ParseLambda(lambdaNode, memberExpression, expectedType);
+            }
+
+            if (node.NodeType == NodeType.Not)
+            {
+                var notNode = (NotNode)node;
+                return Expression.Not(ParseExpression(notNode.Children[0]));
+            }
+
+            throw new NotImplementedException();
+        }
+
+
+        private Expression ParseIndexerAccessNode(IndexerAccessNode node, Expression memberExpression)
+        {
+            var property = MakePropertyAccess(node, memberExpression);
+            if (typeof(IDictionary<string, string>).IsAssignableFrom(property.Type))
+            {
+                return Expression.Call(
+                    property, OdataFunctionMapping.DictStringStringGetMethod, ParseExpression(node.Children[0]));
+            }
+            throw new NotImplementedException();
         }
 
 
@@ -394,50 +417,46 @@ namespace Pomona.Queries
             if (arrayNode == null)
                 throw CreateParseException(node, "in operator requires array on right side.");
 
-            var rightChild = ParseArrayLiteral(arrayNode, leftExpr.Type != typeof (object) ? leftExpr.Type : null);
+            var rightChild = ParseArrayLiteral(arrayNode, leftExpr.Type != typeof(object) ? leftExpr.Type : null);
 
             var arrayElementType = rightChild.Type.GetElementType();
             var compareType = arrayElementType;
             if (leftExpr.Type != arrayElementType)
             {
-                if (leftExpr.Type == typeof (object))
+                if (leftExpr.Type == typeof(object))
                 {
                     if (compareType.IsValueType && !compareType.IsNullable())
                     {
-                        compareType = typeof (Nullable<>).MakeGenericType(arrayElementType);
+                        compareType = typeof(Nullable<>).MakeGenericType(arrayElementType);
                         if (rightChild.NodeType == ExpressionType.Constant)
                         {
                             // Recreate array with nullable type..
                             var sourceArray =
-                                ((IEnumerable) ((ConstantExpression) rightChild).Value).Cast<object>().ToArray();
+                                ((IEnumerable)((ConstantExpression)rightChild).Value).Cast<object>().ToArray();
                             var destArray = Array.CreateInstance(compareType, sourceArray.Length);
                             for (var i = 0; i < sourceArray.Length; i++)
-                            {
                                 destArray.SetValue(sourceArray[i], i);
-                            }
                             rightChild = Expression.Constant(destArray);
                         }
                         else if (rightChild.NodeType == ExpressionType.NewArrayInit)
                         {
                             // Recreate array using Convert
                             rightChild = Expression.NewArrayInit(compareType,
-                                                                 ((NewArrayExpression) rightChild).Expressions.Select(
+                                                                 ((NewArrayExpression)rightChild).Expressions.Select(
                                                                      x => Expression.Convert(x, compareType)));
                         }
                         else
                         {
                             // Have no idea how to do this
                             throw CreateParseException(node,
-                                "Using in only works for constant arrays when left side is of type object.");
+                                                       "Using in only works for constant arrays when left side is of type object.");
                         }
                     }
 
                     leftExpr = Expression.TypeAs(leftExpr, compareType);
                 }
                 else
-                {
                     throw CreateParseException(node, "Left and right side of in operator does not have matching types.");
-                }
             }
 
             return Expression.Call(OdataFunctionMapping.EnumerableContainsMethod.MakeGenericMethod(compareType),
@@ -445,65 +464,21 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ParseBinaryOperator(Expression leftChild, Expression rightChild, ExpressionType expressionType)
-        {
-            return ParseBinaryOperator(leftChild,
-                rightChild,
-                (l, r) => Expression.MakeBinary(expressionType, l, r));
-        }
-
-        private Expression ParseBinaryOperator(Expression leftChild, Expression rightChild, Func<Expression, Expression, Expression> exprCreator)
-        {
-            TryDetectAndConvertEnumComparison(ref leftChild, ref rightChild, true);
-            TryDetectAndConvertNullableEnumComparison(ref leftChild, ref rightChild, true);
-            return exprCreator(leftChild, rightChild);
-        }
-
-
-        private Expression MakePropertyAccess(SymbolNode currentNode, Expression target, string expressionPath = null)
-        {
-            expressionPath = expressionPath ?? currentNode.Name;
-            StructuredProperty prop;
-            if (!propertyResolver.TryResolveProperty(target.Type, expressionPath, out prop))
-                throw CreateParseException(currentNode, "Property not recognized.");
-
-            if (!prop.Flags.HasFlag(PropertyFlags.AllowsFiltering) || !prop.AccessMode.HasFlag(HttpMethod.Get))
-                throw CreateParseException(currentNode,
-                    "Property " + prop.JsonName + " is not allowed for query.",
-                    errorReason : QueryParseErrorReason.MemberNotAllowedInQuery,
-                    memberName : prop.JsonName);
-
-            return prop.CreateGetterExpression(target);
-
-        }
-
-        private Expression ParseIndexerAccessNode(IndexerAccessNode node, Expression memberExpression)
-        {
-            var property = MakePropertyAccess(node, memberExpression);
-            if (typeof (IDictionary<string, string>).IsAssignableFrom(property.Type))
-            {
-                return Expression.Call(
-                    property, OdataFunctionMapping.DictStringStringGetMethod, ParseExpression(node.Children[0]));
-            }
-            throw new NotImplementedException();
-        }
-
-
         private Expression ParseLambda(LambdaNode lambdaNode, Expression memberExpression, Type expectedType)
         {
-            if (expectedType.UniqueToken() == typeof (Expression<>).UniqueToken())
+            if (expectedType.UniqueToken() == typeof(Expression<>).UniqueToken())
             {
                 // Quote if expression
                 return Expression.Quote(
                     ParseLambda(lambdaNode, memberExpression, expectedType.GetGenericArguments()[0]));
             }
 
-            var nestedConverter = new NodeTreeToExpressionConverter(propertyResolver, parsedString);
+            var nestedConverter = new NodeTreeToExpressionConverter(this.propertyResolver, this.parsedString);
 
             // TODO: Check that we don't already have a arg with same name.
 
             // TODO: Proper check that we have a func here
-            if (expectedType.UniqueToken() != typeof (Func<,>).UniqueToken())
+            if (expectedType.UniqueToken() != typeof(Func<,>).UniqueToken())
                 throw CreateParseException(lambdaNode, "Can't parse lambda to expected type that is not a Func delegate..");
 
             if (expectedType.GetGenericArguments()[0].IsGenericParameter)
@@ -516,8 +491,7 @@ namespace Pomona.Queries
                 lambdaNode.Argument.WrapAsEnumerable().Select(
                     (x, idx) => Expression.Parameter(funcTypeArgs[idx], x.Name)).ToList();
 
-            return nestedConverter.ToLambdaExpression(
-                thisParam, lambdaParams, parameters.Values, lambdaNode.Body);
+            return nestedConverter.ToLambdaExpression(this.thisParam, lambdaParams, this.parameters.Values, lambdaNode.Body);
         }
 
 
@@ -525,7 +499,7 @@ namespace Pomona.Queries
         {
             if (memberExpression == null)
                 throw new ArgumentNullException("memberExpression");
-            if (memberExpression == thisParam)
+            if (memberExpression == this.thisParam)
             {
                 if (node.HasArguments)
                 {
@@ -538,14 +512,24 @@ namespace Pomona.Queries
         }
 
 
+        private Expression ResolveDictionaryAccess(SymbolNode node, Expression memberExpression, Type dictionaryType)
+        {
+            var key = node.Name;
+
+            var method = OdataFunctionMapping.SafeGetMethod.MakeGenericMethod(dictionaryType.GetGenericArguments());
+
+            return Expression.Call(method, memberExpression, Expression.Constant(key));
+        }
+
+
         private Expression ResolveSymbolNode(SymbolNode node, Expression memberExpression)
         {
             if (memberExpression == null)
                 throw new ArgumentNullException("memberExpression");
-            if (memberExpression == thisParam)
+            if (memberExpression == this.thisParam)
             {
                 if (node.Name == "this")
-                    return thisParam;
+                    return this.thisParam;
                 if (node.Name == "true")
                     return Expression.Constant(true);
                 if (node.Name == "false")
@@ -553,7 +537,7 @@ namespace Pomona.Queries
                 if (node.Name == "null")
                     return Expression.Constant(null);
                 ParameterExpression parameter;
-                if (parameters.TryGetValue(node.Name, out parameter))
+                if (this.parameters.TryGetValue(node.Name, out parameter))
                     return parameter;
             }
 
@@ -561,16 +545,20 @@ namespace Pomona.Queries
         }
 
 
+        private Type ResolveType(TypeNameNode typeNameNode)
+        {
+            return this.propertyResolver.ResolveType(typeNameNode.Value);
+        }
 
 
         private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
         {
-            if (left.Type.IsEnum && right.NodeType == ExpressionType.Constant && right.Type == typeof (string))
+            if (left.Type.IsEnum && right.NodeType == ExpressionType.Constant && right.Type == typeof(string))
             {
                 var enumType = left.Type;
                 var enumUnderlyingType = enumType.GetEnumUnderlyingType();
                 left = Expression.Convert(left, enumUnderlyingType);
-                var enumStringValue = (string) ((ConstantExpression) right).Value;
+                var enumStringValue = (string)((ConstantExpression)right).Value;
                 var enumIntvalue = Convert.ChangeType(
                     Enum.Parse(enumType, enumStringValue),
                     enumUnderlyingType);
@@ -583,11 +571,11 @@ namespace Pomona.Queries
         }
 
 
-
         private void TryDetectAndConvertNullableEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
         {
             Type[] nullableTypeArgs;
-            if (right.NodeType == ExpressionType.Constant && right.Type == typeof(string) && left.Type.TryExtractTypeArguments(typeof(Nullable<>), out nullableTypeArgs) && nullableTypeArgs[0].IsEnum)
+            if (right.NodeType == ExpressionType.Constant && right.Type == typeof(string)
+                && left.Type.TryExtractTypeArguments(typeof(Nullable<>), out nullableTypeArgs) && nullableTypeArgs[0].IsEnum)
             {
                 var enumType = nullableTypeArgs[0];
                 var enumUnderlyingType = typeof(Nullable<>).MakeGenericType(enumType.GetEnumUnderlyingType());
@@ -603,8 +591,6 @@ namespace Pomona.Queries
             if (tryAgainSwapped)
                 TryDetectAndConvertNullableEnumComparison(ref right, ref left, false);
         }
-
-
 
 
         private bool TryResolveGenericInstanceMethod<TMemberInfo>(Expression instance, ref TMemberInfo member)
@@ -634,7 +620,9 @@ namespace Pomona.Queries
 
 
         private bool TryResolveMemberMapping(
-            OdataFunctionMapping.MemberMapping memberMapping, MethodCallNode node, out Expression expression)
+            OdataFunctionMapping.MemberMapping memberMapping,
+            MethodCallNode node,
+            out Expression expression)
         {
             expression = null;
             var reorderedArgs = memberMapping.ReorderArguments(node.Children);
@@ -646,7 +634,7 @@ namespace Pomona.Queries
 
                 if (!method.IsStatic)
                 {
-                    instance = ParseExpression(reorderedArgs[0], thisParam, null);
+                    instance = ParseExpression(reorderedArgs[0], this.thisParam, null);
                     if (!TryResolveGenericInstanceMethod(instance, ref method))
                         return false;
                 }
@@ -672,7 +660,7 @@ namespace Pomona.Queries
                     {
                         var param = methodParameters[i];
                         var argNode = reorderedArgs[i + argArrayOffset];
-                        var argExpr = ParseExpression(argNode, thisParam, param.ParameterType);
+                        var argExpr = ParseExpression(argNode, this.thisParam, param.ParameterType);
 
                         if (!param.ParameterType.IsAssignableFrom(argExpr.Type))
                             return false;
@@ -689,10 +677,12 @@ namespace Pomona.Queries
                     {
                         var param = methodParameters[i];
                         var argNode = reorderedArgs[i + argArrayOffset];
-                        var argExpr = ParseExpression(argNode, thisParam, param.ParameterType);
+                        var argExpr = ParseExpression(argNode, this.thisParam, param.ParameterType);
 
                         bool typeArgsWasResolved;
-                        if (!TypeExtensions.TryFillGenericTypeParameters(param.ParameterType, argExpr.Type, methodTypeArgs, out typeArgsWasResolved))
+                        if (
+                            !TypeExtensions.TryFillGenericTypeParameters(param.ParameterType, argExpr.Type, methodTypeArgs,
+                                                                         out typeArgsWasResolved))
                             return false;
 
                         if (typeArgsWasResolved)
@@ -712,7 +702,7 @@ namespace Pomona.Queries
             }
             if (property != null)
             {
-                var instance = ParseExpression(reorderedArgs[0], thisParam, null);
+                var instance = ParseExpression(reorderedArgs[0], this.thisParam, null);
                 if (!TryResolveGenericInstanceMethod(instance, ref property))
                     return false;
 
@@ -725,7 +715,9 @@ namespace Pomona.Queries
 
 
         private bool TryResolveOdataExpression(
-            MethodCallNode node, Expression memberExpression, out Expression expression)
+            MethodCallNode node,
+            Expression memberExpression,
+            out Expression expression)
         {
             expression = null;
 
@@ -742,7 +734,7 @@ namespace Pomona.Queries
                     if (node.Children.Count == 1)
                     {
                         castTypeArg = node.Children[0] as TypeNameNode;
-                        operand = thisParam;
+                        operand = this.thisParam;
                     }
                     else
                     {
@@ -762,8 +754,10 @@ namespace Pomona.Queries
 
                 case "iif":
                     if (node.Children.Count != 3)
+                    {
                         throw CreateParseException(node,
                                                    "Conditional requires three arguments: iif(test, iftrue, iffalse).");
+                    }
 
                     expression = Expression.Condition(ParseExpression(node.Children[0]),
                                                       ParseExpression(node.Children[1]),

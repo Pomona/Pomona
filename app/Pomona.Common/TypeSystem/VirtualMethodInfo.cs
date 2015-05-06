@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -71,24 +71,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override int MetadataToken
+        public override MethodAttributes Attributes
         {
-            get { return metadataToken; }
-        }
-
-        public override Module Module
-        {
-            get { return GetType().Module; }
-        }
-
-        public override ICustomAttributeProvider ReturnTypeCustomAttributes
-        {
-            get { return null; }
-        }
-
-        public override string Name
-        {
-            get { return this.name; }
+            get { return this.attributes; }
         }
 
         public override Type DeclaringType
@@ -96,19 +81,40 @@ namespace Pomona.Common.TypeSystem
             get { return this.declaringType; }
         }
 
+        public override int MetadataToken
+        {
+            get { return this.metadataToken; }
+        }
+
+        public override RuntimeMethodHandle MethodHandle
+        {
+            get { return this.runtimeMethodHandle; }
+        }
+
+        public override Module Module
+        {
+            get { return GetType().Module; }
+        }
+
+        public override string Name
+        {
+            get { return this.name; }
+        }
+
         public override Type ReflectedType
         {
             get { return this.reflectedType; }
         }
 
-        public override RuntimeMethodHandle MethodHandle
+        public override ICustomAttributeProvider ReturnTypeCustomAttributes
         {
-            get  { return this.runtimeMethodHandle; }
+            get { return null; }
         }
 
-        public override MethodAttributes Attributes
+
+        public override MethodInfo GetBaseDefinition()
         {
-            get { return this.attributes; }
+            return this.baseDefinition ?? this;
         }
 
 
@@ -118,15 +124,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override bool IsDefined(Type attributeType, bool inherit)
+        public override object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
-            return false;
-        }
-
-
-        public override ParameterInfo[] GetParameters()
-        {
-            return (ParameterInfo[])this.parameters.Clone();
+            return new object[] { };
         }
 
 
@@ -136,13 +136,19 @@ namespace Pomona.Common.TypeSystem
         }
 
 
+        public override ParameterInfo[] GetParameters()
+        {
+            return (ParameterInfo[])this.parameters.Clone();
+        }
+
+
         public override object Invoke(object obj,
                                       BindingFlags invokeAttr,
                                       Binder binder,
                                       object[] parameters,
                                       CultureInfo culture)
         {
-            if (del == null)
+            if (this.del == null)
                 throw new InvalidOperationException("No delegate to invoke set on VirtualMethodInfo.");
             if (obj != null)
             {
@@ -160,15 +166,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override MethodInfo GetBaseDefinition()
+        public override bool IsDefined(Type attributeType, bool inherit)
         {
-            return baseDefinition ?? this;
-        }
-
-
-        public override object[] GetCustomAttributes(Type attributeType, bool inherit)
-        {
-            return new object[] { };
+            return false;
         }
     }
 }

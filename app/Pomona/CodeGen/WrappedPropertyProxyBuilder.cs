@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -102,10 +102,11 @@ namespace Pomona.CodeGen
             var onGetMethod = baseDef.Methods.FirstOrDefault(x => x.Name == "OnGet");
             if (onGetMethod == null || onGetMethod.GenericParameters.Count != 2)
             {
-                var message = String.Format("Could not find the method {0}.OnGet<{1}, {2}>().", baseDef, proxyTargetType, proxyProp.PropertyType);
+                var message = String.Format("Could not find the method {0}.OnGet<{1}, {2}>().", baseDef, proxyTargetType,
+                                            proxyProp.PropertyType);
                 throw new InvalidOperationException(message);
             }
-            
+
             var proxyOnGetMethod = Module.Import(onGetMethod);
             var proxyOnGetMethodInstance = new GenericInstanceMethod(proxyOnGetMethod);
             proxyOnGetMethodInstance.GenericArguments.Add(proxyTargetType);
@@ -114,7 +115,8 @@ namespace Pomona.CodeGen
             var onSetMethod = baseDef.Methods.FirstOrDefault(x => x.Name == "OnSet");
             if (onSetMethod == null || onSetMethod.GenericParameters.Count != 2)
             {
-                var message = String.Format("Could not find the method {0}.OnSet<{1}, {2}>().", baseDef, proxyTargetType, proxyProp.PropertyType);
+                var message = String.Format("Could not find the method {0}.OnSet<{1}, {2}>().", baseDef, proxyTargetType,
+                                            proxyProp.PropertyType);
                 throw new InvalidOperationException(message);
             }
 

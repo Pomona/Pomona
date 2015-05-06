@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,11 @@ namespace Pomona.Common.Linq
         }
 
 
+        protected IQueryable<TElement> InnerQueryable
+        {
+            get { return this.innerQueryable; }
+        }
+
         public Type ElementType
         {
             get { return this.innerQueryable.ElementType; }
@@ -57,20 +62,16 @@ namespace Pomona.Common.Linq
             get { return this.innerQueryable.Expression; }
         }
 
-        public IQueryProvider Provider
-        {
-            get { return this.innerQueryable.Provider; }
-        }
-
-        protected IQueryable<TElement> InnerQueryable
-        {
-            get { return this.innerQueryable; }
-        }
-
 
         public IEnumerator<TElement> GetEnumerator()
         {
             return this.innerQueryable.GetEnumerator();
+        }
+
+
+        public IQueryProvider Provider
+        {
+            get { return this.innerQueryable.Provider; }
         }
 
 

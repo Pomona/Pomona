@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,9 @@
 #endregion
 
 using System;
+
 using Newtonsoft.Json;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -36,12 +38,15 @@ namespace Pomona.Example
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof (WebColor);
+            return objectType == typeof(WebColor);
         }
 
 
         public override object ReadJson(
-            JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            JsonReader reader,
+            Type objectType,
+            object existingValue,
+            JsonSerializer serializer)
         {
             var webColorString = reader.ReadAsString();
             return new WebColor(webColorString);

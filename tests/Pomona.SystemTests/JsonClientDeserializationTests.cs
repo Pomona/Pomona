@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -42,28 +42,7 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class JsonClientDeserializationTests
     {
-        #region Setup/Teardown
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.typeMapper = new ClientTypeMapper(typeof(CritterClient).Assembly);
-        }
-
-        #endregion
-
         private ClientTypeMapper typeMapper;
-
-
-        private T Deserialize<T>(string jsonString)
-        {
-            var pomonaClient = Substitute.For<IPomonaClient>();
-            var jsonDeserializer = new PomonaJsonDeserializer(
-                new ClientSerializationContextProvider(this.typeMapper,
-                                                       pomonaClient,
-                                                       pomonaClient));
-            return jsonDeserializer.DeserializeString<T>(jsonString);
-        }
 
 
         [Test]
@@ -211,6 +190,26 @@ namespace Pomona.SystemTests
             Assert.IsTrue(deserialized.Map.ContainsKey("bar"));
             Assert.That(deserialized.Map["foo"], Is.EqualTo(1234));
             Assert.That(deserialized.Map["bar"], Is.EqualTo("hoho"));
+        }
+
+        #region Setup/Teardown
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.typeMapper = new ClientTypeMapper(typeof(CritterClient).Assembly);
+        }
+
+        #endregion
+
+        private T Deserialize<T>(string jsonString)
+        {
+            var pomonaClient = Substitute.For<IPomonaClient>();
+            var jsonDeserializer = new PomonaJsonDeserializer(
+                new ClientSerializationContextProvider(this.typeMapper,
+                                                       pomonaClient,
+                                                       pomonaClient));
+            return jsonDeserializer.DeserializeString<T>(jsonString);
         }
     }
 }

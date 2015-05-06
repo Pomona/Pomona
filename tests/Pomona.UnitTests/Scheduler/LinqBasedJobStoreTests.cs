@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,22 +39,51 @@ namespace Pomona.UnitTests.Scheduler
     [TestFixture]
     public class LinqBasedJobStoreTests
     {
+        [Test]
+        public void TryDequeue_NoExpiredJobsInQueue_ReturnsFalse()
+        {
+            var jobStore = new TestJobStore() { UtcNow = new DateTime(2011, 1, 1, 1, 1, 1, DateTimeKind.Utc) };
+            jobStore.Jobs.Add(new Job("http://jalla", jobStore.UtcNow.AddDays(3), "GET"));
+            Job job;
+            Assert.That(jobStore.TryDequeue(out job), Is.False);
+            Assert.That(job, Is.Null);
+        }
+
+
+        [Test]
+        public void TryDequeue_TwoExpiredJobsInQueue_DequeuesOldestJob()
+        {
+            var jobStore = new TestJobStore() { UtcNow = new DateTime(2011, 1, 1, 1, 1, 1, DateTimeKind.Utc) };
+            var oldJob = new Job("http://stale", jobStore.UtcNow.AddDays(-100), "GET");
+            jobStore.Jobs.Add(oldJob);
+            var newJob = new Job("http://fresh", jobStore.UtcNow.AddDays(-1), "GET");
+            jobStore.Jobs.Add(newJob);
+            Job job;
+            Assert.That(jobStore.TryDequeue(out job), Is.True);
+            Assert.That(job, Is.EqualTo(oldJob));
+        }
+
+
+        [Test]
+        public void TryDequeue_ZeroJobsQueued_ReturnsFalse()
+        {
+            var jobStore = new TestJobStore();
+            Job job;
+            Assert.That(jobStore.TryDequeue(out job), Is.False);
+            Assert.That(job, Is.Null);
+        }
+
+
         public class TestJobStore : LinqBasedJobStoreBase<Job>
         {
             private readonly List<Job> jobs = new List<Job>();
-
-            private DateTime utcNow;
 
             public List<Job> Jobs
             {
                 get { return this.jobs; }
             }
 
-            public DateTime UtcNow
-            {
-                get { return this.utcNow; }
-                set { this.utcNow = value; }
-            }
+            public DateTime UtcNow { get; set; }
 
 
             public override Job Complete(Job job)
@@ -88,41 +117,6 @@ namespace Pomona.UnitTests.Scheduler
             {
                 return UtcNow;
             }
-        }
-
-
-        [Test]
-        public void TryDequeue_NoExpiredJobsInQueue_ReturnsFalse()
-        {
-            var jobStore = new TestJobStore() { UtcNow = new DateTime(2011, 1, 1, 1, 1, 1, DateTimeKind.Utc) };
-            jobStore.Jobs.Add(new Job("http://jalla", jobStore.UtcNow.AddDays(3), "GET"));
-            Job job;
-            Assert.That(jobStore.TryDequeue(out job), Is.False);
-            Assert.That(job, Is.Null);
-        }
-
-
-        [Test]
-        public void TryDequeue_TwoExpiredJobsInQueue_DequeuesOldestJob()
-        {
-            var jobStore = new TestJobStore() { UtcNow = new DateTime(2011, 1, 1, 1, 1, 1, DateTimeKind.Utc) };
-            var oldJob = new Job("http://stale", jobStore.UtcNow.AddDays(-100), "GET");
-            jobStore.Jobs.Add(oldJob);
-            var newJob = new Job("http://fresh", jobStore.UtcNow.AddDays(-1), "GET");
-            jobStore.Jobs.Add(newJob);
-            Job job;
-            Assert.That(jobStore.TryDequeue(out job), Is.True);
-            Assert.That(job, Is.EqualTo(oldJob));
-        }
-
-
-        [Test]
-        public void TryDequeue_ZeroJobsQueued_ReturnsFalse()
-        {
-            var jobStore = new TestJobStore();
-            Job job;
-            Assert.That(jobStore.TryDequeue(out job), Is.False);
-            Assert.That(job, Is.Null);
         }
     }
 }

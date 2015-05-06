@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,8 @@ namespace Pomona.Common.Linq
         private readonly object[] children;
 
 
-        public QuerySegmentListExpression(IEnumerable<object> children, Type type) : base(type)
+        public QuerySegmentListExpression(IEnumerable<object> children, Type type)
+            : base(type)
         {
             if (children == null)
                 throw new ArgumentNullException("children");
@@ -51,9 +52,10 @@ namespace Pomona.Common.Linq
             get { return new ReadOnlyCollection<object>(this.children); }
         }
 
+
         public override IEnumerable<string> ToStringSegments()
         {
-            return ToStringSegmentsRecursive(children);
+            return ToStringSegmentsRecursive(this.children);
         }
     }
 }

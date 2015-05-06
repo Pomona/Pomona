@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,72 +36,26 @@ namespace Pomona.Common.Internals
     public static class TypeUtils
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes = new HashSet<Type>
-            {
-                typeof (string),
-                typeof (int),
-                typeof (long),
-                typeof (double),
-                typeof (float),
-                typeof (decimal),
-                typeof (DateTime),
-                typeof (object),
-                typeof (bool),
-                typeof (Guid),
-                typeof (Uri)
-            };
-
-        public static Type[] GetTypes<T1>()
         {
-            return new[] {typeof (T1)};
-        }
-
-        public static Type[] GetTypes<T1, T2>()
-        {
-            return new[] {typeof (T1), typeof (T2)};
-        }
-
-        public static Type[] GetTypes<T1, T2, T3>()
-        {
-            return new[] {typeof (T1), typeof (T2), typeof (T3)};
-        }
-
-        public static Type[] GetTypes<T1, T2, T3, T4>()
-        {
-            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4)};
-        }
-
-        public static Type[] GetTypes<T1, T2, T3, T4, T5>()
-        {
-            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5)};
-        }
-
-        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6>()
-        {
-            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5), typeof (T6)};
-        }
-
-        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6, T7>()
-        {
-            return new[] {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5), typeof (T6), typeof (T7)};
-        }
-
-        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6, T7, T8>()
-        {
-            return new[]
-                {typeof (T1), typeof (T2), typeof (T3), typeof (T4), typeof (T5), typeof (T6), typeof (T7), typeof (T8)};
-        }
-
-        public static IEnumerable<Type> GetNativeTypes()
-        {
-            return jsonSupportedNativeTypes;
-        }
+            typeof(string),
+            typeof(int),
+            typeof(long),
+            typeof(double),
+            typeof(float),
+            typeof(decimal),
+            typeof(DateTime),
+            typeof(object),
+            typeof(bool),
+            typeof(Guid),
+            typeof(Uri)
+        };
 
 
         public static IEnumerable<Type> AllBaseTypesAndInterfaces(Type type)
         {
             var baseType = type;
 
-            while (baseType != null && baseType != typeof (object))
+            while (baseType != null && baseType != typeof(object))
             {
                 yield return baseType;
                 baseType = baseType.BaseType;
@@ -108,30 +66,59 @@ namespace Pomona.Common.Internals
         }
 
 
-        /// <summary>
-        /// Checks whether type is of genericTypeToSearchFor or implements interface,
-        /// if this succeeds return true and generic arguments.
-        /// </summary>
-        /// <param name="checkType">Type to check</param>
-        /// <param name="genericTypeToSearchFor">Generic type to whether checkType implements</param>
-        /// <param name="genericArguments">Generic arguments for T</param>
-        /// <returns>true if type implements , false if not</returns>
-        public static bool TryGetTypeArguments(
-            Type checkType, Type genericTypeToSearchFor, out Type[] genericArguments)
+        public static IEnumerable<Type> GetNativeTypes()
         {
-            genericArguments = null;
-
-            var genericTypeImplementation =
-                AllBaseTypesAndInterfaces(checkType).FirstOrDefault(
-                    x => x.IsGenericType && x.GetGenericTypeDefinition() == genericTypeToSearchFor);
-
-            if (genericTypeImplementation == null)
-                return false;
-
-            genericArguments = genericTypeImplementation.GetGenericArguments();
-            return true;
+            return jsonSupportedNativeTypes;
         }
 
+
+        public static Type[] GetTypes<T1>()
+        {
+            return new[] { typeof(T1) };
+        }
+
+
+        public static Type[] GetTypes<T1, T2>()
+        {
+            return new[] { typeof(T1), typeof(T2) };
+        }
+
+
+        public static Type[] GetTypes<T1, T2, T3>()
+        {
+            return new[] { typeof(T1), typeof(T2), typeof(T3) };
+        }
+
+
+        public static Type[] GetTypes<T1, T2, T3, T4>()
+        {
+            return new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) };
+        }
+
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5>()
+        {
+            return new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) };
+        }
+
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6>()
+        {
+            return new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6) };
+        }
+
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6, T7>()
+        {
+            return new[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7) };
+        }
+
+
+        public static Type[] GetTypes<T1, T2, T3, T4, T5, T6, T7, T8>()
+        {
+            return new[]
+            { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8) };
+        }
 
 
         public static Type ReplaceInGenericArguments(Type typeToSearch, Func<Type, Type> typeReplacer)
@@ -167,5 +154,31 @@ namespace Pomona.Common.Internals
             return methodToSearch.GetGenericMethodDefinition().MakeGenericMethod(newGenArgs);
         }
 
+
+        /// <summary>
+        /// Checks whether type is of genericTypeToSearchFor or implements interface,
+        /// if this succeeds return true and generic arguments.
+        /// </summary>
+        /// <param name="checkType">Type to check</param>
+        /// <param name="genericTypeToSearchFor">Generic type to whether checkType implements</param>
+        /// <param name="genericArguments">Generic arguments for T</param>
+        /// <returns>true if type implements , false if not</returns>
+        public static bool TryGetTypeArguments(
+            Type checkType,
+            Type genericTypeToSearchFor,
+            out Type[] genericArguments)
+        {
+            genericArguments = null;
+
+            var genericTypeImplementation =
+                AllBaseTypesAndInterfaces(checkType).FirstOrDefault(
+                    x => x.IsGenericType && x.GetGenericTypeDefinition() == genericTypeToSearchFor);
+
+            if (genericTypeImplementation == null)
+                return false;
+
+            genericArguments = genericTypeImplementation.GetGenericArguments();
+            return true;
+        }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,9 +35,6 @@ namespace Pomona.Common.Expressions
 {
     public abstract class ExpressionRewriter : IExpressionRewriter
     {
-        public abstract IEnumerable<Type> VisitedTypes { get; }
-
-
         public static ExpressionRewriter Create<TExpression>(Func<IRewriteContext, TExpression, Expression> func)
             where TExpression : Expression
         {
@@ -65,6 +62,7 @@ namespace Pomona.Common.Expressions
 
 
         internal abstract Expression OnVisit(IRewriteContext context, Expression node);
+        public abstract IEnumerable<Type> VisitedTypes { get; }
 
 
         Expression IExpressionRewriter.Visit(IRewriteContext context, Expression node)

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -48,7 +48,6 @@ namespace Pomona.Common.Linq
         }
 
 
-        public abstract IQueryable<TElement> CreateQuery<TElement>(Expression expression);
         public abstract object Execute(Expression expression, Type returnType);
 
 
@@ -60,6 +59,9 @@ namespace Pomona.Common.Linq
 
             return queryableTypeInstance.GetGenericArguments()[0];
         }
+
+
+        public abstract IQueryable<TElement> CreateQuery<TElement>(Expression expression);
 
 
         IQueryable IQueryProvider.CreateQuery(Expression expression)

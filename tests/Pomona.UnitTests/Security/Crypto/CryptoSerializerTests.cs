@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,40 @@ namespace Pomona.UnitTests.Security.Crypto
     [TestFixture]
     public class CryptoSerializerTests
     {
+        private CryptoSerializerBase serializer;
+
+
+        [Test]
+        public void Deserialize_WithNullArg_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => this.serializer.Deserialize<TestClass>(null));
+        }
+
+
+        [Test]
+        public void DeserializeRandomNonRecognizedBytes_ThrowsSerializationException()
+        {
+            Assert.Throws<SerializationException>(
+                () =>
+                    this.serializer.Deserialize<TestClass>(
+                        "AAECAwQFBgcICQoLDA0OD7qVKYq08JRY-62b0QSPIt_MhNreTSJVIkGRLqQz5uuSG3w."));
+        }
+
+
+        [TestCase("krakra", "go to gate")]
+        [TestCase("this string is quite a bit longer sorry about that maybe you should consider shortening this down",
+            "djhskj")]
+        [TestCase("abcd", "ehfkdjfklsdfjklsdjfl")]
+        public void SerializeThenDeserialize_ReturnsCorrectValues(string fooValue, string barValue)
+        {
+            var obj = new TestClass() { Foo = fooValue, Bar = barValue };
+            var serialized = this.serializer.Serialize(obj);
+            var deserialized = this.serializer.Deserialize<TestClass>(serialized);
+            Console.WriteLine("Serialized: " + serialized);
+            Assert.That(deserialized.Foo, Is.EqualTo(fooValue));
+            Assert.That(deserialized.Bar, Is.EqualTo(barValue));
+        }
+
         #region Setup/Teardown
 
         [SetUp]
@@ -49,26 +83,6 @@ namespace Pomona.UnitTests.Security.Crypto
         }
 
         #endregion
-
-        public class TestCryptoSerializer : CryptoSerializerBase
-        {
-            private readonly Func<SymmetricAlgorithm> algoFactory;
-
-
-            public TestCryptoSerializer(Func<SymmetricAlgorithm> algoFactory = null)
-                : base(new FixedSiteKeyProvider(), new NonRandomGenerator())
-            {
-                this.algoFactory = algoFactory;
-            }
-
-
-            protected override SymmetricAlgorithm CreateSymmetricalAlgorithm()
-            {
-                return this.algoFactory != null ? this.algoFactory() : base.CreateSymmetricalAlgorithm();
-            }
-        }
-
-        private CryptoSerializerBase serializer;
 
         public class FixedSiteKeyProvider : ISiteKeyProvider
         {
@@ -105,36 +119,22 @@ namespace Pomona.UnitTests.Security.Crypto
             public string Foo { get; set; }
         }
 
-
-        [TestCase("krakra", "go to gate")]
-        [TestCase("this string is quite a bit longer sorry about that maybe you should consider shortening this down",
-            "djhskj")]
-        [TestCase("abcd", "ehfkdjfklsdfjklsdjfl")]
-        public void SerializeThenDeserialize_ReturnsCorrectValues(string fooValue, string barValue)
+        public class TestCryptoSerializer : CryptoSerializerBase
         {
-            var obj = new TestClass() { Foo = fooValue, Bar = barValue };
-            var serialized = this.serializer.Serialize(obj);
-            var deserialized = this.serializer.Deserialize<TestClass>(serialized);
-            Console.WriteLine("Serialized: " + serialized);
-            Assert.That(deserialized.Foo, Is.EqualTo(fooValue));
-            Assert.That(deserialized.Bar, Is.EqualTo(barValue));
-        }
+            private readonly Func<SymmetricAlgorithm> algoFactory;
 
 
-        [Test]
-        public void DeserializeRandomNonRecognizedBytes_ThrowsSerializationException()
-        {
-            Assert.Throws<SerializationException>(
-                () =>
-                    this.serializer.Deserialize<TestClass>(
-                        "AAECAwQFBgcICQoLDA0OD7qVKYq08JRY-62b0QSPIt_MhNreTSJVIkGRLqQz5uuSG3w."));
-        }
+            public TestCryptoSerializer(Func<SymmetricAlgorithm> algoFactory = null)
+                : base(new FixedSiteKeyProvider(), new NonRandomGenerator())
+            {
+                this.algoFactory = algoFactory;
+            }
 
 
-        [Test]
-        public void Deserialize_WithNullArg_ThrowsArgumentNullException()
-        {
-            Assert.Throws<ArgumentNullException>(() => this.serializer.Deserialize<TestClass>(null));
+            protected override SymmetricAlgorithm CreateSymmetricalAlgorithm()
+            {
+                return this.algoFactory != null ? this.algoFactory() : base.CreateSymmetricalAlgorithm();
+            }
         }
     }
 }

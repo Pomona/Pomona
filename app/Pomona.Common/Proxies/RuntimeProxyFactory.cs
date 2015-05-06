@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,10 +28,11 @@
 
 using System;
 using System.Reflection;
+
+using Pomona.Common.Internals;
 #if !DISABLE_PROXY_GENERATION
 using System.Reflection.Emit;
 #endif
-using Pomona.Common.Internals;
 
 namespace Pomona.Common.Proxies
 {
@@ -40,10 +41,12 @@ namespace Pomona.Common.Proxies
         private static readonly MethodInfo createMethod =
             ReflectionHelper.GetMethodDefinition<object>(o => Create<object, object>());
 
+
         public static T Create<TProxyBase, T>()
         {
             return RuntimeProxyFactory<TProxyBase, T>.Create();
         }
+
 
         public static object Create(Type proxyBase, Type proxyTarget)
         {
@@ -57,23 +60,24 @@ namespace Pomona.Common.Proxies
         private static readonly Type proxyType;
 #endif
 
+
         static RuntimeProxyFactory()
         {
 #if DISABLE_PROXY_GENERATION
             throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
 #else
 
-            var type = typeof (T);
+            var type = typeof(T);
             var typeName = type.Name;
             var assemblyNameString = typeName + "Proxy" + Guid.NewGuid().ToString();
             AssemblyBuilder asmBuilder;
             var modBuilder = EmitHelpers.CreateRuntimeModule(assemblyNameString, out asmBuilder);
 
-            var proxyBaseType = typeof (TProxyBase);
+            var proxyBaseType = typeof(TProxyBase);
             var proxyBuilder = new WrappedPropertyProxyBuilder(modBuilder, proxyBaseType,
-                                                               typeof (PropertyWrapper<,>),
-                                                               typeNameFormat: "{0}_" + proxyBaseType.Name,
-                                                               proxyNamespace: proxyBaseType.Namespace);
+                                                               typeof(PropertyWrapper<,>),
+                                                               typeNameFormat : "{0}_" + proxyBaseType.Name,
+                                                               proxyNamespace : proxyBaseType.Namespace);
 
             var typeDef = proxyBuilder.CreateProxyType(typeName, type.WrapAsEnumerable());
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -64,10 +64,10 @@ namespace Pomona.UnitTests.Web
         public void ReadJson_with_headers_deserializes_request()
         {
             var expected = new HttpRequest("http://test/lupus", null, "GET", new HttpHeaders
-                                                                                         {
-                                                                                             { "Accept", "boom" },
-                                                                                             { "Baha", new List<string>() { "ha", "hi" } }
-                                                                                         });
+            {
+                { "Accept", "boom" },
+                { "Baha", new List<string>() { "ha", "hi" } }
+            });
             var input = "{'method':'GET','url':'http://test/lupus','format':'json','headers':{'Accept':'boom','Baha':['ha', 'hi']}}";
             ReadJsonAssertEquals(input, expected);
         }
@@ -77,7 +77,7 @@ namespace Pomona.UnitTests.Web
         public void ReadJson_with_json_body_deserializes_request()
         {
             var expected = new HttpRequest("http://test/lupus", Encoding.UTF8.GetBytes("{foo:'bar'}"), "GET",
-                                                       new HttpHeaders() { ContentType = "application/json; charset=utf-8" });
+                                           new HttpHeaders() { ContentType = "application/json; charset=utf-8" });
             var input =
                 "{'method':'GET','url':'http://test/lupus',headers:{'Content-Type':'application/json; charset=utf-8'},'format':'json','body':{'foo':'bar'}}";
             var result = ReadJson(JToken.Parse(input));
@@ -102,7 +102,7 @@ namespace Pomona.UnitTests.Web
                 JObject.Parse(
                     "{'method':'GET','url':'http://test/lupus','headers':{'Content-Type':'image/png'},'format':'binary','body':'3q2+7w=='}");
             var request = new HttpRequest("http://test/lupus", new byte[] { 0xde, 0xad, 0xbe, 0xef }, "GET",
-                                                                      new HttpHeaders() { { "Content-Type", "image/png" } });
+                                          new HttpHeaders() { { "Content-Type", "image/png" } });
             WriteJsonAssertEquals(request, expected);
         }
 
@@ -114,11 +114,11 @@ namespace Pomona.UnitTests.Web
                 JObject.Parse(
                     "{method: 'GET', url: 'http://test/lupus', headers: { 'Content-Type': 'application/json', 'Baha' : ['ha','hi'] } }");
             var request = new HttpRequest("http://test/lupus", null, "GET",
-                                                                      new HttpHeaders
-                                                                      {
-                                                                          { "Content-Type", "application/json" },
-                                                                          { "Baha", new List<string>() { "ha", "hi" } }
-                                                                      });
+                                          new HttpHeaders
+                                          {
+                                              { "Content-Type", "application/json" },
+                                              { "Baha", new List<string>() { "ha", "hi" } }
+                                          });
             WriteJsonAssertEquals(request, expected);
         }
 
@@ -130,13 +130,13 @@ namespace Pomona.UnitTests.Web
                 JObject.Parse(
                     "{method: 'GET', url: 'http://test/lupus', headers: { 'Content-Type': 'application/json; charset=utf-8' }, format: 'json', body: { foo: 'bar' } }");
             var request = new HttpRequest("http://test/lupus", Encoding.UTF8.GetBytes("{ foo: 'bar' }"), "GET",
-                                                                      new HttpHeaders()
-                                                                      {
-                                                                          {
-                                                                              "Content-Type",
-                                                                              "application/json; charset=utf-8"
-                                                                          }
-                                                                      });
+                                          new HttpHeaders()
+                                          {
+                                              {
+                                                  "Content-Type",
+                                                  "application/json; charset=utf-8"
+                                              }
+                                          });
             WriteJsonAssertEquals(request, expected);
         }
 

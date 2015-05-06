@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -51,76 +51,6 @@ namespace Pomona.UnitTests.Patch
     public class DeltaTests
     {
         private readonly ClientTypeMapper typeMapper = new ClientTypeMapper(typeof(ITestResource).WrapAsEnumerable());
-
-
-        private ITestResource GetObjectProxy(Action<TestResource> modifyOriginal = null)
-        {
-            var original = new TestResource
-            {
-                Info = "Hei",
-                Children =
-                {
-                    new TestResource { Info = "Childbar", Id = 1 },
-                    new TestResource { Info = "ChildToRemove", Id = 2 }
-                },
-                Spouse = new TestResource { Info = "Jalla", Id = 3 },
-                Friend = new TestResource { Info = "good friend", Id = 4 },
-                Id = 5
-            };
-
-            if (modifyOriginal != null)
-                modifyOriginal(original);
-
-            var proxy = (ITestResource)ObjectDeltaProxyBase.CreateDeltaProxy(original,
-                                                                             this.typeMapper.FromType(
-                                                                                 typeof(ITestResource)),
-                                                                             this.typeMapper,
-                                                                             null,
-                                                                             typeof(ITestResource));
-
-            Assert.IsFalse(((Delta)proxy).IsDirty);
-            return proxy;
-        }
-
-
-        private ITestResource GetObjectWithAllDeltaOperations()
-        {
-            var proxy = GetObjectProxy();
-
-            proxy.Info = "Lalalala";
-            proxy.Children.First().Info = "Modified child";
-            var childToRemove = proxy.Children.First(x => x.Info == "ChildToRemove");
-            proxy.Children.Remove(childToRemove);
-            proxy.Children.Add(new TestResourcePostForm { Info = "Version2" });
-            proxy.Spouse = new TestResourcePostForm { Info = "BetterWife" };
-            proxy.Friend.Info = "ModifiedFriend";
-
-            var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
-            Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(1));
-            Assert.That(childCollectionDelta.RemovedItems.First().Info, Is.EqualTo("ChildToRemove"));
-            return proxy;
-        }
-
-
-        private JObject CreateJsonPatch(ITestResource proxy)
-        {
-            var pomonaClient = Substitute.For<IPomonaClient>();
-            var jsonSerializer =
-                (ITextSerializer)
-                    (new PomonaJsonSerializerFactory().GetSerializer(
-                        new ClientSerializationContextProvider(this.typeMapper,
-                                                               pomonaClient,
-                                                               pomonaClient)));
-            using (var stringWriter = new StringWriter())
-            {
-                jsonSerializer.Serialize(stringWriter,
-                                         proxy,
-                                         new SerializeOptions() { ExpectedBaseType = typeof(ITestResource) });
-                Console.WriteLine(stringWriter.ToString());
-                return JObject.Parse(stringWriter.ToString());
-                // TODO: More assertions here!
-            }
-        }
 
 
         [Test]
@@ -278,6 +208,76 @@ namespace Pomona.UnitTests.Patch
             Assert.That(childCollectionDelta.RemovedItems.First().Info, Is.EqualTo("ChildToRemove"));
             Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(0));
             Assert.That(((Delta)proxy).IsDirty);
+        }
+
+
+        private JObject CreateJsonPatch(ITestResource proxy)
+        {
+            var pomonaClient = Substitute.For<IPomonaClient>();
+            var jsonSerializer =
+                (ITextSerializer)
+                    (new PomonaJsonSerializerFactory().GetSerializer(
+                        new ClientSerializationContextProvider(this.typeMapper,
+                                                               pomonaClient,
+                                                               pomonaClient)));
+            using (var stringWriter = new StringWriter())
+            {
+                jsonSerializer.Serialize(stringWriter,
+                                         proxy,
+                                         new SerializeOptions() { ExpectedBaseType = typeof(ITestResource) });
+                Console.WriteLine(stringWriter.ToString());
+                return JObject.Parse(stringWriter.ToString());
+                // TODO: More assertions here!
+            }
+        }
+
+
+        private ITestResource GetObjectProxy(Action<TestResource> modifyOriginal = null)
+        {
+            var original = new TestResource
+            {
+                Info = "Hei",
+                Children =
+                {
+                    new TestResource { Info = "Childbar", Id = 1 },
+                    new TestResource { Info = "ChildToRemove", Id = 2 }
+                },
+                Spouse = new TestResource { Info = "Jalla", Id = 3 },
+                Friend = new TestResource { Info = "good friend", Id = 4 },
+                Id = 5
+            };
+
+            if (modifyOriginal != null)
+                modifyOriginal(original);
+
+            var proxy = (ITestResource)ObjectDeltaProxyBase.CreateDeltaProxy(original,
+                                                                             this.typeMapper.FromType(
+                                                                                 typeof(ITestResource)),
+                                                                             this.typeMapper,
+                                                                             null,
+                                                                             typeof(ITestResource));
+
+            Assert.IsFalse(((Delta)proxy).IsDirty);
+            return proxy;
+        }
+
+
+        private ITestResource GetObjectWithAllDeltaOperations()
+        {
+            var proxy = GetObjectProxy();
+
+            proxy.Info = "Lalalala";
+            proxy.Children.First().Info = "Modified child";
+            var childToRemove = proxy.Children.First(x => x.Info == "ChildToRemove");
+            proxy.Children.Remove(childToRemove);
+            proxy.Children.Add(new TestResourcePostForm { Info = "Version2" });
+            proxy.Spouse = new TestResourcePostForm { Info = "BetterWife" };
+            proxy.Friend.Info = "ModifiedFriend";
+
+            var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
+            Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(1));
+            Assert.That(childCollectionDelta.RemovedItems.First().Info, Is.EqualTo("ChildToRemove"));
+            return proxy;
         }
     }
 }

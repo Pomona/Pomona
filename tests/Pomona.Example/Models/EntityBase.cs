@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,15 +30,15 @@ namespace Pomona.Example.Models
 {
     public abstract class EntityBase : IEntityWithId
     {
+        /// <summary>
+        /// Id of the entity.
+        /// </summary>
+        public int Id { get; set; }
+
         int IEntityWithId.Id
         {
             get { return Id; }
             set { Id = value; }
         }
-
-        /// <summary>
-        /// Id of the entity.
-        /// </summary>
-        public int Id { get; set; }
     }
 }

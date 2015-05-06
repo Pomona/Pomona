@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Linq;
 
@@ -32,15 +36,16 @@ namespace Pomona.Queries
         private readonly string value;
 
 
-        public StringNode(string unescapedString) : base(NodeType.StringLiteral, Enumerable.Empty<NodeBase>())
+        public StringNode(string unescapedString)
+            : base(NodeType.StringLiteral, Enumerable.Empty<NodeBase>())
         {
-            value = UnescapeText(unescapedString);
+            this.value = UnescapeText(unescapedString);
         }
 
 
         public string Value
         {
-            get { return value; }
+            get { return this.value; }
         }
 
 

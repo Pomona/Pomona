@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -48,22 +48,22 @@ namespace Pomona.Common.Serialization.Csv
         }
 
 
-        protected override Writer CreateWriter(TextWriter textWriter)
-        {
-            return new Writer(textWriter);
-        }
-
-
         public override void Serialize(TextWriter textWriter, object o, SerializeOptions options = null)
         {
             if (textWriter == null)
                 throw new ArgumentNullException("textWriter");
             options = options ?? new SerializeOptions();
             var serializationContext = this.contextProvider.GetSerializationContext(options);
-            this.Serialize(serializationContext,
-                o,
-                textWriter,
-                options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
+            Serialize(serializationContext,
+                      o,
+                      textWriter,
+                      options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
+        }
+
+
+        protected override Writer CreateWriter(TextWriter textWriter)
+        {
+            return new Writer(textWriter);
         }
 
 
@@ -80,9 +80,9 @@ namespace Pomona.Common.Serialization.Csv
             var elementType = (TypeSpec)t.ItemType;
             var valueProperties =
                 elementType.Properties
-                    .Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
-                    .Where(x => x.IsSerialized)
-                    .ToList();
+                           .Where(x => x.PropertyType.SerializationMode == TypeSerializationMode.Value)
+                           .Where(x => x.IsSerialized)
+                           .ToList();
 
             foreach (var item in (IEnumerable)node.Value)
             {

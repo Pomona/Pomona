@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -75,7 +75,7 @@ namespace Pomona.SystemTests.Handlers
             var thingEntity = Save(new HandledThing() { Foo = "blabla" });
             Assert.That(thingEntity.PatchCounter, Is.EqualTo(0));
             var thingResource = Client.HandledThings.Patch(Client.HandledThings.GetLazy(thingEntity.Id),
-                p => p.Marker = "dudida");
+                                                           p => p.Marker = "dudida");
             Assert.That(thingResource.PatchCounter, Is.EqualTo(1));
             Assert.That(thingEntity.PatchCounter, Is.EqualTo(1));
             Assert.That(thingResource.Marker, Is.EqualTo("dudida"));

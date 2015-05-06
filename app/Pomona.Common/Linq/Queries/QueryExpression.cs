@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,6 @@ namespace Pomona.Common.Linq.Queries
     public abstract class QueryExpression : Expression
     {
         private static readonly Lazy<QueryExpressionFactory[]> factories;
-
         private readonly Expression node;
 
 
@@ -93,10 +92,22 @@ namespace Pomona.Common.Linq.Queries
             get
             {
                 return typeof(QueryExpression).Assembly
-                    .GetTypes()
-                    .Where(x => typeof(QueryExpression).IsAssignableFrom(x) && x.IsPublic && !x.IsAbstract)
-                    .ToList();
+                                              .GetTypes()
+                                              .Where(x => typeof(QueryExpression).IsAssignableFrom(x) && x.IsPublic && !x.IsAbstract)
+                                              .ToList();
             }
+        }
+
+
+        public override Expression Reduce()
+        {
+            return Node;
+        }
+
+
+        public override string ToString()
+        {
+            return this.node.ToString();
         }
 
 
@@ -121,18 +132,6 @@ namespace Pomona.Common.Linq.Queries
             if (qn == null)
                 throw new ArgumentException("Expression not recognized as queryable extension method", "expression");
             return qn;
-        }
-
-
-        public override Expression Reduce()
-        {
-            return Node;
-        }
-
-
-        public override string ToString()
-        {
-            return this.node.ToString();
         }
 
 

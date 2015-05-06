@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,18 @@ namespace Pomona.UnitTests.Web
     public class ResourceNotFoundExceptionTests
     {
         [Test]
+        public void Constructor_WithNoRequest_ReturnsExpectedMessage()
+        {
+            var response = new HttpResponse(HttpStatusCode.NotFound);
+            var exception = new RNFException(null, response);
+            Console.WriteLine(exception);
+
+            Assert.That(exception.Message,
+                        Is.EqualTo("The request failed with '404 NotFound'."));
+        }
+
+
+        [Test]
         public void Constructor_WithNoRequestAndEmptyUri_ReturnsExpectedMessage()
         {
             var response = new HttpResponse(HttpStatusCode.NotFound);
@@ -61,14 +73,13 @@ namespace Pomona.UnitTests.Web
 
 
         [Test]
-        public void Constructor_WithNoRequest_ReturnsExpectedMessage()
+        public void Constructor_WithNoResponse_ReturnsExpectedMessage()
         {
-            var response = new HttpResponse(HttpStatusCode.NotFound);
-            var exception = new RNFException(null, response);
+            var request = new HttpRequest("http://example.com/", method : "GET");
+            var exception = new RNFException(request, null);
             Console.WriteLine(exception);
 
-            Assert.That(exception.Message,
-                        Is.EqualTo("The request failed with '404 NotFound'."));
+            Assert.That(exception.Message, Is.EqualTo("The GET request to <http://example.com/> got no response."));
         }
 
 
@@ -106,13 +117,15 @@ namespace Pomona.UnitTests.Web
 
 
         [Test]
-        public void Constructor_WithNoResponse_ReturnsExpectedMessage()
+        public void Constructor_WithRequestAndResponse_ReturnsExpectedMessage()
         {
             var request = new HttpRequest("http://example.com/", method : "GET");
-            var exception = new RNFException(request, null);
+            var response = new HttpResponse(HttpStatusCode.NotFound);
+            var exception = new RNFException(request, response);
             Console.WriteLine(exception);
 
-            Assert.That(exception.Message, Is.EqualTo("The GET request to <http://example.com/> got no response."));
+            Assert.That(exception.Message,
+                        Is.EqualTo("The GET request to <http://example.com/> failed with '404 NotFound'."));
         }
 
 
@@ -129,19 +142,6 @@ namespace Pomona.UnitTests.Web
 
             Assert.That(exception.Message,
                         Is.EqualTo("The GET request to <http://example.com/> failed with '404 NotFound': HALP!"));
-        }
-
-
-        [Test]
-        public void Constructor_WithRequestAndResponse_ReturnsExpectedMessage()
-        {
-            var request = new HttpRequest("http://example.com/", method : "GET");
-            var response = new HttpResponse(HttpStatusCode.NotFound);
-            var exception = new RNFException(request, response);
-            Console.WriteLine(exception);
-
-            Assert.That(exception.Message,
-                        Is.EqualTo("The GET request to <http://example.com/> failed with '404 NotFound'."));
         }
     }
 }

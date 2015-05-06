@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,29 @@ namespace Pomona.IndependentClientTests
     [TestFixture]
     public class IndependentClientMetadataTests
     {
+        [Test]
+        public void AssemblyNameIsCorrect()
+        {
+            var assembly = typeof(ICritterClient).Assembly;
+            var assemblyName = assembly.GetName();
+            Assert.That(assemblyName.Name, Is.EqualTo("IndependentCritters"));
+        }
+
+
+        [Test]
+        public void NamespaceOfLazyProxyClassesIsCorrect()
+        {
+            VerifyNamespace<LazyProxyBase>();
+        }
+
+
+        [Test]
+        public void NamespaceOfPostAndPatchFormClassesIsCorrect()
+        {
+            VerifyNamespace<PostResourceBase>();
+        }
+
+
         private static void VerifyNamespace<T>()
         {
             var assembly = typeof(ICritterClient).Assembly;
@@ -59,29 +82,6 @@ namespace Pomona.IndependentClientTests
                         Has.Length.EqualTo(0),
                         "Invalid namespace: {0}",
                         postFormTypesInWrongNamespace.FirstOrDefault());
-        }
-
-
-        [Test]
-        public void AssemblyNameIsCorrect()
-        {
-            var assembly = typeof(ICritterClient).Assembly;
-            var assemblyName = assembly.GetName();
-            Assert.That(assemblyName.Name, Is.EqualTo("IndependentCritters"));
-        }
-
-
-        [Test]
-        public void NamespaceOfLazyProxyClassesIsCorrect()
-        {
-            VerifyNamespace<LazyProxyBase>();
-        }
-
-
-        [Test]
-        public void NamespaceOfPostAndPatchFormClassesIsCorrect()
-        {
-            VerifyNamespace<PostResourceBase>();
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -65,24 +65,24 @@ namespace Pomona.SystemTests.ExtendedResources
 
 
         [Test]
-        public void Visit_TransformsPropertiesUnknownToServerToAttributeDictionaryAccess()
-        {
-            AssertTransformIsCorrect<IStringToObjectDictionaryContainer, ICustomUserEntity>(
-                q => q.Where(x => x.CustomString == "Lalalala")
-                    .Where(x => x.OtherCustom == "Blob rob")
-                    .Select(x => x.OtherCustom),
-                q => q.Where(x => (x.Map.SafeGet("CustomString") as string) == "Lalalala")
-                    .Where(x => (x.Map.SafeGet("OtherCustom") as string) == "Blob rob")
-                    .Select(x => (x.Map.SafeGet("OtherCustom") as string)));
-        }
-
-
-        [Test]
         public void Visit_TransformsNullableValuePropertyAccess_ToCorrectExpression()
         {
             AssertTransformIsCorrect<IStringToObjectDictionaryContainer, ICustomUserEntity>(
                 q => q.Where(x => x.CustomInt.Value == 123),
                 q => q.Where(x => (x.Map.SafeGet("CustomInt") as int?).Value == 123));
+        }
+
+
+        [Test]
+        public void Visit_TransformsPropertiesUnknownToServerToAttributeDictionaryAccess()
+        {
+            AssertTransformIsCorrect<IStringToObjectDictionaryContainer, ICustomUserEntity>(
+                q => q.Where(x => x.CustomString == "Lalalala")
+                      .Where(x => x.OtherCustom == "Blob rob")
+                      .Select(x => x.OtherCustom),
+                q => q.Where(x => (x.Map.SafeGet("CustomString") as string) == "Lalalala")
+                      .Where(x => (x.Map.SafeGet("OtherCustom") as string) == "Blob rob")
+                      .Select(x => (x.Map.SafeGet("OtherCustom") as string)));
         }
 
 
@@ -97,9 +97,9 @@ namespace Pomona.SystemTests.ExtendedResources
 
         public interface ICustomUserEntity : IStringToObjectDictionaryContainer
         {
+            int? CustomInt { get; set; }
             string CustomString { get; set; }
             string OtherCustom { get; set; }
-            int? CustomInt { get; set; }
         }
 
         public interface IHippieFarm : IFarm

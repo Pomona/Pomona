@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -21,6 +23,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
+#endregion
 
 using System.Collections;
 using System.Collections.Generic;
@@ -43,7 +47,7 @@ namespace Pomona.Common.Internals
 
         public IEnumerator<TOuter> GetEnumerator()
         {
-            return inner.Cast<TOuter>().GetEnumerator();
+            return this.inner.Cast<TOuter>().GetEnumerator();
         }
 
 
@@ -58,42 +62,42 @@ namespace Pomona.Common.Internals
 
         public int Count
         {
-            get { return inner.Count; }
+            get { return this.inner.Count; }
         }
 
         public bool IsReadOnly
         {
-            get { return inner.IsReadOnly; }
+            get { return this.inner.IsReadOnly; }
         }
 
 
         public void Add(TOuter item)
         {
-            inner.Add(item);
+            this.inner.Add(item);
         }
 
 
         public void Clear()
         {
-            inner.Clear();
+            this.inner.Clear();
         }
 
 
         public bool Contains(TOuter item)
         {
-            return inner.Contains(item);
+            return this.inner.Contains(item);
         }
 
 
         public void CopyTo(TOuter[] array, int arrayIndex)
         {
-            inner.Cast<TOuter>().ToList().CopyTo(array, arrayIndex);
+            this.inner.Cast<TOuter>().ToList().CopyTo(array, arrayIndex);
         }
 
 
         public bool Remove(TOuter item)
         {
-            inner.Remove(item);
+            this.inner.Remove(item);
             return true;
         }
 
@@ -103,26 +107,26 @@ namespace Pomona.Common.Internals
 
         public TOuter this[int index]
         {
-            get { return (TOuter) inner[index]; }
-            set { inner[index] = value; }
+            get { return (TOuter)this.inner[index]; }
+            set { this.inner[index] = value; }
         }
 
 
         public int IndexOf(TOuter item)
         {
-            return inner.IndexOf(item);
+            return this.inner.IndexOf(item);
         }
 
 
         public void Insert(int index, TOuter item)
         {
-            inner.Insert(index, item);
+            this.inner.Insert(index, item);
         }
 
 
         public void RemoveAt(int index)
         {
-            inner.RemoveAt(index);
+            this.inner.RemoveAt(index);
         }
 
         #endregion

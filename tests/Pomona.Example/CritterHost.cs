@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+
 using Nancy.Hosting.Self;
 
 namespace Pomona.Example
@@ -34,7 +35,6 @@ namespace Pomona.Example
     public class CritterHost
     {
         private readonly Uri baseUri;
-        private NancyHost host;
 
 
         public CritterHost(Uri baseUri)
@@ -45,34 +45,28 @@ namespace Pomona.Example
 
         public Uri BaseUri
         {
-            get { return baseUri; }
+            get { return this.baseUri; }
         }
 
+        public NancyHost Host { get; private set; }
         public CritterRepository Repository { get; private set; }
-
-        public NancyHost Host
-        {
-            get { return host; }
-        }
+        public TypeMapper TypeMapper { get; private set; }
 
 
         public void Start()
         {
             var bootstrapper = new CritterBootstrapper();
-            this.Repository = bootstrapper.Repository;
-            this.TypeMapper = bootstrapper.TypeMapper;
-            host = new NancyHost(baseUri, bootstrapper);
-            host.Start();
+            Repository = bootstrapper.Repository;
+            TypeMapper = bootstrapper.TypeMapper;
+            this.Host = new NancyHost(this.baseUri, bootstrapper);
+            this.Host.Start();
         }
-
-
-        public TypeMapper TypeMapper { get; private set; }
 
 
         public void Stop()
         {
-            host.Stop();
-            host = null;
+            this.Host.Stop();
+            this.Host = null;
         }
     }
 }

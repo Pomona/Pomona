@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace Pomona.Common.TypeSystem
@@ -38,13 +37,23 @@ namespace Pomona.Common.TypeSystem
 
 
         public StructuredProperty(IStructuredTypeResolver typeResolver,
-                               PropertyInfo propertyInfo,
-                               StructuredType reflectedType)
+                                  PropertyInfo propertyInfo,
+                                  StructuredType reflectedType)
             : base(typeResolver, propertyInfo, reflectedType)
         {
             this.structuredPropertyDetails = CreateLazy(() => typeResolver.LoadStructuredPropertyDetails(this));
         }
 
+
+        public override HttpMethod AccessMode
+        {
+            get { return StructuredPropertyDetails.AccessMode; }
+        }
+
+        public override ExpandMode ExpandMode
+        {
+            get { return StructuredPropertyDetails.ExpandMode; }
+        }
 
         public virtual bool ExposedOnUrl
         {
@@ -57,37 +66,27 @@ namespace Pomona.Common.TypeSystem
 
         public virtual bool IsAttributesProperty
         {
-            get { return this.StructuredPropertyDetails.IsAttributesProperty; }
+            get { return StructuredPropertyDetails.IsAttributesProperty; }
         }
 
         public virtual bool IsEtagProperty
         {
-            get { return this.StructuredPropertyDetails.IsEtagProperty; }
+            get { return StructuredPropertyDetails.IsEtagProperty; }
         }
 
         public virtual bool IsPrimaryKey
         {
-            get { return this.StructuredPropertyDetails.IsPrimaryKey; }
-        }
-
-        public override HttpMethod AccessMode
-        {
-            get { return this.StructuredPropertyDetails.AccessMode; }
-        }
-
-        public override ExpandMode ExpandMode
-        {
-            get { return this.StructuredPropertyDetails.ExpandMode; }
+            get { return StructuredPropertyDetails.IsPrimaryKey; }
         }
 
         public override bool IsSerialized
         {
-            get { return this.StructuredPropertyDetails.IsSerialized; }
+            get { return StructuredPropertyDetails.IsSerialized; }
         }
 
         public override HttpMethod ItemAccessMode
         {
-            get { return this.StructuredPropertyDetails.ItemAccessMode; }
+            get { return StructuredPropertyDetails.ItemAccessMode; }
         }
 
         public new StructuredType ReflectedType

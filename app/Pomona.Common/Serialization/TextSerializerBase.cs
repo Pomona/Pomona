@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -35,11 +35,21 @@ namespace Pomona.Common.Serialization
 {
     public abstract class TextSerializerBase<TWriter> : ITextSerializer
     {
+        protected abstract TWriter CreateWriter(TextWriter textWriter);
+        protected abstract void SerializeNode(ISerializerNode node, TWriter writer);
+
+
+        protected void SerializeThroughContext(ISerializerNode node, TWriter writer)
+        {
+            node.Context.Serialize(node, n => SerializeNode(n, writer));
+        }
+
+
         internal void Serialize(
-    ISerializationContext serializationContext,
-    object obj,
-    TextWriter textWriter,
-    TypeSpec expectedBaseType)
+            ISerializationContext serializationContext,
+            object obj,
+            TextWriter textWriter,
+            TypeSpec expectedBaseType)
         {
             var serializer = this;
             if (serializer == null)
@@ -49,25 +59,17 @@ namespace Pomona.Common.Serialization
 
             var writer = serializer.CreateWriter(textWriter);
             var itemValueNode = new ItemValueSerializerNode(obj,
-                expectedBaseType,
-                string.Empty,
-                serializationContext,
-                null);
+                                                            expectedBaseType,
+                                                            string.Empty,
+                                                            serializationContext,
+                                                            null);
             serializer.SerializeNode(itemValueNode, writer);
         }
 
-        protected void SerializeThroughContext(ISerializerNode node, TWriter writer)
-        {
-            node.Context.Serialize(node, n => SerializeNode(n, writer));
-        }
-
-
-        protected abstract void SerializeNode(ISerializerNode node, TWriter writer);
-
-        protected abstract TWriter CreateWriter(TextWriter textWriter);
 
         public abstract void Serialize(TextWriter textWriter, object o, SerializeOptions options = null);
     }
+
 #if false
     public class PomonaCsvSerializer : ITextSerializer
     {

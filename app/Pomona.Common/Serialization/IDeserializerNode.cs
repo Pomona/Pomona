@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,14 +38,14 @@ namespace Pomona.Common.Serialization
         string ExpandPath { get; }
         TypeSpec ExpectedBaseType { get; }
         DeserializerNodeOperation Operation { get; set; }
-        void CheckItemAccessRights(HttpMethod method);
         new IDeserializerNode Parent { get; }
-        new object Value { get; set; }
         string Uri { get; set; }
+        new object Value { get; set; }
         TypeSpec ValueType { get; }
+        void CheckAccessRights(HttpMethod method);
+        void CheckItemAccessRights(HttpMethod method);
         void SetProperty(PropertySpec property, object propertyValue);
         void SetValueType(string typeName);
         void SetValueType(Type type);
-        void CheckAccessRights(HttpMethod method);
     }
 }

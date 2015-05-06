@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -32,14 +36,12 @@ namespace Pomona.Common.Internals
         protected override Expression VisitMember(MemberExpression node)
         {
             if (node.Expression == null)
-            {
                 return Expression.Constant(node.Member.GetPropertyOrFieldValue(null));
-            }
 
             var nodeExpression = Visit(node.Expression);
             if (nodeExpression.NodeType == ExpressionType.Constant)
             {
-                var target = ((ConstantExpression) nodeExpression).Value;
+                var target = ((ConstantExpression)nodeExpression).Value;
 
                 var propInfo = node.Member as PropertyInfo;
                 if (propInfo != null)

@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,6 +38,7 @@ namespace Pomona.Common.Proxies
         private readonly string propertyName;
         private readonly List<T> wrapped = new List<T>();
 
+
         internal PostResourceList(PostResourceBase owner, string propertyName)
         {
             if (owner == null)
@@ -42,11 +47,17 @@ namespace Pomona.Common.Proxies
             this.propertyName = propertyName;
         }
 
+
+        private void SetDirty()
+        {
+            this.owner.SetDirty(this.propertyName);
+        }
+
         #region Implementation of IEnumerable
 
         public IEnumerator<T> GetEnumerator()
         {
-            return wrapped.GetEnumerator();
+            return this.wrapped.GetEnumerator();
         }
 
 
@@ -57,25 +68,20 @@ namespace Pomona.Common.Proxies
 
         #endregion
 
-        private void SetDirty()
-        {
-            owner.SetDirty(propertyName);
-        }
-
         #region Implementation of ICollection<T>
 
         public void Add(T item)
         {
-            wrapped.Add(item);
+            this.wrapped.Add(item);
             SetDirty();
         }
 
 
         public void Clear()
         {
-            if (wrapped.Count > 0)
+            if (this.wrapped.Count > 0)
             {
-                wrapped.Clear();
+                this.wrapped.Clear();
                 SetDirty();
             }
         }
@@ -83,25 +89,25 @@ namespace Pomona.Common.Proxies
 
         public bool Contains(T item)
         {
-            return wrapped.Contains(item);
+            return this.wrapped.Contains(item);
         }
 
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            wrapped.CopyTo(array, arrayIndex);
+            this.wrapped.CopyTo(array, arrayIndex);
         }
 
 
         public bool Remove(T item)
         {
-            return wrapped.Remove(item);
+            return this.wrapped.Remove(item);
         }
 
 
         public int Count
         {
-            get { return wrapped.Count; }
+            get { return this.wrapped.Count; }
         }
 
         public bool IsReadOnly
@@ -115,30 +121,30 @@ namespace Pomona.Common.Proxies
 
         public int IndexOf(T item)
         {
-            return wrapped.IndexOf(item);
+            return this.wrapped.IndexOf(item);
         }
 
 
         public void Insert(int index, T item)
         {
-            wrapped.Insert(index, item);
+            this.wrapped.Insert(index, item);
             SetDirty();
         }
 
 
         public void RemoveAt(int index)
         {
-            wrapped.RemoveAt(index);
+            this.wrapped.RemoveAt(index);
             SetDirty();
         }
 
 
         public T this[int index]
         {
-            get { return wrapped[index]; }
+            get { return this.wrapped[index]; }
             set
             {
-                wrapped[index] = value;
+                this.wrapped[index] = value;
                 SetDirty();
             }
         }

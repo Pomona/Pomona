@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,15 +36,6 @@ namespace Pomona.UnitTests.Client
     [TestFixture]
     public class ClientResourceTests
     {
-        public class DummyForm : PostResourceBase, IClientResource
-        {
-        }
-
-        public class DummyResource : ResourceBase, IClientResource
-        {
-        }
-
-
         [Test]
         public void IsPersisted_OnPostForm_ReturnsFalse()
         {
@@ -70,6 +61,15 @@ namespace Pomona.UnitTests.Client
         public void IsTransient_OnResourceForm_ReturnsFalse()
         {
             Assert.That((new DummyResource()).IsTransient(), Is.False);
+        }
+
+
+        public class DummyForm : PostResourceBase, IClientResource
+        {
+        }
+
+        public class DummyResource : ResourceBase, IClientResource
+        {
         }
     }
 }

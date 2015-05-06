@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,36 +43,8 @@ namespace Pomona.NHibernate3.Tests
     [TestFixture]
     public class NhQueryProviderCapabilityResolverTests
     {
-        #region Setup/Teardown
-
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
-        {
-            this.sessionFactory = Fluently.Configure()
-                .Database(CsharpSqliteConfiguration.Standard.InMemory)
-                .Mappings(m => m.AutoMappings.Add(AutoMap.AssemblyOf<Order>(new AutomappingConfiguration())))
-                .ExposeConfiguration(cfg => new SchemaExport(cfg).Create(true, true))
-                .BuildSessionFactory();
-        }
-
-
-        [SetUp]
-        public void SetUp()
-        {
-            this.resolver = new NhQueryProviderCapabilityResolver(this.sessionFactory);
-        }
-
-        #endregion
-
         private NhQueryProviderCapabilityResolver resolver;
         private ISessionFactory sessionFactory;
-
-
-        [Test]
-        public void PropertyIsMapped_With_Property_Mapped_By_Nhibernate_Returns_False()
-        {
-            Assert.That(this.resolver.PropertyIsMapped(typeof(Order).GetProperty("Lines")), Is.True);
-        }
 
 
         [Test]
@@ -83,9 +55,37 @@ namespace Pomona.NHibernate3.Tests
 
 
         [Test]
+        public void PropertyIsMapped_With_Property_Mapped_By_Nhibernate_Returns_False()
+        {
+            Assert.That(this.resolver.PropertyIsMapped(typeof(Order).GetProperty("Lines")), Is.True);
+        }
+
+
+        [Test]
         public void PropertyIsMapped_With_Property_Not_Mapped_By_Nhibernate_Returns_False()
         {
             Assert.That(this.resolver.PropertyIsMapped(typeof(Order).GetProperty("LinesWithOddIds")), Is.False);
         }
+
+        #region Setup/Teardown
+
+        [TestFixtureSetUp]
+        public void FixtureSetUp()
+        {
+            this.sessionFactory = Fluently.Configure()
+                                          .Database(CsharpSqliteConfiguration.Standard.InMemory)
+                                          .Mappings(m => m.AutoMappings.Add(AutoMap.AssemblyOf<Order>(new AutomappingConfiguration())))
+                                          .ExposeConfiguration(cfg => new SchemaExport(cfg).Create(true, true))
+                                          .BuildSessionFactory();
+        }
+
+
+        [SetUp]
+        public void SetUp()
+        {
+            this.resolver = new NhQueryProviderCapabilityResolver(this.sessionFactory);
+        }
+
+        #endregion
     }
 }

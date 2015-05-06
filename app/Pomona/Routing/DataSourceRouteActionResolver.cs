@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -38,35 +38,6 @@ namespace Pomona.Routing
 {
     public class DataSourceRouteActionResolver : IRouteActionResolver
     {
-        public virtual IEnumerable<RouteAction> Resolve(Route route,
-                                                        HttpMethod method)
-        {
-            DataSourceRootRoute rootRoute = route as DataSourceRootRoute;
-            if (rootRoute != null)
-                yield return ResolveGetRootResource(rootRoute);
-
-            var resourceItemType = route.ResultItemType as ResourceType;
-            if (resourceItemType == null)
-                yield break;
-
-            RouteAction func = null;
-            switch (method)
-            {
-                case HttpMethod.Get:
-                    func = ResolveGet(route, resourceItemType);
-                    break;
-                case HttpMethod.Post:
-                    func = ResolvePost(route, resourceItemType);
-                    break;
-                case HttpMethod.Patch:
-                    func = ResolvePatch(route, resourceItemType);
-                    break;
-            }
-            if (func != null)
-                yield return func;
-        }
-
-
         private IPomonaDataSource GetDataSource(IPomonaSession session)
         {
             var dataSourceType =
@@ -74,24 +45,6 @@ namespace Pomona.Routing
                     typeof(IPomonaDataSource));
             var dataSource = (IPomonaDataSource)session.GetInstance(dataSourceType);
             return dataSource;
-        }
-
-
-        private Func<PomonaContext, PomonaResponse> ResolveGetRootResource(DataSourceRootRoute route)
-        {
-            return pr =>
-            {
-                var request = pr;
-                var uriResolver = request.Session.GetInstance<IUriResolver>();
-                var repos =
-                    new SortedDictionary<string, string>(route.Children.OfType<ILiteralRoute>().ToDictionary(
-                        x => x.MatchValue,
-                        x => uriResolver.RelativeToAbsoluteUri(x.MatchValue)));
-
-                return new PomonaResponse(repos,
-                                          resultType :
-                                              request.TypeMapper.FromType<IDictionary<string, string>>());
-            };
         }
 
 
@@ -120,6 +73,24 @@ namespace Pomona.Routing
                 };
             }
             return null;
+        }
+
+
+        private Func<PomonaContext, PomonaResponse> ResolveGetRootResource(DataSourceRootRoute route)
+        {
+            return pr =>
+            {
+                var request = pr;
+                var uriResolver = request.Session.GetInstance<IUriResolver>();
+                var repos =
+                    new SortedDictionary<string, string>(route.Children.OfType<ILiteralRoute>().ToDictionary(
+                        x => x.MatchValue,
+                        x => uriResolver.RelativeToAbsoluteUri(x.MatchValue)));
+
+                return new PomonaResponse(repos,
+                                          resultType :
+                                              request.TypeMapper.FromType<IDictionary<string, string>>());
+            };
         }
 
 
@@ -160,6 +131,35 @@ namespace Pomona.Routing
                 };
             }
             return null;
+        }
+
+
+        public virtual IEnumerable<RouteAction> Resolve(Route route,
+                                                        HttpMethod method)
+        {
+            DataSourceRootRoute rootRoute = route as DataSourceRootRoute;
+            if (rootRoute != null)
+                yield return ResolveGetRootResource(rootRoute);
+
+            var resourceItemType = route.ResultItemType as ResourceType;
+            if (resourceItemType == null)
+                yield break;
+
+            RouteAction func = null;
+            switch (method)
+            {
+                case HttpMethod.Get:
+                    func = ResolveGet(route, resourceItemType);
+                    break;
+                case HttpMethod.Post:
+                    func = ResolvePost(route, resourceItemType);
+                    break;
+                case HttpMethod.Patch:
+                    func = ResolvePatch(route, resourceItemType);
+                    break;
+            }
+            if (func != null)
+                yield return func;
         }
     }
 }

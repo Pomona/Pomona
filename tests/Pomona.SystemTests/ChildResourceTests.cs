@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,15 +43,17 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class ChildResourceTests : ClientTestsBase
     {
-        #region Setup/Teardown
-
-        public override void SetUp()
+        [Test]
+        public void ChildResourcesGetsCorrectUrl()
         {
-            base.SetUp();
-            CreateTestData();
+            var galaxy = Client.Galaxies.Query().Expand(x => x.PlanetarySystems.Expand(y => y.Planets)).First();
+            var planet = galaxy.PlanetarySystems.First().Planets.First();
+            var planetUri = ((IHasResourceUri)planet).Uri;
+
+            Assert.That(planetUri, Is.EqualTo("http://test/galaxies/milkyway/planetary-systems/solar/planets/earth"));
+            Client.Get<IPlanet>(planetUri);
         }
 
-        #endregion
 
         public void CreateTestData()
         {
@@ -64,9 +66,28 @@ namespace Pomona.SystemTests
         }
 
 
-        private IPlanetarySystem GetPlanetarySystemResource()
+        [Test]
+        public void GetChildResourceFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
         {
-            return Client.Galaxies.Query().First().PlanetarySystems.First();
+            Client.Get<IGalaxyInfo>("http://test/galaxies/milkyway/info");
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => Client.Get<IGalaxyInfo>("http://test/galaxies/nowhere/info"));
+        }
+
+
+        [Test]
+        public void GetChildResourceIdentifiedById_AtNonExistantUrl_ThrowsResourceNotFoundException()
+        {
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => Client.Get<IPlanetarySystem>("http://test/galaxies/nowhere/planetary-systems/nada"));
+        }
+
+
+        [Test]
+        public void GetCollectionOfChildResourcesFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
+        {
+            Assert.Throws<Common.Web.ResourceNotFoundException>(
+                () => Client.Get<QueryResult<IPlanetarySystem>>("http://test/galaxies/nowhere/planetary-systems"));
         }
 
 
@@ -81,43 +102,6 @@ namespace Pomona.SystemTests
             Console.WriteLine(((IHasResourceUri)galaxy).Uri);
             Assert.That(((IHasResourceUri)galaxy).Uri,
                         Is.EqualTo("http://test/galaxies/ksaj%20dlkj%20skdl%20jsklj%20%C3%A6d%C3%B8s%20%C2%A4%26("));
-        }
-
-
-        [Test]
-        public void GetChildResourceIdentifiedById_AtNonExistantUrl_ThrowsResourceNotFoundException()
-        {
-            Assert.Throws<Common.Web.ResourceNotFoundException>(
-                () => Client.Get<IPlanetarySystem>("http://test/galaxies/nowhere/planetary-systems/nada"));
-        }
-
-
-        [Test]
-        public void GetChildResourceFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
-        {
-            Client.Get<IGalaxyInfo>("http://test/galaxies/milkyway/info");
-            Assert.Throws<Common.Web.ResourceNotFoundException>(
-                () => Client.Get<IGalaxyInfo>("http://test/galaxies/nowhere/info"));
-        }
-
-
-        [Test]
-        public void GetCollectionOfChildResourcesFromProperty_AtNonExistantUrl_ThrowsResourceNotFoundException()
-        {
-            Assert.Throws<Common.Web.ResourceNotFoundException>(
-                () => Client.Get<QueryResult<IPlanetarySystem>>("http://test/galaxies/nowhere/planetary-systems"));
-        }
-
-
-        [Test]
-        public void ChildResourcesGetsCorrectUrl()
-        {
-            var galaxy = Client.Galaxies.Query().Expand(x => x.PlanetarySystems.Expand(y => y.Planets)).First();
-            var planet = galaxy.PlanetarySystems.First().Planets.First();
-            var planetUri = ((IHasResourceUri)planet).Uri;
-
-            Assert.That(planetUri, Is.EqualTo("http://test/galaxies/milkyway/planetary-systems/solar/planets/earth"));
-            Client.Get<IPlanet>(planetUri);
         }
 
 
@@ -143,17 +127,6 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void PatchStarOfPlanetarySystem_IsSuccessful()
-        {
-            var planetarySystem = GetPlanetarySystemResource();
-            var starUrl = ((IHasResourceUri)planetarySystem).Uri + "/star";
-            var star = Client.Get<IStar>(starUrl);
-            var patchedStar = Client.Patch(star, s => s.Name = "Sol");
-            Assert.That(patchedStar.Name, Is.EqualTo("Sol"));
-        }
-
-
-        [Test]
         public void PatchPlanetarySystemPostDeletePlanetFromChildRepository_IsSuccessful()
         {
             var planetarySystem = GetPlanetarySystemResource();
@@ -172,6 +145,17 @@ namespace Pomona.SystemTests
             var patchedPlanetarySystem = Client.Patch(planetarySystem,
                                                       x => x.Planets.Post(new PlanetForm() { Name = "PostedViaPatch" }));
             Assert.That(patchedPlanetarySystem.Planets.ToList().Select(x => x.Name), Contains.Item("PostedViaPatch"));
+        }
+
+
+        [Test]
+        public void PatchStarOfPlanetarySystem_IsSuccessful()
+        {
+            var planetarySystem = GetPlanetarySystemResource();
+            var starUrl = ((IHasResourceUri)planetarySystem).Uri + "/star";
+            var star = Client.Get<IStar>(starUrl);
+            var patchedStar = Client.Patch(star, s => s.Name = "Sol");
+            Assert.That(patchedStar.Name, Is.EqualTo("Sol"));
         }
 
 
@@ -248,6 +232,21 @@ namespace Pomona.SystemTests
                         Name = "Jupiter",
                         Moons = { new MoonForm() { Name = "jalla" } }
                     }));
+        }
+
+        #region Setup/Teardown
+
+        public override void SetUp()
+        {
+            base.SetUp();
+            CreateTestData();
+        }
+
+        #endregion
+
+        private IPlanetarySystem GetPlanetarySystemResource()
+        {
+            return Client.Galaxies.Query().First().PlanetarySystems.First();
         }
     }
 }

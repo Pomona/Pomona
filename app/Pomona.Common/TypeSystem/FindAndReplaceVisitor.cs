@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Linq.Expressions;
 
 namespace Pomona.Common.TypeSystem
@@ -31,18 +35,22 @@ namespace Pomona.Common.TypeSystem
         private readonly Expression expressionToReplace;
         private readonly Expression replacementExpression;
 
+
         public FindAndReplaceVisitor(Expression expressionToReplace, Expression replacementExpression)
         {
             this.expressionToReplace = expressionToReplace;
             this.replacementExpression = replacementExpression;
         }
 
-        public static Expression Replace(Expression searchedExpression, Expression expressionToReplace,
+
+        public static Expression Replace(Expression searchedExpression,
+                                         Expression expressionToReplace,
                                          Expression replacementExpression)
         {
             var visitor = new FindAndReplaceVisitor(expressionToReplace, replacementExpression);
             return visitor.Visit(searchedExpression);
         }
+
 
         public override Expression Visit(Expression node)
         {

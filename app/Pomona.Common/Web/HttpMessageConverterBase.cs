@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
-using System.Runtime.InteropServices;
 using System.Text;
 
 using Newtonsoft.Json;
@@ -103,9 +102,11 @@ namespace Pomona.Common.Web
                 // Need to use memory stream to avoid UTF-8 BOM weirdness
                 string str;
                 using (var ms = new MemoryStream(data))
-                using (var sr = new StreamReader(ms, encoding))
                 {
-                    str = sr.ReadToEnd();
+                    using (var sr = new StreamReader(ms, encoding))
+                    {
+                        str = sr.ReadToEnd();
+                    }
                 }
 
                 if (contentType.MediaType == "application/json" || contentType.MediaType.EndsWith("+json"))

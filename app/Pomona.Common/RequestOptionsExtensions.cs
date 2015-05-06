@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,8 +34,8 @@ namespace Pomona.Common
     public static class RequestOptionsExtensions
     {
         public static TRequestOptions AppendQueryParameter<TRequestOptions>(this TRequestOptions requestOptions,
-            string key,
-            string value)
+                                                                            string key,
+                                                                            string value)
             where TRequestOptions : IRequestOptions
         {
             if ((object)requestOptions == null)
@@ -46,16 +46,16 @@ namespace Pomona.Common
                 throw new ArgumentNullException("value");
 
             return requestOptions.RewriteUrl(u => string.Format(CultureInfo.InvariantCulture,
-                "{0}{1}{2}={3}",
-                u,
-                u.Contains("?") ? "&" : "?",
-                HttpUtility.UrlEncode(key),
-                HttpUtility.UrlEncode(value)));
+                                                                "{0}{1}{2}={3}",
+                                                                u,
+                                                                u.Contains("?") ? "&" : "?",
+                                                                HttpUtility.UrlEncode(key),
+                                                                HttpUtility.UrlEncode(value)));
         }
 
 
         public static TRequestOptions RewriteUrl<TRequestOptions>(this TRequestOptions requestOptions,
-            Func<string, string> urlRewriter)
+                                                                  Func<string, string> urlRewriter)
             where TRequestOptions : IRequestOptions
         {
             if ((object)requestOptions == null)

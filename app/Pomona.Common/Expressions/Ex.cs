@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,26 +37,6 @@ namespace Pomona.Common.Expressions
     /// </summary>
     public struct Ex
     {
-        private bool Equals(Ex other)
-        {
-            return Equals(this.expression, other.expression);
-        }
-
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-                return false;
-            return obj is Ex && Equals((Ex)obj);
-        }
-
-
-        public override int GetHashCode()
-        {
-            return (this.expression != null ? this.expression.GetHashCode() : 0);
-        }
-
-
         private readonly Expression expression;
 
 
@@ -65,6 +45,14 @@ namespace Pomona.Common.Expressions
             if (expression == null)
                 throw new ArgumentNullException("expression");
             this.expression = expression;
+        }
+
+
+        public Ex Apply(Func<Expression, Expression> func)
+        {
+            if (func == null)
+                throw new ArgumentNullException("func");
+            return func(this.expression);
         }
 
 
@@ -82,6 +70,20 @@ namespace Pomona.Common.Expressions
         }
 
 
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+            return obj is Ex && Equals((Ex)obj);
+        }
+
+
+        public override int GetHashCode()
+        {
+            return (this.expression != null ? this.expression.GetHashCode() : 0);
+        }
+
+
         public static LambdaExpression Lambda(Type paramType, Func<Ex, Ex> bodyFunc)
         {
             if (paramType == null)
@@ -94,21 +96,16 @@ namespace Pomona.Common.Expressions
         }
 
 
-
-
-        public Ex Apply(Func<Expression, Expression> func)
-        {
-            if (func == null)
-                throw new ArgumentNullException("func");
-            return func(this.expression);
-        }
-
-
         public Ex Member(MemberInfo member)
         {
             return Expression.MakeMemberAccess(this.expression, member);
         }
 
+
+        private bool Equals(Ex other)
+        {
+            return Equals(this.expression, other.expression);
+        }
 
         #region Operators
 

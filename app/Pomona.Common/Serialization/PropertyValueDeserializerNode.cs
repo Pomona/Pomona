@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,17 +37,21 @@ namespace Pomona.Common.Serialization
         private readonly IDeserializationContext context;
         private readonly IDeserializerNode parent;
         private readonly PropertySpec property;
-
         private string expandPath;
-        private TypeSpec valueType;
 
 
         public PropertyValueDeserializerNode(IDeserializerNode parent, PropertySpec property)
         {
             this.parent = parent;
             this.property = property;
-            this.valueType = property.PropertyType;
+            this.ValueType = property.PropertyType;
             this.context = parent.Context;
+        }
+
+
+        public PropertySpec Property
+        {
+            get { return this.property; }
         }
 
         #region Implementation of IDeserializerNode
@@ -98,10 +102,7 @@ namespace Pomona.Common.Serialization
             get { return ExpectedBaseType; }
         }
 
-        public TypeSpec ValueType
-        {
-            get { return this.valueType; }
-        }
+        public TypeSpec ValueType { get; private set; }
 
 
         public void CheckItemAccessRights(HttpMethod method)
@@ -118,13 +119,13 @@ namespace Pomona.Common.Serialization
 
         public void SetValueType(string typeName)
         {
-            this.valueType = Context.GetTypeByName(typeName);
+            this.ValueType = Context.GetTypeByName(typeName);
         }
 
 
         public void SetValueType(Type type)
         {
-            valueType = context.GetClassMapping(type);
+            this.ValueType = this.context.GetClassMapping(type);
         }
 
 
@@ -134,10 +135,5 @@ namespace Pomona.Common.Serialization
         }
 
         #endregion
-
-        public PropertySpec Property
-        {
-            get { return this.property; }
-        }
     }
 }

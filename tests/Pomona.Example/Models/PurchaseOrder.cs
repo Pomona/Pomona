@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,11 @@ namespace Pomona.Example.Models
 {
     public class PurchaseOrder : Order
     {
-        public PurchaseOrder(IEnumerable<OrderItem> items) : base(items)
+        public PurchaseOrder(IEnumerable<OrderItem> items)
+            : base(items)
         {
         }
+
 
         public string ThePurchaseInfo { get; set; }
     }

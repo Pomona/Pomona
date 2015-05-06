@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,16 +36,13 @@ namespace Pomona.Common.ExtendedResources
 {
     internal abstract class ExtendedAttributeProperty : ExtendedProperty
     {
+        private static readonly MethodInfo createMethod =
+            ReflectionHelper.GetMethodDefinition(() => Create<object, object>(null, null));
+
+
         protected ExtendedAttributeProperty(PropertyInfo property)
             : base(property)
         {
-        }
-
-
-        private static ExtendedProperty Create<TDictValue, TProperty>(PropertyInfo property,
-                                                                      ExtendedResourceInfo declaringTypeInfo)
-        {
-            return new ExtendedAttributeProperty<TDictValue, TProperty>(property, declaringTypeInfo);
         }
 
 
@@ -54,12 +51,15 @@ namespace Pomona.Common.ExtendedResources
             return
                 (ExtendedAttributeProperty)
                     createMethod.MakeGenericMethod(declaringTypeInfo.DictValueType, property.PropertyType)
-                        .Invoke(null, new object[] { property, declaringTypeInfo });
+                                .Invoke(null, new object[] { property, declaringTypeInfo });
         }
 
 
-        private static readonly MethodInfo createMethod =
-            ReflectionHelper.GetMethodDefinition(() => Create<object, object>(null, null));
+        private static ExtendedProperty Create<TDictValue, TProperty>(PropertyInfo property,
+                                                                      ExtendedResourceInfo declaringTypeInfo)
+        {
+            return new ExtendedAttributeProperty<TDictValue, TProperty>(property, declaringTypeInfo);
+        }
     }
 
     internal class ExtendedAttributeProperty<TDictValue, TProperty> : ExtendedAttributeProperty
@@ -78,16 +78,10 @@ namespace Pomona.Common.ExtendedResources
         }
 
 
-        private IDictionary<string, TDictValue> GetDictionary(object obj)
-        {
-            return (IDictionary<string, TDictValue>)declaringTypeInfo.DictProperty.GetValue(obj, null);
-        }
-
-
         public override object GetValue(object obj, IDictionary<string, IExtendedResourceProxy> cache)
         {
             TDictValue value;
-            if (GetDictionary(obj).TryGetValue(key, out value))
+            if (GetDictionary(obj).TryGetValue(this.key, out value))
                 return value;
             return null;
         }
@@ -95,7 +89,13 @@ namespace Pomona.Common.ExtendedResources
 
         public override void SetValue(object obj, object value, IDictionary<string, IExtendedResourceProxy> cache)
         {
-            GetDictionary(obj)[key] = (TDictValue)value;
+            GetDictionary(obj)[this.key] = (TDictValue)value;
+        }
+
+
+        private IDictionary<string, TDictValue> GetDictionary(object obj)
+        {
+            return (IDictionary<string, TDictValue>)this.declaringTypeInfo.DictProperty.GetValue(obj, null);
         }
     }
 }

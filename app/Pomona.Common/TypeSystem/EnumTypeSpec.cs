@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -34,38 +34,39 @@ namespace Pomona.Common.TypeSystem
 {
     public class EnumTypeSpec : RuntimeTypeSpec
     {
-        private Lazy<IDictionary<string, long>> enumValues;
+        private readonly Lazy<IDictionary<string, long>> enumValues;
+
 
         public EnumTypeSpec(ITypeResolver typeResolver, Type type, Func<IEnumerable<TypeSpec>> genericArguments = null)
             : base(typeResolver, type, genericArguments)
         {
-            enumValues =
+            this.enumValues =
                 CreateLazy(
                     () =>
                         (IDictionary<string, long>)new ReadOnlyDictionary<string, long>(
-                            Enum.GetValues(type).Cast<object>().ToDictionary(x => Enum.GetName(type, x), Convert.ToInt64)));
+                        Enum.GetValues(type).Cast<object>().ToDictionary(x => Enum.GetName(type, x), Convert.ToInt64)));
         }
 
 
-        new public static ITypeFactory GetFactory()
+        public IDictionary<string, long> EnumValues
         {
-            return new EnumTypeSpecFactory();
+            get { return this.enumValues.Value; }
         }
-
 
         public override TypeSerializationMode SerializationMode
         {
             get { return TypeSerializationMode.Value; }
         }
 
+
+        public new static ITypeFactory GetFactory()
+        {
+            return new EnumTypeSpecFactory();
+        }
+
+
         public class EnumTypeSpecFactory : ITypeFactory
         {
-            public int Priority
-            {
-                get { return -400; }
-            }
-
-
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
                 if (typeResolver == null)
@@ -78,11 +79,12 @@ namespace Pomona.Common.TypeSystem
 
                 return new EnumTypeSpec(typeResolver, type);
             }
-        }
 
-        public IDictionary<string, long> EnumValues
-        {
-            get { return enumValues.Value; }
+
+            public int Priority
+            {
+                get { return -400; }
+            }
         }
     }
 }

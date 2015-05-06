@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -122,7 +122,7 @@ namespace Pomona.Common.TypeSystem
                             Expression.Call(constructorControlParam,
                                             x.Param.IsOptional ? optionalMethodInstance : requiresMethodInstance),
                             x.Property))
-                    .ToList();
+                                .ToList();
 
             Expression newExpression = Expression.New(constructorInfo, arguments);
             if (convertedType != null)
@@ -229,12 +229,6 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            protected virtual Expression VisitParentReference(MemberExpression node)
-            {
-                return node;
-            }
-
-
             protected override Expression VisitMember(MemberExpression node)
             {
                 Expression result;
@@ -242,6 +236,12 @@ namespace Pomona.Common.TypeSystem
                     return result;
 
                 return base.VisitMember(node);
+            }
+
+
+            protected virtual Expression VisitParentReference(MemberExpression node)
+            {
+                return node;
             }
 
 

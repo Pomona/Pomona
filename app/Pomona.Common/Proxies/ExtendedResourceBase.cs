@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -50,14 +50,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public ExtendedResourceInfo UserTypeInfo { get; private set; }
-        public object WrappedResource { get; private set; }
         internal IClientTypeResolver Client { get; private set; }
-
-        string IHasResourceUri.Uri
-        {
-            get { return ((IHasResourceUri)WrappedResource).Uri; }
-        }
 
 
         protected TPropType OnGet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
@@ -172,6 +165,15 @@ namespace Pomona.Common.Proxies
         private bool IsServerKnownProperty<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property)
         {
             return property.PropertyInfo.DeclaringType.IsInstanceOfType(WrappedResource);
+        }
+
+
+        public ExtendedResourceInfo UserTypeInfo { get; private set; }
+        public object WrappedResource { get; private set; }
+
+        string IHasResourceUri.Uri
+        {
+            get { return ((IHasResourceUri)WrappedResource).Uri; }
         }
     }
 }

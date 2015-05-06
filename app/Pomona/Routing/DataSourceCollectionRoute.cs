@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -63,11 +63,6 @@ namespace Pomona.Routing
             get { return this.parent.TypeMapper.FromType(typeof(void)); }
         }
 
-        public string MatchValue
-        {
-            get { return this.resultItemType.UrlRelativePath; }
-        }
-
         public override TypeSpec ResultItemType
         {
             get { return this.resultItemType; }
@@ -81,7 +76,7 @@ namespace Pomona.Routing
 
         protected override IEnumerable<Route> LoadChildren()
         {
-            return new GetByIdRoute(this.resultItemType, this, resultItemType.AllowedMethods | HttpMethod.Post).WrapAsArray();
+            return new GetByIdRoute(this.resultItemType, this, this.resultItemType.AllowedMethods | HttpMethod.Post).WrapAsArray();
         }
 
 
@@ -94,6 +89,12 @@ namespace Pomona.Routing
         protected override string PathSegmentToString()
         {
             return this.resultItemType.UrlRelativePath;
+        }
+
+
+        public string MatchValue
+        {
+            get { return this.resultItemType.UrlRelativePath; }
         }
     }
 }

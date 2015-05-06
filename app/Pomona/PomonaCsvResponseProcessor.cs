@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,22 +24,24 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
+
 using Nancy;
 using Nancy.Responses.Negotiation;
 using Nancy.Routing;
 
 using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Csv;
-using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
     public class PomonaCsvResponseProcessor : PomonaResponseProcessorBase
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
-            new[] {new Tuple<string, MediaRange>("csv", new MediaRange("text/plain"))};
+            new[] { new Tuple<string, MediaRange>("csv", new MediaRange("text/plain")) };
 
 
         public PomonaCsvResponseProcessor(IRouteCacheProvider routeCacheProvider)
@@ -45,17 +49,6 @@ namespace Pomona
         {
         }
 
-
-        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context)
-        {
-            return new PomonaCsvSerializerFactory();
-        }
-
-
-        protected override string ContentType
-        {
-            get { return "text/plain"; }
-        }
 
         /// <summary>
         /// Gets a set of mappings that map a given extension (such as .Csv)
@@ -65,6 +58,12 @@ namespace Pomona
         {
             get { return extensionMappings; }
         }
+
+        protected override string ContentType
+        {
+            get { return "text/plain"; }
+        }
+
 
         /// <summary>
         /// Determines whether the the processor can handle a given content type and model
@@ -76,11 +75,13 @@ namespace Pomona
         public override ProcessorMatch CanProcess(MediaRange requestedMediaRange, dynamic model, NancyContext context)
         {
             if (model as PomonaResponse == null)
+            {
                 return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.NoMatch,
-                        RequestedContentTypeResult = MatchResult.DontCare
-                    };
+                {
+                    ModelResult = MatchResult.NoMatch,
+                    RequestedContentTypeResult = MatchResult.DontCare
+                };
+            }
 
             //if (IsTextHtmlContentType(requestedMediaRange))
             //    return new ProcessorMatch
@@ -92,26 +93,30 @@ namespace Pomona
             if (IsExactCsvContentType(requestedMediaRange))
             {
                 return new ProcessorMatch
-                    {
-                        ModelResult = MatchResult.ExactMatch,
-                        RequestedContentTypeResult = MatchResult.ExactMatch
-                    };
+                {
+                    ModelResult = MatchResult.ExactMatch,
+                    RequestedContentTypeResult = MatchResult.ExactMatch
+                };
             }
 
             return new ProcessorMatch
-                {
-                    ModelResult = MatchResult.ExactMatch,
-                    RequestedContentTypeResult = MatchResult.NoMatch
-                };
+            {
+                ModelResult = MatchResult.ExactMatch,
+                RequestedContentTypeResult = MatchResult.NoMatch
+            };
+        }
+
+
+        protected override ITextSerializerFactory GetSerializerFactory(NancyContext context)
+        {
+            return new PomonaCsvSerializerFactory();
         }
 
 
         private static bool IsExactCsvContentType(MediaRange requestedContentType)
         {
             if (requestedContentType.Type.IsWildcard && requestedContentType.Subtype.IsWildcard)
-            {
                 return true;
-            }
 
             return requestedContentType.Matches("text/plain");
         }

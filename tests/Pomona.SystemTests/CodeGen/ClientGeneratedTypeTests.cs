@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,13 +32,14 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
+using Critters.Client;
+
 using Mono.Cecil;
 
 using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.UnitTests;
-using Critters.Client;
 
 namespace Pomona.SystemTests.CodeGen
 {
@@ -121,12 +122,12 @@ namespace Pomona.SystemTests.CodeGen
             var errors = new StringBuilder();
             foreach (
                 var prop in
-                    this.Client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
+                    Client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
                         x =>
                             x.PropertyType.IsGenericType
                             && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,,>)))
             {
-                var value = prop.GetValue(this.Client, null);
+                var value = prop.GetValue(Client, null);
                 if (value == null)
                 {
                     foundError = true;
@@ -237,12 +238,6 @@ namespace Pomona.SystemTests.CodeGen
         }
 
 
-        private static void PeVerify(string dllPath)
-        {
-            PeVerifyHelper.Verify(dllPath);
-        }
-
-
         [Category("WindowsRequired")]
         [Test]
         public void PeVerify_HasExitCode0()
@@ -286,16 +281,16 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
-        public void PropertyOfPostFormOfAbstractType_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
+        public void PropertyOfPostForm_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
         {
-            Assert.That(typeof(AbstractAnimalForm).GetProperty("PublicAndReadOnlyThroughApi"), Is.Null);
+            Assert.That(typeof(CritterForm).GetProperty("PublicAndReadOnlyThroughApi"), Is.Null);
         }
 
 
         [Test]
-        public void PropertyOfPostForm_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
+        public void PropertyOfPostFormOfAbstractType_ThatIsPublicWritableOnServer_AndReadOnlyThroughApi_IsNotPublic()
         {
-            Assert.That(typeof(CritterForm).GetProperty("PublicAndReadOnlyThroughApi"), Is.Null);
+            Assert.That(typeof(AbstractAnimalForm).GetProperty("PublicAndReadOnlyThroughApi"), Is.Null);
         }
 
 
@@ -356,6 +351,12 @@ namespace Pomona.SystemTests.CodeGen
         public void ThingIndependentFromBase_IncludesPropertyFromEntityBase()
         {
             Assert.That(typeof(IThingIndependentFromBase).GetProperty("Id"), Is.Not.Null);
+        }
+
+
+        private static void PeVerify(string dllPath)
+        {
+            PeVerifyHelper.Verify(dllPath);
         }
     }
 }

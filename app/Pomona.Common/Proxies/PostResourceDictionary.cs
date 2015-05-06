@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,106 +38,123 @@ namespace Pomona.Common.Proxies
         private readonly string propertyName;
         private readonly IDictionary<TKey, TValue> wrapped = new Dictionary<TKey, TValue>();
 
+
         internal PostResourceDictionary(PostResourceBase owner, string propertyName)
         {
-            if (owner == null) throw new ArgumentNullException("owner");
+            if (owner == null)
+                throw new ArgumentNullException("owner");
             this.owner = owner;
             this.propertyName = propertyName;
         }
 
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+
+        private void SetDirty()
         {
-            return wrapped.GetEnumerator();
+            this.owner.SetDirty(this.propertyName);
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            wrapped.Add(item);
+            this.wrapped.Add(item);
             SetDirty();
         }
 
-        public void Clear()
-        {
-            wrapped.Clear();
-            SetDirty();
-        }
-
-        public bool Contains(KeyValuePair<TKey, TValue> item)
-        {
-            return wrapped.Contains(item);
-        }
-
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-        {
-            wrapped.CopyTo(array, arrayIndex);
-        }
-
-        public bool Remove(KeyValuePair<TKey, TValue> item)
-        {
-            SetDirty();
-            return wrapped.Remove(item);
-        }
-
-        public int Count
-        {
-            get { return wrapped.Count; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return wrapped.IsReadOnly; }
-        }
-
-        public bool ContainsKey(TKey key)
-        {
-            return wrapped.ContainsKey(key);
-        }
 
         public void Add(TKey key, TValue value)
         {
-            wrapped.Add(key, value);
+            this.wrapped.Add(key, value);
             SetDirty();
         }
 
-        public bool Remove(TKey key)
+
+        public void Clear()
         {
+            this.wrapped.Clear();
             SetDirty();
-            return wrapped.Remove(key);
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+
+        public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            return wrapped.TryGetValue(key, out value);
+            return this.wrapped.Contains(item);
+        }
+
+
+        public bool ContainsKey(TKey key)
+        {
+            return this.wrapped.ContainsKey(key);
+        }
+
+
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+        {
+            this.wrapped.CopyTo(array, arrayIndex);
+        }
+
+
+        public int Count
+        {
+            get { return this.wrapped.Count; }
+        }
+
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            return this.wrapped.GetEnumerator();
+        }
+
+
+        public bool IsReadOnly
+        {
+            get { return this.wrapped.IsReadOnly; }
         }
 
         public TValue this[TKey key]
         {
-            get { return wrapped[key]; }
+            get { return this.wrapped[key]; }
             set
             {
-                wrapped[key] = value;
+                this.wrapped[key] = value;
                 SetDirty();
             }
         }
 
         public ICollection<TKey> Keys
         {
-            get { return wrapped.Keys; }
+            get { return this.wrapped.Keys; }
         }
+
+
+        public bool Remove(KeyValuePair<TKey, TValue> item)
+        {
+            SetDirty();
+            return this.wrapped.Remove(item);
+        }
+
+
+        public bool Remove(TKey key)
+        {
+            SetDirty();
+            return this.wrapped.Remove(key);
+        }
+
+
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            return this.wrapped.TryGetValue(key, out value);
+        }
+
 
         public ICollection<TValue> Values
         {
-            get { return wrapped.Values; }
+            get { return this.wrapped.Values; }
         }
 
-        private void SetDirty()
+
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            owner.SetDirty(propertyName);
+            return GetEnumerator();
         }
     }
 }

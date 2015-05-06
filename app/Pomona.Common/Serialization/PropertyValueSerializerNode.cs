@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ namespace Pomona.Common.Serialization
 
         public PropertySpec Property
         {
-            get { return property; }
+            get { return this.property; }
         }
 
         #region Implementation of ISerializerNode
@@ -82,9 +82,9 @@ namespace Pomona.Common.Serialization
         {
             get
             {
-                if (property.PropertyType.SerializationMode == TypeSerializationMode.Structured)
+                if (this.property.PropertyType.SerializationMode == TypeSerializationMode.Structured)
                     return base.Uri;
-                return Context.GetUri(property, ParentNode.Value);
+                return Context.GetUri(this.property, ParentNode.Value);
             }
         }
 
@@ -92,10 +92,10 @@ namespace Pomona.Common.Serialization
         {
             get
             {
-                if (!propertyIsLoaded)
+                if (!this.propertyIsLoaded)
                 {
-                    this.value = property.GetValue(ParentNode.Value, Context);
-                    propertyIsLoaded = true;
+                    this.value = this.property.GetValue(ParentNode.Value, Context);
+                    this.propertyIsLoaded = true;
                 }
                 return this.value;
             }

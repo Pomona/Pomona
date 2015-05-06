@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,6 @@ using NUnit.Framework;
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
-using Pomona.TestHelpers;
 
 namespace Pomona.UnitTests.Queries
 {
@@ -62,7 +61,7 @@ namespace Pomona.UnitTests.Queries
         public void SetUp()
         {
             this.typeMapper = new TypeMapper(new PomonaTestConfiguration());
-            this.parser = new QueryExpressionParser(new QueryTypeResolver(typeMapper));
+            this.parser = new QueryExpressionParser(new QueryTypeResolver(this.typeMapper));
         }
 
 
@@ -79,6 +78,7 @@ namespace Pomona.UnitTests.Queries
 
         public class Dummy
         {
+            public bool and { get; set; }
             public TestEnum AnEnumValue { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
             public IList<Dummy> Children { get; set; }
@@ -94,7 +94,10 @@ namespace Pomona.UnitTests.Queries
             public IList<double> ListOfDoubles { get; set; }
             public IList<float> ListOfFloats { get; set; }
             public IList<int> ListOfInts { get; set; }
+            public bool? NullableBool { get; set; }
             public TestEnum? NullableEnum { get; set; }
+            public long? NullableInt64 { get; set; }
+            public int? NullableNumber { get; set; }
             public int Number { get; set; }
             public IDictionary<string, object> ObjectAttributes { get; set; }
             public bool OnOrOff { get; set; }
@@ -105,10 +108,6 @@ namespace Pomona.UnitTests.Queries
             public string Text { get; set; }
             public DateTime Time { get; set; }
             public object UnknownProperty { get; set; }
-            public bool and { get; set; }
-            public bool? NullableBool { get; set; }
-            public int? NullableNumber { get; set; }
-            public long? NullableInt64 { get; set; }
         }
 
         #endregion

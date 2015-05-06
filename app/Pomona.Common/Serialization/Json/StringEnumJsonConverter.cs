@@ -1,8 +1,9 @@
 ﻿#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,10 +23,10 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
+
 #endregion
 
 using System;
-using System.Runtime.InteropServices;
 
 using Newtonsoft.Json;
 
@@ -35,9 +36,9 @@ namespace Pomona.Common.Serialization.Json
 {
     public class StringEnumJsonConverter : JsonConverter
     {
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override bool CanConvert(Type objectType)
         {
-            writer.WriteValue(value.ToString());
+            return typeof(IStringEnum).IsAssignableFrom(objectType);
         }
 
 
@@ -47,9 +48,9 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        public override bool CanConvert(Type objectType)
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            return typeof(IStringEnum).IsAssignableFrom(objectType);
+            writer.WriteValue(value.ToString());
         }
     }
 }

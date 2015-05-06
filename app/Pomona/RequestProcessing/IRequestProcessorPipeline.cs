@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,13 +24,15 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
 
 namespace Pomona.RequestProcessing
 {
     public interface IRequestProcessorPipeline : IPomonaRequestProcessor
     {
-        IEnumerable<IPomonaRequestProcessor> Before { get; }
         IEnumerable<IPomonaRequestProcessor> After { get; }
+        IEnumerable<IPomonaRequestProcessor> Before { get; }
     }
 }

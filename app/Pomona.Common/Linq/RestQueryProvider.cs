@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,6 @@ namespace Pomona.Common.Linq
     {
         private static readonly ExecuteGenericMethodDelegate executeGenericMethod;
         private static readonly ExecuteWithClientSelectPartDelegate executeWithClientSelectPart;
-
         private readonly IPomonaClient client;
 
 
@@ -90,15 +89,6 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override object Execute(Expression expression, Type resultType)
-        {
-            var queryTreeParser = new RestQueryableTreeParser();
-            queryTreeParser.Visit(expression);
-
-            return executeGenericMethod.Invoke(queryTreeParser.SelectReturnType, this, queryTreeParser);
-        }
-
-
         public IQueryable<T> CreateQuery<T>(string uri)
         {
             return new RestQueryRoot<T>(this, uri);
@@ -111,45 +101,18 @@ namespace Pomona.Common.Linq
         }
 
 
-        public string GetQueryText(Expression expression)
+        public override object Execute(Expression expression, Type resultType)
         {
-            return expression.ToString();
+            var queryTreeParser = new RestQueryableTreeParser();
+            queryTreeParser.Visit(expression);
+
+            return executeGenericMethod.Invoke(queryTreeParser.SelectReturnType, this, queryTreeParser);
         }
 
 
-        private static void SetProjection(RestQueryableTreeParser parser, UriQueryBuilder builder)
+        public string GetQueryText(Expression expression)
         {
-            string projection = null;
-            switch (parser.Projection)
-            {
-                case RestQueryableTreeParser.QueryProjection.First:
-                case RestQueryableTreeParser.QueryProjection.FirstLazy:
-                    projection = "first";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
-                    projection = "firstordefault";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.Single:
-                    projection = "single";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
-                    projection = "singleordefault";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.Max:
-                    projection = "max";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.Min:
-                    projection = "min";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.Count:
-                    projection = "count";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.Sum:
-                    projection = "sum";
-                    break;
-            }
-            if (projection != null)
-                builder.AppendParameter("$projection", projection);
+            return expression.ToString();
         }
 
 
@@ -168,13 +131,9 @@ namespace Pomona.Common.Linq
             if (parser.WherePredicate != null)
                 builder.AppendExpressionParameter("$filter", parser.WherePredicate);
             if (parser.OrderKeySelectors.Count > 0)
-            {
                 builder.AppendExpressionParameter<QueryOrderByBuilder>("$orderby", Expression.Constant(parser.OrderKeySelectors));
-            }
             if (parser.GroupByKeySelector != null)
-            {
                 builder.AppendExpressionParameter<QuerySelectorBuilder>("$groupby", parser.GroupByKeySelector);
-            }
             if (parser.SelectExpression != null)
             {
                 var selectNode = parser.SelectExpression.Visit<ClientServerSplittingSelectBuilder>();
@@ -264,7 +223,7 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Single:
                     return GetFirst(uri, requestOptions, clientSideSelectPart);
                 case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
-                    // TODO: SingleOrDefault is obviously not implemented, has been overlooked [KNS]
+                // TODO: SingleOrDefault is obviously not implemented, has been overlooked [KNS]
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
@@ -303,6 +262,42 @@ namespace Pomona.Common.Linq
             {
                 throw new InvalidOperationException("Sequence contains no matching element", ex);
             }
+        }
+
+
+        private static void SetProjection(RestQueryableTreeParser parser, UriQueryBuilder builder)
+        {
+            string projection = null;
+            switch (parser.Projection)
+            {
+                case RestQueryableTreeParser.QueryProjection.First:
+                case RestQueryableTreeParser.QueryProjection.FirstLazy:
+                    projection = "first";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                    projection = "firstordefault";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Single:
+                    projection = "single";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
+                    projection = "singleordefault";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Max:
+                    projection = "max";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Min:
+                    projection = "min";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Count:
+                    projection = "count";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Sum:
+                    projection = "sum";
+                    break;
+            }
+            if (projection != null)
+                builder.AppendParameter("$projection", projection);
         }
     }
 }

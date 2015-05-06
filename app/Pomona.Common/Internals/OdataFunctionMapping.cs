@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -82,12 +82,12 @@ namespace Pomona.Common.Internals
             Add<string>(x => x.Substring(0, 0), "substring({0},{1},{2})");
             Add<string>(x => x.Replace("", ""), "replace({0},{1},{2})");
             Add<string>(x => x.Replace('a', 'a'), "replace({0},{1},{2})");
-            Add<string>(x => x.ToLower(), "tolower({0})", localExec: true);
-            Add<string>(x => x.ToUpper(), "toupper({0})", localExec: true);
+            Add<string>(x => x.ToLower(), "tolower({0})", localExec : true);
+            Add<string>(x => x.ToUpper(), "toupper({0})", localExec : true);
             Add<string>(x => x.Trim(), "trim({0})");
             Add<string>(x => x.IndexOf("a"), "indexof({0},{1})");
             Add<string>(x => x.IndexOf('a'), "indexof({0},{1})");
-            Add<string>(x => string.Concat("", ""), "concat({0},{1})", localExec: true);
+            Add<string>(x => string.Concat("", ""), "concat({0},{1})", localExec : true);
             Add<string>(x => x.Trim(), "trim({0})");
 
             // TODO: Concat function, this one's static
@@ -126,23 +126,23 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Count(), "count({0})");
             Add<IEnumerable<WildcardType>>(x => x.Count(y => true), "count({0},{1})");
             Add<IEnumerable<WildcardType>>(x => x.SelectMany(y => (IEnumerable<string>)null),
-                "many({0},{1})",
-                MethodCallStyle.Chained);
+                                           "many({0},{1})",
+                                           MethodCallStyle.Chained);
             Add<ICollection<WildcardType>>(x => x.Count, "count({0})");
 
             Add<IEnumerable<WildcardType>>(x => x.First(), "first({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(), "firstdefault({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.First(y => true), "first({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.FirstOrDefault(y => true),
-                "firstdefault({0},{1})",
-                MethodCallStyle.Chained);
+                                           "firstdefault({0},{1})",
+                                           MethodCallStyle.Chained);
 
             Add<IEnumerable<WildcardType>>(x => x.Single(), "single({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(), "singledefault({0})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Single(y => true), "single({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.SingleOrDefault(y => true),
-                "singledefault({0},{1})",
-                MethodCallStyle.Chained);
+                                           "singledefault({0},{1})",
+                                           MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Average(), "average({0})");
             Add<IEnumerable<double>>(x => x.Average(), "average({0})");
@@ -158,15 +158,15 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Average(y => 10.0), "average({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Average(y => 10f), "average({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Average(y => (decimal?)10m),
-                "average({0},{1})",
-                MethodCallStyle.Chained);
+                                           "average({0},{1})",
+                                           MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Average(y => (int?)10), "average({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Average(y => (double?)10.0),
-                "average({0},{1})",
-                MethodCallStyle.Chained);
+                                           "average({0},{1})",
+                                           MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Average(y => (float?)10f),
-                "average({0},{1})",
-                MethodCallStyle.Chained);
+                                           "average({0},{1})",
+                                           MethodCallStyle.Chained);
 
             Add<IEnumerable<string>>(x => string.Join("?", x), "join({1},{0})", MethodCallStyle.Chained);
 
@@ -234,8 +234,8 @@ namespace Pomona.Common.Internals
                 MethodCallStyle.Chained);
 
             Add<WildcardType>(x => Convert.ChangeType(x, null),
-                "convert({0},{1})",
-                postResolveHook : FixChangeTypeReturnValue);
+                              "convert({0},{1})",
+                              postResolveHook : FixChangeTypeReturnValue);
         }
 
 
@@ -315,7 +315,6 @@ namespace Pomona.Common.Internals
             private readonly string chainedCallFormat;
             private readonly bool localExecutionPreferred;
             private readonly MemberInfo member;
-
             private readonly string name;
             private readonly Func<Expression, Expression> postResolveHookFunction;
             private readonly MethodCallStyle preferredCallStyle;
@@ -407,7 +406,7 @@ namespace Pomona.Common.Internals
                     var memberLocal = member;
                     member =
                         member.DeclaringType.GetGenericTypeDefinition().GetMembers()
-                            .First(x => x.UniqueToken() == memberLocal.UniqueToken());
+                              .First(x => x.UniqueToken() == memberLocal.UniqueToken());
                 }
 
                 var argOrderArray = argOrder.ToArray();
@@ -501,23 +500,6 @@ namespace Pomona.Common.Internals
             }
 
 
-            public T this[int index]
-            {
-                get { return this.targetList[this.order[index]]; }
-                set { throw new NotSupportedException(); }
-            }
-
-            public int Count
-            {
-                get { return this.targetList.Count; }
-            }
-
-            public bool IsReadOnly
-            {
-                get { return true; }
-            }
-
-
             public void Add(T item)
             {
                 throw new NotSupportedException();
@@ -542,6 +524,12 @@ namespace Pomona.Common.Internals
             }
 
 
+            public int Count
+            {
+                get { return this.targetList.Count; }
+            }
+
+
             public IEnumerator<T> GetEnumerator()
             {
                 for (var i = 0; i < Count; i++)
@@ -561,6 +549,18 @@ namespace Pomona.Common.Internals
             public void Insert(int index, T item)
             {
                 throw new NotSupportedException();
+            }
+
+
+            public bool IsReadOnly
+            {
+                get { return true; }
+            }
+
+            public T this[int index]
+            {
+                get { return this.targetList[this.order[index]]; }
+                set { throw new NotSupportedException(); }
             }
 
 

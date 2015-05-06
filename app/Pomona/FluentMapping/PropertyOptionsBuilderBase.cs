@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,12 +49,6 @@ namespace Pomona.FluentMapping
         }
 
 
-        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Expand(ExpandMode expandMode)
-        {
-            return this;
-        }
-
-
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> AsAttributes()
         {
             return this;
@@ -74,6 +68,12 @@ namespace Pomona.FluentMapping
 
 
         public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Deny(HttpMethod method)
+        {
+            return this;
+        }
+
+
+        public virtual IPropertyOptionsBuilder<TDeclaring, TProperty> Expand(ExpandMode expandMode)
         {
             return this;
         }

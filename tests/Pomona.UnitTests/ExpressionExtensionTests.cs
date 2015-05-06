@@ -1,7 +1,9 @@
-﻿// ----------------------------------------------------------------------------
+﻿#region License
+
+// ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2012 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,10 +24,14 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+
 using NUnit.Framework;
+
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 
@@ -34,10 +40,48 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class ExpressionExtensionTests
     {
-        public class Dummy
+        public string GetPath<TRet>(Expression<Func<Dummy, TRet>> propertySelector, bool jsonNameStyle = false)
         {
-            public Foo Foo { get; set; }
+            return propertySelector.GetPropertyPath(jsonNameStyle);
         }
+
+
+        [Test]
+        public void GetPropertyPath_WithDefaultNameStyle_ReturnsCorrectString()
+        {
+            Assert.That(GetPath(x => x.Foo.Bar.HelloThere), Is.EqualTo("Foo.Bar.HelloThere"));
+        }
+
+
+        [Test]
+        public void GetPropertyPath_WithJsonNameStyle_ReturnsCorrectString()
+        {
+            Assert.That(GetPath(x => x.Foo.Bar.HelloThere, true), Is.EqualTo("foo.bar.helloThere"));
+        }
+
+
+        [Category("TODO")]
+        [Test(Description = "Not yet working, need to rework GetPropertyPath a little.")]
+        public void GetPropertyPathThroughEnumerable_WithChainedInnerExpand_ReturnsCorrectString()
+        {
+            Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar).Expand(y => y.Dummy)),
+                        Is.EqualTo("Foo.Children.Bar,Foo.Children.Dummy"));
+        }
+
+
+        [Test]
+        public void GetPropertyPathThroughEnumerable_WithDefaultNameStyle_ReturnsCorrectString()
+        {
+            Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar)), Is.EqualTo("Foo.Children.Bar"));
+        }
+
+
+        [Test]
+        public void GetPropertyPathThroughEnumerable_WithJsonNameStyle_ReturnsCorrectString()
+        {
+            Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar), true), Is.EqualTo("foo.children.bar"));
+        }
+
 
         public class Bar
         {
@@ -50,46 +94,15 @@ namespace Pomona.UnitTests
             public Dummy Dummy { get; set; }
         }
 
+        public class Dummy
+        {
+            public Foo Foo { get; set; }
+        }
+
         public class Foo
         {
-            public IEnumerable<Child> Children { get; set; }
             public Bar Bar { get; set; }
-        }
-
-        public string GetPath<TRet>(Expression<Func<Dummy, TRet>> propertySelector, bool jsonNameStyle = false)
-        {
-            return propertySelector.GetPropertyPath(jsonNameStyle);
-        }
-
-        [Test]
-        public void GetPropertyPathThroughEnumerable_WithDefaultNameStyle_ReturnsCorrectString()
-        {
-            Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar)), Is.EqualTo("Foo.Children.Bar"));
-        }
-
-        [Category("TODO")]
-        [Test(Description = "Not yet working, need to rework GetPropertyPath a little.")]
-        public void GetPropertyPathThroughEnumerable_WithChainedInnerExpand_ReturnsCorrectString()
-        {
-            Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar).Expand(y => y.Dummy)), Is.EqualTo("Foo.Children.Bar,Foo.Children.Dummy"));
-        }
-
-        [Test]
-        public void GetPropertyPathThroughEnumerable_WithJsonNameStyle_ReturnsCorrectString()
-        {
-            Assert.That(GetPath(x => x.Foo.Children.Expand(y => y.Bar), true), Is.EqualTo("foo.children.bar"));
-        }
-
-        [Test]
-        public void GetPropertyPath_WithDefaultNameStyle_ReturnsCorrectString()
-        {
-            Assert.That(GetPath(x => x.Foo.Bar.HelloThere), Is.EqualTo("Foo.Bar.HelloThere"));
-        }
-
-        [Test]
-        public void GetPropertyPath_WithJsonNameStyle_ReturnsCorrectString()
-        {
-            Assert.That(GetPath(x => x.Foo.Bar.HelloThere, true), Is.EqualTo("foo.bar.helloThere"));
+            public IEnumerable<Child> Children { get; set; }
         }
     }
 }

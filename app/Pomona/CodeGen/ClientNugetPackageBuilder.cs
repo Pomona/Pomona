@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -30,15 +30,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Xml.Serialization;
 
 using Newtonsoft.Json;
 
 using NuGet;
 
 using Pomona.Common;
-using Pomona.Documentation;
-using Pomona.Documentation.Xml.Serialization;
 
 namespace Pomona.CodeGen
 {
@@ -76,6 +73,26 @@ namespace Pomona.CodeGen
         }
 
 
+        private void CreateNugetPackage(string tempPath, Stream stream)
+        {
+            var metadata = GetManifestMetadata();
+
+            var packageBuilder = new PackageBuilder();
+
+            // Have no idea what this means, copy paste from http://stackoverflow.com/questions/6808868/howto-create-a-nuget-package-using-nuget-core
+            packageBuilder.PopulateFiles(tempPath, new[] { new ManifestFile { Source = "**" } });
+
+            packageBuilder.Populate(metadata);
+            packageBuilder.DependencySets.Add(new PackageDependencySet(null, new[]
+            {
+                // CreatePackageDependency<TypeDefinition>(4), <-- Dependency on Cecil no longer needed.
+                CreatePackageDependency<JsonSerializer>(2)
+            }));
+
+            packageBuilder.Save(stream);
+        }
+
+
         private static PackageDependency CreatePackageDependency<TInAssembly>(int versionPartCount)
         {
             var assembly = typeof(TInAssembly).Assembly;
@@ -94,26 +111,6 @@ namespace Pomona.CodeGen
             };
             return new PackageDependency(packageName,
                                          versionSpec);
-        }
-
-
-        private void CreateNugetPackage(string tempPath, Stream stream)
-        {
-            var metadata = GetManifestMetadata();
-
-            var packageBuilder = new PackageBuilder();
-
-            // Have no idea what this means, copy paste from http://stackoverflow.com/questions/6808868/howto-create-a-nuget-package-using-nuget-core
-            packageBuilder.PopulateFiles(tempPath, new[] { new ManifestFile { Source = "**" } });
-
-            packageBuilder.Populate(metadata);
-            packageBuilder.DependencySets.Add(new PackageDependencySet(null, new[]
-            {
-                // CreatePackageDependency<TypeDefinition>(4), <-- Dependency on Cecil no longer needed.
-                CreatePackageDependency<JsonSerializer>(2)
-            }));
-
-            packageBuilder.Save(stream);
         }
 
 
@@ -146,7 +143,8 @@ namespace Pomona.CodeGen
             using (var stream = File.Create(dllPath))
             {
                 var pomonaClientXmlDocPath = Path.Combine(dllDir, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
-                ClientLibGenerator.WriteClientLibrary(this.typeMapper, stream, pomonaClientEmbeddingEnabled, () => File.OpenWrite(pomonaClientXmlDocPath));
+                ClientLibGenerator.WriteClientLibrary(this.typeMapper, stream, pomonaClientEmbeddingEnabled,
+                                                      () => File.OpenWrite(pomonaClientXmlDocPath));
             }
 
             if (pomonaClientEmbeddingEnabled)

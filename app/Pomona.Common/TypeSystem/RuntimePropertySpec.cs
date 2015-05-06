@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,31 +24,31 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Pomona.Common.Internals;
 
 namespace Pomona.Common.TypeSystem
 {
     public class RuntimePropertySpec : PropertySpec
     {
-        public RuntimePropertySpec(ITypeResolver typeResolver, PropertyInfo propertyInfo, RuntimeTypeSpec reflectedType) : base(typeResolver, propertyInfo, reflectedType)
+        public RuntimePropertySpec(ITypeResolver typeResolver, PropertyInfo propertyInfo, RuntimeTypeSpec reflectedType)
+            : base(typeResolver, propertyInfo, reflectedType)
         {
             if (propertyInfo == null)
                 throw new ArgumentNullException("propertyInfo");
-
         }
+
 
         public override IEnumerable<Attribute> InheritedAttributes
         {
             get
             {
                 if (BaseDefinition == null || BaseDefinition == this)
-                {
                     return Enumerable.Empty<Attribute>();
-                }
                 return BaseDefinition.Attributes;
             }
         }

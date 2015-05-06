@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -34,10 +38,13 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+
 using Pomona.Common;
+
 using CustomAttributeNamedArgument = Mono.Cecil.CustomAttributeNamedArgument;
 using FieldAttributes = Mono.Cecil.FieldAttributes;
 using MethodAttributes = Mono.Cecil.MethodAttributes;
@@ -62,7 +69,6 @@ namespace Pomona.CodeGen
             new ConcurrentDictionary<string, Type>();
 
         private readonly IList<Property> properties;
-
         private TypeDefinition definition;
         private GenericInstanceType ilFieldDeclaringType;
         private ModuleDefinition module;
@@ -70,36 +76,57 @@ namespace Pomona.CodeGen
 
         public AnonymousTypeBuilder(IEnumerable<string> propNames)
         {
-            properties = propNames.Select((x, i) => new Property {Index = i, Name = x}).ToList();
+            this.properties = propNames.Select((x, i) => new Property { Index = i, Name = x }).ToList();
         }
 
 
         private int PropCount
         {
-            get { return properties.Count; }
+            get { return this.properties.Count; }
         }
 
-        public static void ScanAssemblyForExistingAnonymousTypes(Assembly assembly)
-        {
-            var anonTypes = assembly.GetTypes().Where(x => x.IsAnonymous()).ToList();
 
-            foreach (var anonType in anonTypes)
-            {
-                var typeKey = GetAnonTypeKey(anonType.GetConstructors().Single().GetParameters().Select(x => x.Name));
-                anonTypeCache[typeKey] = anonType;
-            }
-        }
-
-        private static string GetAnonTypeKey(IEnumerable<string> propNames)
+        public TypeDefinition BuildAnonymousType()
         {
-            return string.Join(",", propNames);
+            var assemblyName = "dyn" + Guid.NewGuid().ToString();
+            var dynamicAssembly =
+                AssemblyDefinition.CreateAssembly(
+                    new AssemblyNameDefinition(assemblyName, new Version(1, 0)), assemblyName, ModuleKind.Dll);
+
+            this.module = dynamicAssembly.MainModule;
+            this.module.Architecture = TargetArchitecture.I386;
+            this.module.Attributes = ModuleAttributes.ILOnly;
+
+            AddAssemblyAttributes();
+
+            this.definition = new TypeDefinition(
+                "",
+                string.Format("<>f__AnonymousType{0}`{1}", AllocateUniqueAnonymousClassNumber(), PropCount),
+                TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, this.module.TypeSystem.Object);
+
+            AddGenericParams();
+            this.module.Types.Add(this.definition);
+
+            foreach (var prop in this.properties)
+                AddProperty(prop);
+
+            AddConstructor();
+            AddGetHashCode();
+            AddEquals();
+            AddToString();
+
+            AddDebuggerDisplayAttribute();
+            AddCompilerGeneratedAttribute();
+            AddDebuggerBrowseableAttributesToFields();
+
+            return this.definition;
         }
 
 
         public static object CreateAnonymousObject<T>(IEnumerable<T> source,
-            Func<T, string> nameSelector,
-            Func<T, object> valueSelector,
-            Func<T, Type> typeSelector)
+                                                      Func<T, string> nameSelector,
+                                                      Func<T, object> valueSelector,
+                                                      Func<T, Type> typeSelector)
         {
             var sourceList = source as IList<T> ?? source.ToList();
             var anonType = GetAnonymousType(sourceList.Select(nameSelector));
@@ -112,6 +139,7 @@ namespace Pomona.CodeGen
 
             return constructorInfo.Invoke(sourceList.Select(valueSelector).ToArray());
         }
+
 
         public static Expression CreateNewExpression(IEnumerable<KeyValuePair<string, Expression>> map,
                                                      out Type anonTypeInstance)
@@ -134,92 +162,6 @@ namespace Pomona.CodeGen
                 constructorInfo, kvpList.Select(x => x.Value), kvpList.Select(x => anonTypeLocal.GetProperty(x.Key)));
         }
 
-        private static Type GetAnonymousType(IEnumerable<string> propNames)
-        {
-            var anonType = anonTypeCache.GetOrCreate(GetAnonTypeKey(propNames), () =>
-                {
-                    var atb = new AnonymousTypeBuilder(propNames);
-                    var typedef = atb.BuildAnonymousType();
-                    var memStream = new MemoryStream();
-                    typedef.Module.Assembly.Write(memStream);
-                    var loadedAsm = AppDomain.CurrentDomain.Load(memStream.ToArray());
-                    return loadedAsm.GetTypes().First(x => x.Name == typedef.Name);
-                });
-            return anonType;
-        }
-
-
-        public TypeDefinition BuildAnonymousType()
-        {
-            var assemblyName = "dyn" + Guid.NewGuid().ToString();
-            var dynamicAssembly =
-                AssemblyDefinition.CreateAssembly(
-                    new AssemblyNameDefinition(assemblyName, new Version(1, 0)), assemblyName, ModuleKind.Dll);
-
-
-            module = dynamicAssembly.MainModule;
-            module.Architecture = TargetArchitecture.I386;
-            module.Attributes = ModuleAttributes.ILOnly;
-
-            AddAssemblyAttributes();
-
-            definition = new TypeDefinition(
-                "",
-                string.Format("<>f__AnonymousType{0}`{1}", AllocateUniqueAnonymousClassNumber(), PropCount),
-                TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit,
-                module.TypeSystem.Object);
-
-            AddGenericParams();
-            module.Types.Add(definition);
-
-            foreach (var prop in properties)
-                AddProperty(prop);
-
-            AddConstructor();
-            AddGetHashCode();
-            AddEquals();
-            AddToString();
-
-            AddDebuggerDisplayAttribute();
-            AddCompilerGeneratedAttribute();
-            AddDebuggerBrowseableAttributesToFields();
-
-            return definition;
-        }
-
-
-        private void AddAssemblyAttributes()
-        {
-            AddRuntimeCompabilityAttributeToAssembly();
-            AddCompilationRelaxationsAttributeToAssembly();
-        }
-
-        private void AddCompilationRelaxationsAttributeToAssembly()
-        {
-            var attrType = module.Import(typeof (CompilationRelaxationsAttribute));
-            var methodDefinition =
-                module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
-            var attr =
-                new CustomAttribute(methodDefinition);
-
-            attr.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.Int32, 8));
-            module.Assembly.CustomAttributes.Add(attr);
-        }
-
-        private void AddRuntimeCompabilityAttributeToAssembly()
-        {
-            var attrType = module.Import(typeof (RuntimeCompatibilityAttribute));
-            var methodDefinition =
-                module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
-            var attr =
-                new CustomAttribute(methodDefinition);
-
-            attr.Properties.Add(
-                new CustomAttributeNamedArgument(
-                    "WrapNonExceptionThrows", new CustomAttributeArgument(module.TypeSystem.Boolean, true)));
-            module.Assembly.CustomAttributes.Add(attr);
-        }
-
 
         public MethodReference MakeHostInstanceGeneric(MethodReference self, params TypeReference[] arguments)
         {
@@ -229,11 +171,11 @@ namespace Pomona.CodeGen
               */
             var reference = new MethodReference(
                 self.Name, self.ReturnType, self.DeclaringType.MakeGenericInstanceType(arguments))
-                {
-                    HasThis = self.HasThis,
-                    ExplicitThis = self.ExplicitThis,
-                    CallingConvention = self.CallingConvention
-                };
+            {
+                HasThis = self.HasThis,
+                ExplicitThis = self.ExplicitThis,
+                CallingConvention = self.CallingConvention
+            };
 
             foreach (var parameter in self.Parameters)
                 reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
@@ -241,37 +183,61 @@ namespace Pomona.CodeGen
             foreach (var generic_parameter in self.GenericParameters)
                 reference.GenericParameters.Add(new GenericParameter(generic_parameter.Name, reference));
 
-            return module.Import(reference, ilFieldDeclaringType);
+            return this.module.Import(reference, this.ilFieldDeclaringType);
         }
 
 
-        private static int AllocateUniqueAnonymousClassNumber()
+        public static void ScanAssemblyForExistingAnonymousTypes(Assembly assembly)
         {
-            return Interlocked.Increment(ref anonTypeNumber);
+            var anonTypes = assembly.GetTypes().Where(x => x.IsAnonymous()).ToList();
+
+            foreach (var anonType in anonTypes)
+            {
+                var typeKey = GetAnonTypeKey(anonType.GetConstructors().Single().GetParameters().Select(x => x.Name));
+                anonTypeCache[typeKey] = anonType;
+            }
+        }
+
+
+        private void AddAssemblyAttributes()
+        {
+            AddRuntimeCompabilityAttributeToAssembly();
+            AddCompilationRelaxationsAttributeToAssembly();
+        }
+
+
+        private void AddCompilationRelaxationsAttributeToAssembly()
+        {
+            var attrType = this.module.Import(typeof(CompilationRelaxationsAttribute));
+            var methodDefinition = this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
+            var attr =
+                new CustomAttribute(methodDefinition);
+
+            attr.ConstructorArguments.Add(new CustomAttributeArgument(this.module.TypeSystem.Int32, 8));
+            this.module.Assembly.CustomAttributes.Add(attr);
         }
 
 
         private void AddCompilerGeneratedAttribute()
         {
-            var attrType = module.Import(typeof (CompilerGeneratedAttribute));
-            var methodDefinition =
-                module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
+            var attrType = this.module.Import(typeof(CompilerGeneratedAttribute));
+            var methodDefinition = this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
             var attr =
                 new CustomAttribute(methodDefinition);
-            definition.CustomAttributes.Add(attr);
+            this.definition.CustomAttributes.Add(attr);
         }
 
 
         private void AddConstructor()
         {
-            var baseCtor = module.Import(module.TypeSystem.Object.Resolve().GetConstructors().First());
+            var baseCtor = this.module.Import(this.module.TypeSystem.Object.Resolve().GetConstructors().First());
             const MethodAttributes methodAttributes =
                 MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.HideBySig |
                 MethodAttributes.SpecialName | MethodAttributes.RTSpecialName;
             var ctor = new MethodDefinition(
-                ".ctor", methodAttributes, module.TypeSystem.Void);
+                ".ctor", methodAttributes, this.module.TypeSystem.Void);
 
-            foreach (var prop in properties)
+            foreach (var prop in this.properties)
             {
                 prop.CtorParameter = new ParameterDefinition(prop.Name, ParameterAttributes.None, prop.GenericParameter);
                 ctor.Parameters.Add(prop.CtorParameter);
@@ -283,7 +249,7 @@ namespace Pomona.CodeGen
             ilproc.Emit(OpCodes.Ldarg_0);
             ilproc.Emit(OpCodes.Call, baseCtor);
 
-            foreach (var prop in properties)
+            foreach (var prop in this.properties)
             {
                 ilproc.Emit(OpCodes.Ldarg_0);
                 ilproc.Emit(OpCodes.Ldarg, prop.CtorParameter);
@@ -292,21 +258,20 @@ namespace Pomona.CodeGen
 
             ilproc.Emit(OpCodes.Ret);
 
-            definition.Methods.Add(ctor);
+            this.definition.Methods.Add(ctor);
         }
 
 
         private void AddDebuggerBrowseableAttributesToFields()
         {
-            var attrType = module.Import(typeof (DebuggerBrowsableAttribute));
-            var methodDefinition =
-                module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
-            foreach (var prop in properties)
+            var attrType = this.module.Import(typeof(DebuggerBrowsableAttribute));
+            var methodDefinition = this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
+            foreach (var prop in this.properties)
             {
                 var attr =
                     new CustomAttribute(methodDefinition);
                 attr.ConstructorArguments.Add(
-                    new CustomAttributeArgument(module.TypeSystem.String, DebuggerBrowsableState.Never));
+                    new CustomAttributeArgument(this.module.TypeSystem.String, DebuggerBrowsableState.Never));
                 prop.Field.CustomAttributes.Add(attr);
             }
         }
@@ -316,14 +281,13 @@ namespace Pomona.CodeGen
         {
             // \{ Foo = {Foo}, Bar = {Bar} }
             var attrValue = string.Format(
-                "\\{{ {0} }}", string.Join(", ", properties.Select(x => string.Format("{0} = {{{0}}}", x.Name))));
-            var attrType = module.Import(typeof (DebuggerDisplayAttribute));
-            var methodDefinition =
-                module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
+                "\\{{ {0} }}", string.Join(", ", this.properties.Select(x => string.Format("{0} = {{{0}}}", x.Name))));
+            var attrType = this.module.Import(typeof(DebuggerDisplayAttribute));
+            var methodDefinition = this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
             var attr =
                 new CustomAttribute(methodDefinition);
-            attr.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String, attrValue));
-            definition.CustomAttributes.Add(attr);
+            attr.ConstructorArguments.Add(new CustomAttributeArgument(this.module.TypeSystem.String, attrValue));
+            this.definition.CustomAttributes.Add(attr);
         }
 
 
@@ -332,16 +296,15 @@ namespace Pomona.CodeGen
             var method = new MethodDefinition(
                 "Equals",
                 MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.Virtual
-                | MethodAttributes.HideBySig,
-                module.TypeSystem.Boolean);
+                | MethodAttributes.HideBySig, this.module.TypeSystem.Boolean);
             method.Body.MaxStackSize = 5;
             method.Body.InitLocals = true;
 
-            var otherArg = new ParameterDefinition("value", ParameterAttributes.None, module.TypeSystem.Object);
+            var otherArg = new ParameterDefinition("value", ParameterAttributes.None, this.module.TypeSystem.Object);
             method.Parameters.Add(otherArg);
-            var otherVar = new VariableDefinition(ilFieldDeclaringType);
+            var otherVar = new VariableDefinition(this.ilFieldDeclaringType);
             method.Body.Variables.Add(otherVar);
-            var isEqualVar = new VariableDefinition(module.TypeSystem.Int32);
+            var isEqualVar = new VariableDefinition(this.module.TypeSystem.Int32);
             method.Body.Variables.Add(isEqualVar);
 
             var il = method.Body.GetILProcessor();
@@ -350,7 +313,7 @@ namespace Pomona.CodeGen
             //IL_0000: ldarg.1
             il.Emit(OpCodes.Ldarg, otherArg);
             //IL_0001: isinst class '<>f__AnonymousType0`2'<!'<Lo>j__TPar', !'<La>j__TPar'>
-            il.Emit(OpCodes.Isinst, ilFieldDeclaringType);
+            il.Emit(OpCodes.Isinst, this.ilFieldDeclaringType);
             //IL_0006: stloc.0
             il.Emit(OpCodes.Stloc, otherVar);
             //IL_0007: ldloc.0
@@ -360,9 +323,9 @@ namespace Pomona.CodeGen
 
             var storeResultInstruction = Instruction.Create(OpCodes.Stloc, isEqualVar);
 
-            for (var i = 0; i < properties.Count; i++)
+            for (var i = 0; i < this.properties.Count; i++)
             {
-                var prop = properties[i];
+                var prop = this.properties[i];
 
                 //IL_000a: call class [mscorlib]System.Collections.Generic.EqualityComparer`1<!0> class [mscorlib]System.Collections.Generic.EqualityComparer`1<!'<Lo>j__TPar'>::get_Default()
                 il.Emit(OpCodes.Call, prop.GetDefaultEqualityComparerMethod);
@@ -377,7 +340,7 @@ namespace Pomona.CodeGen
                 //IL_001b: callvirt instance bool class [mscorlib]System.Collections.Generic.EqualityComparer`1<!'<Lo>j__TPar'>::Equals(!0, !0)
                 il.Emit(OpCodes.Callvirt, prop.EqualityComparerEquals);
                 //IL_0020: brfalse.s IL_003a
-                if (i == properties.Count - 1)
+                if (i == this.properties.Count - 1)
                     il.Emit(OpCodes.Br, storeResultInstruction);
                 else
                     il.Emit(OpCodes.Brfalse, setToFalseInstruction);
@@ -396,19 +359,19 @@ namespace Pomona.CodeGen
 
             //IL_003f: ret
             il.Emit(OpCodes.Ret);
-            definition.Methods.Add(method);
+            this.definition.Methods.Add(method);
         }
 
 
         private void AddGenericParams()
         {
-            ilFieldDeclaringType = new GenericInstanceType(definition);
+            this.ilFieldDeclaringType = new GenericInstanceType(this.definition);
 
-            foreach (var prop in properties)
+            foreach (var prop in this.properties)
             {
-                prop.GenericParameter = new GenericParameter(string.Format("<{0}>j__TPar", prop.Name), definition);
-                definition.GenericParameters.Add(prop.GenericParameter);
-                ilFieldDeclaringType.GenericArguments.Add(prop.GenericParameter);
+                prop.GenericParameter = new GenericParameter(string.Format("<{0}>j__TPar", prop.Name), this.definition);
+                this.definition.GenericParameters.Add(prop.GenericParameter);
+                this.ilFieldDeclaringType.GenericArguments.Add(prop.GenericParameter);
             }
         }
 
@@ -418,13 +381,12 @@ namespace Pomona.CodeGen
             var method = new MethodDefinition(
                 "GetHashCode",
                 MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.Virtual
-                | MethodAttributes.HideBySig,
-                module.TypeSystem.Int32);
+                | MethodAttributes.HideBySig, this.module.TypeSystem.Int32);
             method.Body.MaxStackSize = 3;
             method.Body.InitLocals = true;
-            var var0 = new VariableDefinition(module.TypeSystem.Int32);
+            var var0 = new VariableDefinition(this.module.TypeSystem.Int32);
             method.Body.Variables.Add(var0);
-            var var1 = new VariableDefinition(module.TypeSystem.Int32);
+            var var1 = new VariableDefinition(this.module.TypeSystem.Int32);
             method.Body.Variables.Add(var1);
 
             var il = method.Body.GetILProcessor();
@@ -433,7 +395,7 @@ namespace Pomona.CodeGen
             int seed;
             using (var cipher = new SHA1Managed())
             {
-                var uniqueTypeString = string.Join("|", properties.Select(x => x.Name));
+                var uniqueTypeString = string.Join("|", this.properties.Select(x => x.Name));
                 var hash = cipher.ComputeHash(Encoding.UTF8.GetBytes(uniqueTypeString));
                 seed = BitConverter.ToInt32(hash, 0);
             }
@@ -441,7 +403,7 @@ namespace Pomona.CodeGen
             il.Emit(OpCodes.Ldc_I4, seed);
             il.Emit(OpCodes.Stloc, var0);
 
-            foreach (var prop in properties)
+            foreach (var prop in this.properties)
             {
                 //IL_0006: ldc.i4 -1521134295
                 il.Emit(OpCodes.Ldc_I4, -1521134295);
@@ -469,7 +431,7 @@ namespace Pomona.CodeGen
             il.Emit(OpCodes.Ldloc, var1);
             il.Emit(OpCodes.Ret);
 
-            definition.Methods.Add(method);
+            this.definition.Methods.Add(method);
         }
 
 
@@ -479,11 +441,11 @@ namespace Pomona.CodeGen
                 string.Format("<{0}>i__Field", prop.Name),
                 FieldAttributes.InitOnly | FieldAttributes.Private,
                 prop.GenericParameter);
-            definition.Fields.Add(prop.Field);
+            this.definition.Fields.Add(prop.Field);
 
             // Getter
             prop.Definition = new PropertyDefinition(prop.Name, PropertyAttributes.None, prop.GenericParameter);
-            definition.Properties.Add(prop.Definition);
+            this.definition.Properties.Add(prop.Definition);
 
             prop.GetMethod = new MethodDefinition(
                 string.Format("get_{0}", prop.Name),
@@ -491,7 +453,7 @@ namespace Pomona.CodeGen
                 prop.GenericParameter);
 
             prop.FieldIlReference = new FieldReference(
-                prop.Field.Name, prop.GenericParameter, ilFieldDeclaringType);
+                prop.Field.Name, prop.GenericParameter, this.ilFieldDeclaringType);
             var getter = prop.GetMethod;
             var getterBody = getter.Body;
             getterBody.MaxStackSize = 1;
@@ -504,12 +466,11 @@ namespace Pomona.CodeGen
             ilProc.Append(Instruction.Create(OpCodes.Ldloc_0));
             ilProc.Append(Instruction.Create(OpCodes.Ret));
             prop.GetMethod = getter;
-            definition.Methods.Add(getter);
+            this.definition.Methods.Add(getter);
 
             prop.Definition.GetMethod = getter;
 
-            var equalityComparerOfPropTypeDef =
-                module.Import(typeof (EqualityComparer<>)).Resolve();
+            var equalityComparerOfPropTypeDef = this.module.Import(typeof(EqualityComparer<>)).Resolve();
             prop.GetDefaultEqualityComparerMethod = MakeHostInstanceGeneric(
                 equalityComparerOfPropTypeDef.
                     Properties.Where(x => x.Name == "Default" && x.GetMethod.IsStatic).Select(x => x.GetMethod).
@@ -526,42 +487,51 @@ namespace Pomona.CodeGen
         }
 
 
+        private void AddRuntimeCompabilityAttributeToAssembly()
+        {
+            var attrType = this.module.Import(typeof(RuntimeCompatibilityAttribute));
+            var methodDefinition = this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 0));
+            var attr =
+                new CustomAttribute(methodDefinition);
+
+            attr.Properties.Add(
+                new CustomAttributeNamedArgument(
+                    "WrapNonExceptionThrows", new CustomAttributeArgument(this.module.TypeSystem.Boolean, true)));
+            this.module.Assembly.CustomAttributes.Add(attr);
+        }
+
+
         private void AddToString()
         {
             var method = new MethodDefinition(
                 "ToString",
                 MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.Virtual
-                | MethodAttributes.HideBySig,
-                module.TypeSystem.String);
+                | MethodAttributes.HideBySig, this.module.TypeSystem.String);
             method.Body.MaxStackSize = 2;
             method.Body.InitLocals = true;
 
-            var stringBuilderTypeRef = module.Import(typeof (StringBuilder));
+            var stringBuilderTypeRef = this.module.Import(typeof(StringBuilder));
             var stringBuilderTypeDef = stringBuilderTypeRef.Resolve();
-            var stringBuilderCtor =
-                module.Import(
-                    stringBuilderTypeDef.GetConstructors().First(x => x.Parameters.Count == 0 && !x.IsStatic));
-            var appendStringMethod =
-                module.Import(
-                    stringBuilderTypeDef.Methods.First(
-                        x =>
+            var stringBuilderCtor = this.module.Import(
+                stringBuilderTypeDef.GetConstructors().First(x => x.Parameters.Count == 0 && !x.IsStatic));
+            var appendStringMethod = this.module.Import(
+                stringBuilderTypeDef.Methods.First(
+                    x =>
                         x.Name == "Append" && x.Parameters.Count == 1
-                        && x.Parameters[0].ParameterType.FullName == module.TypeSystem.String.FullName));
-            var appendObjectMethod =
-                module.Import(
-                    stringBuilderTypeDef.Methods.First(
-                        x =>
+                        && x.Parameters[0].ParameterType.FullName == this.module.TypeSystem.String.FullName));
+            var appendObjectMethod = this.module.Import(
+                stringBuilderTypeDef.Methods.First(
+                    x =>
                         x.Name == "Append" && x.Parameters.Count == 1
-                        && x.Parameters[0].ParameterType.FullName == module.TypeSystem.Object.FullName));
+                        && x.Parameters[0].ParameterType.FullName == this.module.TypeSystem.Object.FullName));
 
-            var stringBuilderToStringMethod =
-                module.Import(
-                    stringBuilderTypeDef.Methods.First(
-                        x => !x.IsStatic && x.Name == "ToString" && x.Parameters.Count == 0));
+            var stringBuilderToStringMethod = this.module.Import(
+                stringBuilderTypeDef.Methods.First(
+                    x => !x.IsStatic && x.Name == "ToString" && x.Parameters.Count == 0));
 
             var stringBuilderVar = new VariableDefinition(stringBuilderTypeRef);
             method.Body.Variables.Add(stringBuilderVar);
-            var tmpStringVar = new VariableDefinition(module.TypeSystem.String);
+            var tmpStringVar = new VariableDefinition(this.module.TypeSystem.String);
             method.Body.Variables.Add(tmpStringVar);
 
             var il = method.Body.GetILProcessor();
@@ -572,7 +542,7 @@ namespace Pomona.CodeGen
             //IL_0006: ldloc.0
             il.Emit(OpCodes.Ldloc, stringBuilderVar);
             //IL_0007: ldstr "{ Target = "
-            il.Emit(OpCodes.Ldstr, string.Format("{{ {0} = ", properties[0].Name));
+            il.Emit(OpCodes.Ldstr, string.Format("{{ {0} = ", this.properties[0].Name));
             //IL_000c: callvirt instance class [mscorlib]System.Text.StringBuilder [mscorlib]System.Text.StringBuilder::Append(string)
             il.Emit(OpCodes.Callvirt, appendStringMethod);
             //IL_0011: pop
@@ -582,15 +552,15 @@ namespace Pomona.CodeGen
             //IL_0013: ldarg.0
             il.Emit(OpCodes.Ldarg_0);
             //IL_0014: ldfld !0 class '<>f__AnonymousType1`2'<!'<Target>j__TPar', !'<Elements>j__TPar'>::'<Target>i__Field'
-            il.Emit(OpCodes.Ldfld, properties[0].FieldIlReference);
+            il.Emit(OpCodes.Ldfld, this.properties[0].FieldIlReference);
             //IL_0019: box !'<Target>j__TPar'
-            il.Emit(OpCodes.Box, properties[0].GenericParameter);
+            il.Emit(OpCodes.Box, this.properties[0].GenericParameter);
             //IL_001e: callvirt instance class [mscorlib]System.Text.StringBuilder [mscorlib]System.Text.StringBuilder::Append(object)
             il.Emit(OpCodes.Callvirt, appendObjectMethod);
             //IL_0023: pop
             il.Emit(OpCodes.Pop);
 
-            foreach (var prop in properties.Skip(1))
+            foreach (var prop in this.properties.Skip(1))
             {
                 //IL_0024: ldloc.0
                 il.Emit(OpCodes.Ldloc, stringBuilderVar);
@@ -635,13 +605,40 @@ namespace Pomona.CodeGen
             //IL_0058: ret
             il.Emit(OpCodes.Ret);
 
-            definition.Methods.Add(method);
+            this.definition.Methods.Add(method);
+        }
+
+
+        private static int AllocateUniqueAnonymousClassNumber()
+        {
+            return Interlocked.Increment(ref anonTypeNumber);
+        }
+
+
+        private static string GetAnonTypeKey(IEnumerable<string> propNames)
+        {
+            return string.Join(",", propNames);
+        }
+
+
+        private static Type GetAnonymousType(IEnumerable<string> propNames)
+        {
+            var anonType = anonTypeCache.GetOrCreate(GetAnonTypeKey(propNames), () =>
+            {
+                var atb = new AnonymousTypeBuilder(propNames);
+                var typedef = atb.BuildAnonymousType();
+                var memStream = new MemoryStream();
+                typedef.Module.Assembly.Write(memStream);
+                var loadedAsm = AppDomain.CurrentDomain.Load(memStream.ToArray());
+                return loadedAsm.GetTypes().First(x => x.Name == typedef.Name);
+            });
+            return anonType;
         }
 
 
         private TypeReference Import<T>()
         {
-            return module.Import(typeof (T));
+            return this.module.Import(typeof(T));
         }
 
         #region Nested type: Property
@@ -656,16 +653,13 @@ namespace Pomona.CodeGen
 
 
             public ParameterDefinition CtorParameter { get; set; }
-
             public PropertyDefinition Definition { get; set; }
             public MethodReference EqualityComparerEquals { get; set; }
             public MethodReference EqualityComparerGetHashCode { get; set; }
-
             public FieldDefinition Field { get; set; }
             public FieldReference FieldIlReference { get; set; }
             public GenericParameter GenericParameter { get; set; }
             public MethodReference GetDefaultEqualityComparerMethod { get; set; }
-
             public MethodDefinition GetMethod { get; set; }
             public int Index { get; set; }
             public string Name { get; set; }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -39,9 +39,19 @@ namespace Pomona.Common.ExtendedResources
         where TExtended : TServer, IClientResource
         where TServer : IClientResource
     {
-        private readonly IList<TServer> wrappedList;
         private readonly ExtendedResourceInfo userTypeInfo;
+        private readonly IList<TServer> wrappedList;
         private readonly Dictionary<TServer, TExtended> wrapperMap = new Dictionary<TServer, TExtended>();
+
+        public ExtendedResourceInfo UserTypeInfo
+        {
+            get { return this.userTypeInfo; }
+        }
+
+        public object WrappedResource
+        {
+            get { return this.wrappedList; }
+        }
 
         #region IList<T> Members
 
@@ -63,56 +73,55 @@ namespace Pomona.Common.ExtendedResources
                 throw new InvalidOperationException("Unable to unwrap item, does not implemented IExtendedResourceProxy");
             var innerItem = (TServer)proxy.WrappedResource;
             if (cacheWrapper)
-                wrapperMap[innerItem] = outerItem;
+                this.wrapperMap[innerItem] = outerItem;
             return innerItem;
         }
+
 
         private TExtended Wrap(TServer innerItem)
         {
             TExtended outerItem;
-            if (wrapperMap.TryGetValue(innerItem, out outerItem))
+            if (this.wrapperMap.TryGetValue(innerItem, out outerItem))
                 return outerItem;
             outerItem = innerItem.Wrap<TServer, TExtended>();
-            wrapperMap[innerItem] = outerItem;
+            this.wrapperMap[innerItem] = outerItem;
             return outerItem;
         }
 
+
         public TExtended this[int index]
         {
-            get { return Wrap(wrappedList[index]); }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return Wrap(this.wrappedList[index]); }
+            set { throw new NotImplementedException(); }
         }
 
         public int Count
         {
-            get { return wrappedList.Count; }
+            get { return this.wrappedList.Count; }
         }
 
         public bool IsReadOnly
         {
-            get { return ((IList<TExtended>)wrappedList).IsReadOnly; }
+            get { return ((IList<TExtended>)this.wrappedList).IsReadOnly; }
         }
 
 
         public void Add(TExtended item)
         {
-            wrappedList.Add(Unwrap(item, true));
+            this.wrappedList.Add(Unwrap(item, true));
         }
 
 
         public void Clear()
         {
-            wrapperMap.Clear();
-            wrappedList.Clear();
+            this.wrapperMap.Clear();
+            this.wrappedList.Clear();
         }
 
 
         public bool Contains(TExtended item)
         {
-            return wrappedList.Contains(Unwrap(item));
+            return this.wrappedList.Contains(Unwrap(item));
         }
 
 
@@ -124,31 +133,31 @@ namespace Pomona.Common.ExtendedResources
 
         public IEnumerator<TExtended> GetEnumerator()
         {
-            return wrappedList.Select(Wrap).GetEnumerator();
+            return this.wrappedList.Select(Wrap).GetEnumerator();
         }
 
 
         public int IndexOf(TExtended item)
         {
-            return wrappedList.IndexOf(Unwrap(item));
+            return this.wrappedList.IndexOf(Unwrap(item));
         }
 
 
         public void Insert(int index, TExtended item)
         {
-            wrappedList.Insert(index, Unwrap(item, true));
+            this.wrappedList.Insert(index, Unwrap(item, true));
         }
 
 
         public bool Remove(TExtended item)
         {
-            return wrappedList.Remove(Unwrap(item));
+            return this.wrappedList.Remove(Unwrap(item));
         }
 
 
         public void RemoveAt(int index)
         {
-            wrappedList.RemoveAt(index);
+            this.wrappedList.RemoveAt(index);
         }
 
 
@@ -158,15 +167,5 @@ namespace Pomona.Common.ExtendedResources
         }
 
         #endregion
-
-        public ExtendedResourceInfo UserTypeInfo
-        {
-            get { return userTypeInfo; }
-        }
-
-        public object WrappedResource
-        {
-            get { return wrappedList; }
-        }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -54,24 +54,12 @@ namespace Pomona.SystemTests
 
         protected List<ClientRequestLogEventArgs> RequestLog
         {
-            get { return requestLog; }
+            get { return this.requestLog; }
         }
 
         protected IWebClient WebClient
         {
             get { return Client.WebClient; }
-        }
-
-
-        private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
-        {
-            requestLog.Add(e);
-            if (RequestTraceEnabled)
-            {
-                Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                                  e.Request,
-                                  (object)e.Response ?? "(nothing received)");
-            }
         }
 
 
@@ -82,18 +70,18 @@ namespace Pomona.SystemTests
         }
 
 
-        public override void SetUp()
-        {
-            base.SetUp();
-            requestLog.Clear();
-        }
-
-
         public override CritterClient CreateInMemoryTestingClient(string baseUri,
                                                                   CritterBootstrapper critterBootstrapper)
         {
             var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
             return new CritterClient(baseUri, nancyTestingWebClient);
+        }
+
+
+        public override void SetUp()
+        {
+            base.SetUp();
+            this.requestLog.Clear();
         }
 
 
@@ -152,6 +140,18 @@ namespace Pomona.SystemTests
                     x.HatType = hatType;
                 });
             return (IHat)hat;
+        }
+
+
+        private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
+        {
+            this.requestLog.Add(e);
+            if (RequestTraceEnabled)
+            {
+                Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
+                                  e.Request,
+                                  (object)e.Response ?? "(nothing received)");
+            }
         }
 
 

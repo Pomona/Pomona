@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -37,31 +37,6 @@ namespace Pomona.RequestProcessing
 {
     public class ValidateEtagProcessor : IPomonaRequestProcessor
     {
-        public PomonaResponse Process(PomonaContext context)
-        {
-            string ifMatch = null;
-            if ((ifMatch = GetIfMatchFromRequest(context)) == null)
-                return null;
-
-            return ProcessPatch(context, ifMatch) ?? ProcessPostToChildResourceRepository(context, ifMatch);
-        }
-
-
-        private static PomonaResponse ValidateResourceEtag(string ifMatch, UrlSegment node)
-        {
-            var resourceType = node.ResultType as ResourceType;
-            if (resourceType == null)
-                return null;
-            var etagProp = resourceType.ETagProperty;
-            if (etagProp == null)
-                throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
-
-            if ((string)etagProp.GetValue(node.Value) != ifMatch)
-                throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
-            return null;
-        }
-
-
         private string GetIfMatchFromRequest(PomonaContext context)
         {
             var ifMatch = context.Headers.IfMatch.FirstOrDefault();
@@ -99,6 +74,31 @@ namespace Pomona.RequestProcessing
             if (parentNode != null)
                 return ValidateResourceEtag(ifMatch, parentNode);
             return null;
+        }
+
+
+        private static PomonaResponse ValidateResourceEtag(string ifMatch, UrlSegment node)
+        {
+            var resourceType = node.ResultType as ResourceType;
+            if (resourceType == null)
+                return null;
+            var etagProp = resourceType.ETagProperty;
+            if (etagProp == null)
+                throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
+
+            if ((string)etagProp.GetValue(node.Value) != ifMatch)
+                throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
+            return null;
+        }
+
+
+        public PomonaResponse Process(PomonaContext context)
+        {
+            string ifMatch = null;
+            if ((ifMatch = GetIfMatchFromRequest(context)) == null)
+                return null;
+
+            return ProcessPatch(context, ifMatch) ?? ProcessPostToChildResourceRepository(context, ifMatch);
         }
     }
 }

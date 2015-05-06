@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+
 using Pomona.Example.Models;
 
 namespace Pomona.Example
@@ -40,7 +41,7 @@ namespace Pomona.Example
     {
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (typeof (EntityBase).IsAssignableFrom(node.Expression.Type))
+            if (typeof(EntityBase).IsAssignableFrom(node.Expression.Type))
             {
                 var memberInfo = node.Member;
                 if (memberInfo.GetCustomAttributes(true).OfType<NotKnownToDataSourceAttribute>().Any())

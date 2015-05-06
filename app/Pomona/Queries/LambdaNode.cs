@@ -1,7 +1,9 @@
+#region License
+
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2013 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -22,6 +24,8 @@
 // DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#endregion
+
 using System.Collections.Generic;
 
 namespace Pomona.Queries
@@ -32,7 +36,8 @@ namespace Pomona.Queries
         private readonly NodeBase body;
 
 
-        public LambdaNode(IEnumerable<NodeBase> children) : base(NodeType.Lambda, children)
+        public LambdaNode(IEnumerable<NodeBase> children)
+            : base(NodeType.Lambda, children)
         {
             if (Children.Count != 2)
                 throw new PomonaExpressionSyntaxException("Error parsing lambda expression");
@@ -40,19 +45,19 @@ namespace Pomona.Queries
             if (Children[0].NodeType != NodeType.Symbol)
                 throw new PomonaExpressionSyntaxException("Left side of lambda expression needs to be a symbol.");
 
-            argument = Children[0] as SymbolNode;
-            body = Children[1];
+            this.argument = Children[0] as SymbolNode;
+            this.body = Children[1];
         }
 
 
         public SymbolNode Argument
         {
-            get { return argument; }
+            get { return this.argument; }
         }
 
         public NodeBase Body
         {
-            get { return body; }
+            get { return this.body; }
         }
     }
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,9 @@ namespace Pomona.Scheduler
 {
     public class Job : IJob
     {
+        private DateTime? completedOn;
+        private string method;
+        private DateTime scheduledOn;
         // First minimal version (only supports GET, expects 2?? response)
         private string url;
 
@@ -49,33 +52,11 @@ namespace Pomona.Scheduler
         }
 
 
-        public virtual string Url
-        {
-            get { return this.url; }
-            protected set { this.url = value; }
-        }
-
-        private string method;
-
-        public virtual string Method
-        {
-            get { return this.method; }
-            protected set { this.method = value; }
-        }
-
-        private DateTime scheduledOn;
-
-        public virtual DateTime ScheduledOn
-        {
-            get { return this.scheduledOn; }
-            protected set { this.scheduledOn = value; }
-        }
-
-
         public void Complete(DateTime utcNow)
         {
-            completedOn = utcNow;
+            this.completedOn = utcNow;
         }
+
 
         public virtual DateTime? CompletedOn
         {
@@ -83,6 +64,22 @@ namespace Pomona.Scheduler
             protected internal set { this.completedOn = value; }
         }
 
-        private DateTime? completedOn;
+        public virtual string Method
+        {
+            get { return this.method; }
+            protected set { this.method = value; }
+        }
+
+        public virtual DateTime ScheduledOn
+        {
+            get { return this.scheduledOn; }
+            protected set { this.scheduledOn = value; }
+        }
+
+        public virtual string Url
+        {
+            get { return this.url; }
+            protected set { this.url = value; }
+        }
     }
 }

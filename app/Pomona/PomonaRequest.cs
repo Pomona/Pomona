@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -56,23 +56,24 @@ namespace Pomona
             this.method = method;
             this.url = url;
             this.relativePath = relativePath;
-            this.Body = body;
+            Body = body;
             this.headers = headers;
-            this.Query = query ?? new DynamicDictionary();
+            Query = query ?? new DynamicDictionary();
         }
 
+
+        public Stream Body { get; internal set; }
+
+        public RequestHeaders Headers
+        {
+            get { return this.headers ?? (this.headers = new RequestHeaders(new Dictionary<string, IEnumerable<string>>())); }
+        }
 
         public HttpMethod Method
         {
             get { return this.method; }
         }
 
-        public string Url
-        {
-            get { return this.url; }
-        }
-
-        public Stream Body { get; internal set; }
         public DynamicDictionary Query { get; internal set; }
 
         public string RelativePath
@@ -80,12 +81,9 @@ namespace Pomona
             get { return this.relativePath; }
         }
 
-        public RequestHeaders Headers
+        public string Url
         {
-            get
-            {
-                return this.headers ?? (this.headers = new RequestHeaders(new Dictionary<string, IEnumerable<string>>()));
-            }
+            get { return this.url; }
         }
     }
 }
