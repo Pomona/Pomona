@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2014 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
-using System.Xml.Linq;
-using System.Xml.Serialization;
 
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -201,9 +199,11 @@ namespace Pomona.CodeGen
                 if (xmlDocStreamFactory == null)
                     return;
                 using (var xmlStream = xmlDocStreamFactory())
-                using (var xmlWriter = new XmlTextWriter(xmlStream, Encoding.UTF8))
                 {
-                    doc.Node.WriteTo(xmlWriter);
+                    using (var xmlWriter = new XmlTextWriter(xmlStream, Encoding.UTF8))
+                    {
+                        doc.Node.WriteTo(xmlWriter);
+                    }
                 }
             });
         }
@@ -218,7 +218,9 @@ namespace Pomona.CodeGen
         }
 
 
-        private CustomAttribute AddAttribute<TAttribute>(ICustomAttributeProvider interfacePropDef, Func<MethodDefinition, bool> ctorPredicate = null, Action<CustomAttribute> actions = null)
+        private CustomAttribute AddAttribute<TAttribute>(ICustomAttributeProvider interfacePropDef,
+                                                         Func<MethodDefinition, bool> ctorPredicate = null,
+                                                         Action<CustomAttribute> actions = null)
             where TAttribute : Attribute
         {
             ctorPredicate = ctorPredicate ?? (x => true);
@@ -311,7 +313,7 @@ namespace Pomona.CodeGen
                 {
                     Name = "P:" + propDef.DeclaringType.FullName + "." + propDef.Name,
                     // TODO: Proper conversion of reference nodes etc..
-                    Summary = new XDocContentContainer() { new XDocText(docProvider.GetSummary(prop).ToString().Trim()) }
+                    Summary = new XDocContentContainer() { new XDocText(this.docProvider.GetSummary(prop).ToString().Trim()) }
                 });
             }
         }
@@ -572,11 +574,11 @@ namespace Pomona.CodeGen
             interfaceDef.CustomAttributes.Add(custAttr);
 
             AddAttribute<AllowedMethodsAttribute>(interfaceDef, x => x.Parameters.Count == 1,
-                                                      x =>
-                                                          x.ConstructorArguments.Add(
-                                                              new CustomAttributeArgument(Import(typeof(HttpMethod)),
-                                                                                          typeInfo.StructuredType
-                                                                                                  .AllowedMethods)));
+                                                  x =>
+                                                      x.ConstructorArguments.Add(
+                                                          new CustomAttributeArgument(Import(typeof(HttpMethod)),
+                                                                                      typeInfo.StructuredType
+                                                                                              .AllowedMethods)));
             //var attrConstructor = attr.Resolve().GetConstructors();
         }
 
