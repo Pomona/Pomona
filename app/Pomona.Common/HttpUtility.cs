@@ -1,33 +1,30 @@
+#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
 // 
-// System.Web.HttpUtility
-//
-// Authors:
-//   Patrik Torstensson (Patrik.Torstensson@labs2.com)
-//   Wictor Wilén (decode/encode functions) (wictor@ibizkit.se)
-//   Tim Coleman (tim@timcoleman.com)
-//   Gonzalo Paniagua Javier (gonzalo@ximian.com)
-//
-// Copyright (C) 2005-2010 Novell, Inc (http://www.novell.com)
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
+// Copyright © 2015 Karsten Nikolai Strand
 // 
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
 // 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
 
 using System;
 using System.Collections;
@@ -111,7 +108,7 @@ namespace Pomona.Common
 
         private static char[] GetChars(MemoryStream b, Encoding e)
         {
-            return e.GetChars(b.GetBuffer(), 0, (int) b.Length);
+            return e.GetChars(b.GetBuffer(), 0, (int)b.Length);
         }
 
 
@@ -119,11 +116,11 @@ namespace Pomona.Common
         {
             if (ch > 255)
             {
-                foreach (var b in e.GetBytes(new char[] {ch}))
+                foreach (var b in e.GetBytes(new char[] { ch }))
                     buf.Add(b);
             }
             else
-                buf.Add((byte) ch);
+                buf.Add((byte)ch);
         }
 
 
@@ -154,7 +151,7 @@ namespace Pomona.Common
                         xchar = GetChar(s, i + 2, 4);
                         if (xchar != -1)
                         {
-                            WriteCharBytes(bytes, (char) xchar, e);
+                            WriteCharBytes(bytes, (char)xchar, e);
                             i += 5;
                         }
                         else
@@ -162,7 +159,7 @@ namespace Pomona.Common
                     }
                     else if ((xchar = GetChar(s, i + 1, 2)) != -1)
                     {
-                        WriteCharBytes(bytes, (char) xchar, e);
+                        WriteCharBytes(bytes, (char)xchar, e);
                         i += 2;
                     }
                     else
@@ -193,7 +190,7 @@ namespace Pomona.Common
 
         private static int GetInt(byte b)
         {
-            var c = (char) b;
+            var c = (char)b;
             if (c >= '0' && c <= '9')
                 return c - '0';
 
@@ -233,7 +230,7 @@ namespace Pomona.Common
                 if (c > 127)
                     return -1;
 
-                var current = GetInt((byte) c);
+                var current = GetInt((byte)c);
                 if (current == -1)
                     return -1;
                 val = (val << 4) + current;
@@ -268,7 +265,7 @@ namespace Pomona.Common
             {
                 if (bytes[i] == '%' && i + 2 < count && bytes[i + 1] != '%')
                 {
-                    if (bytes[i + 1] == (byte) 'u' && i + 5 < end)
+                    if (bytes[i + 1] == (byte)'u' && i + 5 < end)
                     {
                         if (acc.Length > 0)
                         {
@@ -278,14 +275,14 @@ namespace Pomona.Common
                         xchar = GetChar(bytes, i + 2, 4);
                         if (xchar != -1)
                         {
-                            output.Append((char) xchar);
+                            output.Append((char)xchar);
                             i += 5;
                             continue;
                         }
                     }
                     else if ((xchar = GetChar(bytes, i + 1, 2)) != -1)
                     {
-                        acc.WriteByte((byte) xchar);
+                        acc.WriteByte((byte)xchar);
                         i += 2;
                         continue;
                     }
@@ -300,7 +297,7 @@ namespace Pomona.Common
                 if (bytes[i] == '+')
                     output.Append(' ');
                 else
-                    output.Append((char) bytes[i]);
+                    output.Append((char)bytes[i]);
             }
 
             if (acc.Length > 0)
@@ -356,7 +353,7 @@ namespace Pomona.Common
             var end = offset + count;
             for (var i = offset; i < end; i++)
             {
-                var c = (char) bytes[i];
+                var c = (char)bytes[i];
                 if (c == '+')
                     c = ' ';
                 else if (c == '%' && i < end - 2)
@@ -364,11 +361,11 @@ namespace Pomona.Common
                     var xchar = GetChar(bytes, i + 1, 2);
                     if (xchar != -1)
                     {
-                        c = (char) xchar;
+                        c = (char)xchar;
                         i += 2;
                     }
                 }
-                result.WriteByte((byte) c);
+                result.WriteByte((byte)c);
             }
 
             return result.ToArray();
@@ -694,7 +691,9 @@ namespace Pomona.Common
 #endif
         }
 
-        private readonly static byte[] pathSegmentNonEncodedChars = "(),[]_-.".Select(x => (byte)x).ToArray();
+
+        private static readonly byte[] pathSegmentNonEncodedChars = "(),[]_-.".Select(x => (byte)x).ToArray();
+
 
         public static string UrlPathSegmentEncode(string s)
         {
@@ -702,6 +701,7 @@ namespace Pomona.Common
             UrlPathSegmentEncode(sb, s);
             return sb.ToString();
         }
+
 
         public static void UrlPathSegmentEncode(StringBuilder stringBuilder, string s)
         {
@@ -719,15 +719,12 @@ namespace Pomona.Common
             foreach (var c in bytes)
             {
                 if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || pathSegmentNonEncodedChars.Contains(c))
-                {
                     stringBuilder.Append((char)c);
-                }
                 else
-                {
                     stringBuilder.AppendFormat(CultureInfo.InvariantCulture, "%{0:X2}", (int)c);
-                }
             }
         }
+
 
         public static NameValueCollection ParseQueryString(string query)
         {
