@@ -1289,68 +1289,6 @@ namespace Pomona.CodeGen
             }
         }
 
-        #region Nested type: PatchFormProxyBuilder
-
-        private class PatchFormProxyBuilder : WrappedPropertyProxyBuilder
-        {
-            private readonly ClientLibGenerator owner;
-
-
-            public PatchFormProxyBuilder(ClientLibGenerator owner, bool isPublic = true)
-                : base(owner.module,
-                       owner.GetProxyType("PostResourceBase"),
-                       owner.Import(typeof(PropertyWrapper<,>)).Resolve(),
-                       isPublic,
-                       proxyNamespace : owner.@namespace)
-            {
-                this.owner = owner;
-                ProxyNameFormat = "{0}PatchForm";
-            }
-
-
-            protected override void OnGeneratePropertyMethods(PropertyDefinition targetProp,
-                                                              PropertyDefinition proxyProp,
-                                                              TypeReference proxyBaseType,
-                                                              TypeReference proxyTargetType,
-                                                              TypeReference rootProxyTargetType)
-            {
-                var propertyMapping = this.owner.GetPropertyMapping(targetProp);
-                base.OnGeneratePropertyMethods(targetProp,
-                                               proxyProp,
-                                               proxyBaseType,
-                                               proxyTargetType,
-                                               rootProxyTargetType);
-                if ((propertyMapping.AccessMode & (HttpMethod.Patch | HttpMethod.Put | HttpMethod.Post)) != 0)
-                    return;
-
-                var invalidOperationStrCtor =
-                    typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
-                var invalidOperationStrCtorRef = this.owner.Import(invalidOperationStrCtor);
-
-                // Do not disable GETTING of collection types in update proxy, we might want to change
-                // the collection itself.
-
-                var allowReadingOfProperty = propertyMapping.PropertyType is EnumerableTypeSpec ||
-                                             propertyMapping.PropertyType is DictionaryTypeSpec;
-
-                var methodsToRestrict = allowReadingOfProperty
-                    ? new[] { proxyProp.SetMethod }
-                    : new[] { proxyProp.SetMethod, proxyProp.GetMethod };
-
-                foreach (var method in methodsToRestrict)
-                {
-                    method.Body.Instructions.Clear();
-                    var ilproc = method.Body.GetILProcessor();
-                    ilproc.Append(Instruction.Create(OpCodes.Ldstr,
-                                                     "Illegal to update remote property " + propertyMapping.Name));
-                    ilproc.Append(Instruction.Create(OpCodes.Newobj, invalidOperationStrCtorRef));
-                    ilproc.Append(Instruction.Create(OpCodes.Throw));
-                }
-            }
-        }
-
-        #endregion
-
         #region Nested type: PostFormProxyBuilder
 
         private class PostFormProxyBuilder : WrappedPropertyProxyBuilder
