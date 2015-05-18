@@ -76,7 +76,6 @@ namespace Pomona.Common
                                    Type expectedType,
                                    ISerializationContextProvider serializationContextProvider)
         {
-            // TODO: Clean up this mess, we need to get a uniform container type for all results! [KNS]
             if (expectedType == typeof(JToken))
                 return JToken.Parse(jsonString);
 
