@@ -126,6 +126,28 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void Query_Using_Last_Projection_SequenceHasElements_ReturnsLastElement()
+        {
+            var critterResource = Client.Critters.OrderBy(x => x.Id).Last();
+            Assert.That(critterResource.Id, Is.EqualTo(CritterEntities.OrderBy(x => x.Id).Last().Id));
+        }
+
+
+        [Test]
+        public void Query_Using_Last_Projection_SequenceIsEmpty_ThrowsInvalidOperationException()
+        {
+            Assert.Throws<InvalidOperationException>(() => Client.Critters.Last(x => x.Id == -1111111));
+        }
+
+
+        [Test]
+        public void Query_Using_LastOrDefault_Projection_SequenceHasElements_ReturnsNull()
+        {
+            Assert.That(Client.Critters.LastOrDefault(x => x.Id == -1111111), Is.Null);
+        }
+
+
+        [Test]
         public void Query_Where_StringEnum_Equals_Constant_Is_Successful()
         {
             Save(new HasCustomStringEnum() { Value = CustomStringEnum.Cat });

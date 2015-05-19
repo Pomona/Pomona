@@ -41,6 +41,8 @@ namespace Pomona.Common.Linq.NonGeneric
         public static readonly QueryProjection AsEnumerable = new AsEnumerableQueryProjection();
         public static readonly QueryProjection First = Create(x => x.First());
         public static readonly QueryProjection FirstOrDefault = Create(x => x.FirstOrDefault());
+        public static readonly QueryProjection Last = Create(x => x.Last());
+        public static readonly QueryProjection LastOrDefault = Create(x => x.LastOrDefault());
         public static readonly QueryProjection Max = Create(x => x.Max());
         public static readonly QueryProjection Min = Create(x => x.Min());
         public static readonly QueryProjection Single = Create(x => x.Single());

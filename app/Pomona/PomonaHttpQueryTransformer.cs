@@ -152,7 +152,9 @@ namespace Pomona
             if (query.Projection == PomonaQuery.ProjectionType.First
                 || query.Projection == PomonaQuery.ProjectionType.FirstOrDefault
                 || query.Projection == PomonaQuery.ProjectionType.Single
-                || query.Projection == PomonaQuery.ProjectionType.SingleOrDefault)
+                || query.Projection == PomonaQuery.ProjectionType.SingleOrDefault
+                || query.Projection == PomonaQuery.ProjectionType.Last
+                || query.Projection == PomonaQuery.ProjectionType.LastOrDefault)
                 query.ResultType = elementType;
         }
 

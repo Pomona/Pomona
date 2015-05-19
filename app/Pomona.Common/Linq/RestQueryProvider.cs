@@ -217,13 +217,13 @@ namespace Pomona.Common.Linq
                     if (clientSideSelectPart != null)
                         return result.Select(clientSideSelectPart).ToList();
                     return result;
+                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
                 case RestQueryableTreeParser.QueryProjection.First:
-                    return GetFirst(uri, requestOptions, clientSideSelectPart);
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.Single:
+                case RestQueryableTreeParser.QueryProjection.Last:
+                case RestQueryableTreeParser.QueryProjection.LastOrDefault:
                     return GetFirst(uri, requestOptions, clientSideSelectPart);
-                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
-                // TODO: SingleOrDefault is obviously not implemented, has been overlooked [KNS]
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
@@ -282,6 +282,12 @@ namespace Pomona.Common.Linq
                     break;
                 case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
                     projection = "singleordefault";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Last:
+                    projection = "last";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.LastOrDefault:
+                    projection = "lastordefault";
                     break;
                 case RestQueryableTreeParser.QueryProjection.Max:
                     projection = "max";

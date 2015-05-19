@@ -59,7 +59,9 @@ namespace Pomona
             Max,
             Min,
             Sum,
-            Count
+            Count,
+            Last,
+            LastOrDefault
         }
 
         #endregion
@@ -177,11 +179,23 @@ namespace Pomona
             {
                 case ProjectionType.Single:
                 case ProjectionType.First:
+                case ProjectionType.Last:
                 {
-                    object result;
+                    object result = null;
                     try
                     {
-                        result = Projection == ProjectionType.First ? totalQueryable.First() : totalQueryable.Single();
+                        switch (Projection)
+                        {
+                            case ProjectionType.First:
+                                result = totalQueryable.First();
+                                break;
+                            case ProjectionType.Last:
+                                result = totalQueryable.Last();
+                                break;
+                            case ProjectionType.Single:
+                                result = totalQueryable.Single();
+                                break;
+                        }
                     }
                     catch (InvalidOperationException)
                     {
@@ -197,6 +211,8 @@ namespace Pomona
                     return new PomonaResponse(this, totalQueryable.FirstOrDefault());
                 case ProjectionType.SingleOrDefault:
                     return new PomonaResponse(this, totalQueryable.SingleOrDefault());
+                case ProjectionType.LastOrDefault:
+                    return new PomonaResponse(this, totalQueryable.LastOrDefault());
                 case ProjectionType.Max:
                     return new PomonaResponse(this, totalQueryable.Max());
                 case ProjectionType.Min:

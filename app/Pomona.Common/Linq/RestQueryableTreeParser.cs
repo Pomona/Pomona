@@ -53,7 +53,9 @@ namespace Pomona.Common.Linq
             Max,
             Min,
             Sum,
-            Count
+            Count,
+            Last,
+            LastOrDefault
         }
 
         #endregion
@@ -303,6 +305,32 @@ namespace Pomona.Common.Linq
         internal void QIncludeTotalCount<TSource>()
         {
             IncludeTotalCount = true;
+        }
+
+
+        internal void QLast<TSource>()
+        {
+            Projection = QueryProjection.Last;
+        }
+
+
+        internal void QLast<TSource>(Expression<Func<TSource, bool>> predicate)
+        {
+            QWhere(predicate);
+            QLast<TSource>();
+        }
+
+
+        internal void QLastOrDefault<TSource>()
+        {
+            Projection = QueryProjection.LastOrDefault;
+        }
+
+
+        internal void QLastOrDefault<TSource>(Expression<Func<TSource, bool>> predicate)
+        {
+            QWhere(predicate);
+            QLastOrDefault<TSource>();
         }
 
 

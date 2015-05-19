@@ -70,6 +70,27 @@ namespace Pomona.UnitTests.Linq.Queries
 
 
         [Test]
+        public void Execute_Last_Projection_On_Empty_Collection_Throws_InvalidOperationException()
+        {
+            Assert.Throws<InvalidOperationException>(() => QueryProjection.Last.Execute<string>(Empty<string>()));
+        }
+
+
+        [Test]
+        public void Execute_Last_Projection_On_Non_Empty_Collection_Returns_Last_Element()
+        {
+            Assert.That(QueryProjection.LastOrDefault.Execute<string>(Q("gangnam", "style")), Is.EqualTo("style"));
+        }
+
+
+        [Test]
+        public void Execute_LastOrDefault_Projection_On_Empty_Collection_Returns_Default()
+        {
+            Assert.That(QueryProjection.LastOrDefault.Execute<string>(Empty<string>()), Is.Null);
+        }
+
+
+        [Test]
         public void Execute_Sum_Projection_On_Empty_Collection_Returns_Zero()
         {
             Assert.That(QueryProjection.Sum.Execute<int>(Empty<int>()), Is.EqualTo(0));
