@@ -134,30 +134,6 @@ namespace Pomona.Queries
         }
 
 
-        private void FixBinaryOperatorConversion(ref Expression left,
-                                                 ref Expression right,
-                                                 bool callSwappedRecursively = true)
-        {
-            var leftType = left.Type;
-
-            if (leftType.IsNullable() && Nullable.GetUnderlyingType(leftType) == right.Type)
-                right = Expression.Convert(right, leftType);
-            else if (leftType == typeof(object) && right.Type != typeof(object))
-            {
-                var newType = right.Type;
-                if (newType.IsValueType && !newType.IsNullable())
-                {
-                    newType = typeof(Nullable<>).MakeGenericType(newType);
-                    right = Expression.Convert(right, newType);
-                }
-                if (left.NodeType != ExpressionType.Constant || ((ConstantExpression)left).Value != null)
-                    left = Expression.TypeAs(left, newType);
-            }
-            else if (callSwappedRecursively)
-                FixBinaryOperatorConversion(ref right, ref left, callSwappedRecursively : false);
-        }
-
-
         private Expression MakePropertyAccess(SymbolNode currentNode, Expression target, string expressionPath = null)
         {
             expressionPath = expressionPath ?? currentNode.Name;
@@ -244,7 +220,7 @@ namespace Pomona.Queries
             var leftChild = ParseExpression(leftNode);
             var rightChild = ParseExpression(rightNode);
 
-            FixBinaryOperatorConversion(ref leftChild, ref rightChild);
+            PeformImplicitConversionForNodePair(ref leftChild, ref rightChild);
 
             switch (binaryOperatorNode.NodeType)
             {
@@ -310,6 +286,27 @@ namespace Pomona.Queries
                                                            l,
                                                            r,
                                                            Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
+        }
+
+
+        private void ParseConditionalOperator(MethodCallNode node, ref Expression expression)
+        {
+            if (node.Children.Count != 3)
+            {
+                throw CreateParseException(node,
+                                           "Conditional requires three arguments: iif(test, iftrue, iffalse).");
+            }
+
+            var testExpr = ParseExpression(node.Children[0]);
+            var ifTrue = ParseExpression(node.Children[1]);
+            var ifFalse = ParseExpression(node.Children[2]);
+
+            if (ifTrue.Type != ifFalse.Type)
+                PeformImplicitConversionForNodePair(ref ifTrue, ref ifFalse);
+
+            expression = Expression.Condition(testExpr,
+                                              ifTrue,
+                                              ifFalse);
         }
 
 
@@ -509,6 +506,30 @@ namespace Pomona.Queries
                 }
             }
             throw CreateParseException(node, "Could not recognize method " + node.Name);
+        }
+
+
+        private void PeformImplicitConversionForNodePair(ref Expression left,
+                                                         ref Expression right,
+                                                         bool callSwappedRecursively = true)
+        {
+            var leftType = left.Type;
+
+            if (leftType.IsNullable() && Nullable.GetUnderlyingType(leftType) == right.Type)
+                right = Expression.Convert(right, leftType);
+            else if (leftType == typeof(object) && right.Type != typeof(object))
+            {
+                var newType = right.Type;
+                if (newType.IsValueType && !newType.IsNullable())
+                {
+                    newType = typeof(Nullable<>).MakeGenericType(newType);
+                    right = Expression.Convert(right, newType);
+                }
+                if (left.NodeType != ExpressionType.Constant || ((ConstantExpression)left).Value != null)
+                    left = Expression.TypeAs(left, newType);
+            }
+            else if (callSwappedRecursively)
+                PeformImplicitConversionForNodePair(ref right, ref left, callSwappedRecursively : false);
         }
 
 
@@ -753,16 +774,7 @@ namespace Pomona.Queries
                     return true;
 
                 case "iif":
-                    if (node.Children.Count != 3)
-                    {
-                        throw CreateParseException(node,
-                                                   "Conditional requires three arguments: iif(test, iftrue, iffalse).");
-                    }
-
-                    expression = Expression.Condition(ParseExpression(node.Children[0]),
-                                                      ParseExpression(node.Children[1]),
-                                                      ParseExpression(node.Children[2]));
-
+                    ParseConditionalOperator(node, ref expression);
                     return true;
             }
 

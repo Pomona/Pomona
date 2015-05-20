@@ -39,6 +39,27 @@ namespace Pomona.UnitTests.Queries
     public class ParseExpressionTests : QueryExpressionParserTestsBase
     {
         [Test]
+        public void Parse_Conditional_IfTrueYieldsNonNullableInt_IfFalseYieldsNullableInt_CreatesCorrectExpression()
+        {
+            ParseAndAssert("iif(onOrOff,44433,nullableNumber)", _this => _this.OnOrOff ? 44433 : _this.NullableNumber);
+        }
+
+
+        [Test]
+        public void Parse_Conditional_IfTrueYieldsNullableBool_IfFalseYieldsNonNullableBool_CreatesCorrectExpression()
+        {
+            ParseAndAssert("iif(onOrOff,nullableBool,true)", _this => _this.OnOrOff ? _this.NullableBool : true);
+        }
+
+
+        [Test]
+        public void Parse_Conditional_IfTrueYieldsNullableInt_IfFalseYieldsNonNullableInt_CreatesCorrectExpression()
+        {
+            ParseAndAssert("iif(onOrOff,nullableNumber,44433)", _this => _this.OnOrOff ? _this.NullableNumber : 44433);
+        }
+
+
+        [Test]
         public void Parse_NullableBoolNotEqualsTrue_CreatesCorrectExpression()
         {
             ParseAndAssert("nullableBool ne true", _this => _this.NullableBool != true);
