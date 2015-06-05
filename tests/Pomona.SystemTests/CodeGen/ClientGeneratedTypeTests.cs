@@ -36,9 +36,12 @@ using Critters.Client;
 
 using Mono.Cecil;
 
+using NSubstitute;
+
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Web;
 using Pomona.UnitTests;
 
 namespace Pomona.SystemTests.CodeGen
@@ -142,6 +145,13 @@ namespace Pomona.SystemTests.CodeGen
 
             if (foundError)
                 Assert.Fail("Found the following errors on generated client lib: {0}\r\n", errors);
+        }
+
+
+        [Test]
+        public void ConstructorOfInheritedClientDoesNotThrowException()
+        {
+            Assert.DoesNotThrow(() => new InheritedClient("http://test/", Substitute.For<IWebClient>()));
         }
 
 
@@ -357,6 +367,15 @@ namespace Pomona.SystemTests.CodeGen
         private static void PeVerify(string dllPath)
         {
             PeVerifyHelper.Verify(dllPath);
+        }
+
+
+        private class InheritedClient : CritterClient
+        {
+            public InheritedClient(string baseUri, IWebClient webClient)
+                : base(baseUri, webClient)
+            {
+            }
         }
     }
 }

@@ -99,21 +99,20 @@ namespace Pomona.Common
         private void InstantiateClientRepositories()
         {
             var generatedAssembly = GetType().Assembly;
-            var repoTypes = generatedAssembly.GetTypes()
-                                             .Where(x => typeof(IClientRepository).IsAssignableFrom(x) && !x.IsInterface && !x.IsGenericType)
-                                             .ToList();
+            var repoProperties = GetType().GetProperties().Where(x => typeof(IClientRepository).IsAssignableFrom(x.PropertyType)).ToList();
+
             var repositoryImplementations =
-                repoTypes
-                    .Select(
-                        x =>
-                            new
-                            {
-                                Interface =
-                            x.GetInterfaces()
-                             .First(y => y.Assembly == generatedAssembly && y.Name == "I" + x.Name),
-                                Implementation = x
-                            })
-                    .ToDictionary(x => x.Interface, x => x.Implementation);
+                repoProperties
+                .Select(x => x.PropertyType)
+                .Distinct()
+                .GroupBy(x => x.Assembly)
+                .Select(y =>
+                {
+                    var asmTypes = y.Key.GetTypes();
+                    return y.Select(x => new { Interface = x, Implementation = asmTypes.First(t => x.IsAssignableFrom(t) && !t.IsInterface) }).ToList();
+                })
+                .SelectMany(x => x)
+                .ToDictionary(x => x.Interface, x => x.Implementation);
 
             foreach (
                 var prop in
