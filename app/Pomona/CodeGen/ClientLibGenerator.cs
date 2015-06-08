@@ -859,7 +859,7 @@ namespace Pomona.CodeGen
                                                       | TypeAttributes.Public
                                                       | TypeAttributes.Abstract);
 
-            this.clientInterface.Interfaces.Add(Import(typeof(IPomonaClient)));
+            this.clientInterface.Interfaces.Add(Import(typeof(IPomonaRootResource)));
 
             AddRepositoryPropertiesToClientType(this.clientInterface);
 

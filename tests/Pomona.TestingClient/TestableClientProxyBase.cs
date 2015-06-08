@@ -41,7 +41,7 @@ namespace Pomona.TestingClient
 {
     using PropertyType = IClientRepository<IClientResource, IClientResource, object>;
 
-    public class TestableClientProxyBase : IPomonaClient, ITestableClient
+    public class TestableClientProxyBase : IPomonaRootResource, ITestableClient
     {
         private static readonly MethodInfo getResourceCollection;
         private static readonly MethodInfo mapFormDictionaryToResourceDictionaryMethod;
