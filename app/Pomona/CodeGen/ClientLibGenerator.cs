@@ -111,7 +111,9 @@ namespace Pomona.CodeGen
         }
 
 
-        public void CreateClientDll(Stream stream, Action<XDoc> onXmlDocCompleted = null)
+        public void CreateClientDll(Stream stream,
+                                    Action<XDoc> onXmlDocCompleted = null,
+                                    Action<AssemblyDefinition> assemblyTransformHook = null)
         {
             var structuredTypes = this.typeMapper.SourceTypes.OfType<StructuredType>().ToList();
             this.@namespace = this.typeMapper.Filter.ClientMetadata.Namespace;
@@ -173,6 +175,9 @@ namespace Pomona.CodeGen
 
             AddAssemblyAttributes();
 
+            if (assemblyTransformHook != null)
+                assemblyTransformHook(assembly);
+
             var memstream = new MemoryStream();
             assembly.Write(memstream);
 
@@ -188,13 +193,15 @@ namespace Pomona.CodeGen
         public static void WriteClientLibrary(TypeMapper typeMapper,
                                               Stream stream,
                                               bool embedPomonaClient = true,
-                                              Func<Stream> xmlDocStreamFactory = null)
+                                              Func<Stream> xmlDocStreamFactory = null,
+                                              Action<AssemblyDefinition> assemblyTransformHook = null
+            )
         {
             var clientLibGenerator = new ClientLibGenerator(typeMapper, new XmlDocumentationProvider(typeMapper))
             {
                 PomonaClientEmbeddingEnabled = embedPomonaClient
             };
-            clientLibGenerator.CreateClientDll(stream, onXmlDocCompleted : doc =>
+            clientLibGenerator.CreateClientDll(stream, doc =>
             {
                 if (xmlDocStreamFactory == null)
                     return;
@@ -205,7 +212,7 @@ namespace Pomona.CodeGen
                         doc.Node.WriteTo(xmlWriter);
                     }
                 }
-            });
+            }, assemblyTransformHook);
         }
 
 

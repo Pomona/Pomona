@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -47,8 +48,14 @@ using Pomona.UnitTests;
 namespace Pomona.SystemTests.CodeGen
 {
     [TestFixture]
-    public class ClientGeneratedTypeTests : ClientTestsBase
+    public class ClientGeneratedTypeTests
     {
+        private static Assembly ClientAssembly
+        {
+            get { return typeof(CritterClient).Assembly; }
+        }
+
+
         [Test]
         public void AbstractClassOnServerIsAbstractOnClient()
         {
@@ -59,7 +66,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void AllInterfacesArePrefixedByLetterI()
         {
-            foreach (var t in typeof(CritterClient).Assembly.GetTypes().Where(x => x.IsInterface))
+            foreach (var t in ClientAssembly.GetTypes().Where(x => x.IsInterface))
             {
                 try
                 {
@@ -79,9 +86,8 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void AllPropertyTypesOfClientTypesAreAllowed()
         {
-            var clientAssembly = typeof(ICritter).Assembly;
             var allPropTypes =
-                clientAssembly.GetExportedTypes().SelectMany(
+                ClientAssembly.GetExportedTypes().SelectMany(
                     x => x.GetProperties().Select(y => y.PropertyType)).Distinct();
 
             var allTypesOk = true;
@@ -91,7 +97,7 @@ namespace Pomona.SystemTests.CodeGen
                 {
                     allTypesOk = false;
                     var typeLocal = type;
-                    var propsWithType = clientAssembly
+                    var propsWithType = ClientAssembly
                         .GetExportedTypes()
                         .SelectMany(x => x.GetProperties())
                         .Where(x => x.PropertyType == typeLocal).ToList();
@@ -114,7 +120,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void AssemblyVersionSetToApiVersionFromTypeMappingFilter()
         {
-            Assert.That(typeof(CritterClient).Assembly.GetName().Version.ToString(3), Is.EqualTo("0.1.0"));
+            Assert.That(ClientAssembly.GetName().Version.ToString(3), Is.EqualTo("0.1.0"));
         }
 
 
@@ -123,14 +129,15 @@ namespace Pomona.SystemTests.CodeGen
         {
             var foundError = false;
             var errors = new StringBuilder();
+            var client = new CritterClient("http://test", Substitute.For<IWebClient>());
             foreach (
                 var prop in
-                    Client.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
+                    typeof(CritterClient).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
                         x =>
                             x.PropertyType.IsGenericType
                             && x.PropertyType.GetGenericTypeDefinition() == typeof(ClientRepository<,,>)))
             {
-                var value = prop.GetValue(Client, null);
+                var value = prop.GetValue(client, null);
                 if (value == null)
                 {
                     foundError = true;
@@ -239,7 +246,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PeVerify_ClientWithEmbeddedPomonaCommon_HasExitCode0()
         {
-            var origDllPath = typeof(ICritter).Assembly.Location;
+            var origDllPath = ClientAssembly.Location;
             var dllDir = Path.GetDirectoryName(origDllPath);
             var clientWithEmbeddedStuffName = Path.Combine(dllDir, "../../../../lib/IndependentCritters.dll");
             var newDllPath = Path.Combine(dllDir, "TempCopiedIndependentCrittersDll.tmp");
@@ -260,7 +267,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test(Description = "This test has been added since more errors are discovered when dll has been renamed.")]
         public void PeVerify_RenamedToAnotherDllName_StillHasExitCode0()
         {
-            var origDllPath = typeof(ICritter).Assembly.Location;
+            var origDllPath = ClientAssembly.Location;
             Console.WriteLine(Path.GetDirectoryName(origDllPath));
             var newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.tmp");
             File.Copy(origDllPath, newDllPath, true);
@@ -273,7 +280,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PomonaCommonHaveZeroReferencesToEmitNamespace()
         {
-            var assembly = AssemblyDefinition.ReadAssembly(typeof(IClientResource).Assembly.Location);
+            var assembly = AssemblyDefinition.ReadAssembly(ClientAssembly.Location);
             var trefs =
                 assembly.MainModule.GetTypeReferences().Where(x => x.Namespace == "System.Reflection.Emit").ToList();
             Assert.That(trefs, Is.Empty);
@@ -361,6 +368,45 @@ namespace Pomona.SystemTests.CodeGen
         public void ThingIndependentFromBase_IncludesPropertyFromEntityBase()
         {
             Assert.That(typeof(IThingIndependentFromBase).GetProperty("Id"), Is.Not.Null);
+        }
+
+
+        [Test]
+        public void TypeWasAddedInTransformAssemblyHooko()
+        {
+            Assert.That(ClientAssembly.GetTypes().Any(x => x.FullName == "Donkey.Kong"), Is.True);
+        }
+
+
+        protected bool IsAllowedType(Type t)
+        {
+            return FlattenGenericTypeHierarchy(t).All(x => IsAllowedClientReferencedAssembly(x.Assembly));
+        }
+
+
+        private IEnumerable<Type> FlattenGenericTypeHierarchy(Type t)
+        {
+            if (t.IsGenericType)
+            {
+                yield return t.GetGenericTypeDefinition();
+                foreach (var genarg in t.GetGenericArguments())
+                {
+                    foreach (var gent in FlattenGenericTypeHierarchy(genarg))
+                        yield return gent;
+                }
+            }
+            else
+                yield return t;
+        }
+
+
+        private bool IsAllowedClientReferencedAssembly(Assembly assembly)
+        {
+            return assembly == typeof(object).Assembly ||
+                   assembly == typeof(ICritter).Assembly ||
+                   assembly == typeof(PomonaClient).Assembly ||
+                   assembly == typeof(IQueryProvider).Assembly ||
+                   assembly == typeof(Uri).Assembly;
         }
 
 

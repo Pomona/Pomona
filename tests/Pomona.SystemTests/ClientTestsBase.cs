@@ -126,12 +126,6 @@ namespace Pomona.SystemTests
         }
 
 
-        protected bool IsAllowedType(Type t)
-        {
-            return FlattenGenericTypeHierarchy(t).All(x => IsAllowedClientReferencedAssembly(x.Assembly));
-        }
-
-
         protected IHat PostAHat(string hatType)
         {
             var hat = Client.Post<IHat>(
@@ -152,32 +146,6 @@ namespace Pomona.SystemTests
                                   e.Request,
                                   (object)e.Response ?? "(nothing received)");
             }
-        }
-
-
-        private IEnumerable<Type> FlattenGenericTypeHierarchy(Type t)
-        {
-            if (t.IsGenericType)
-            {
-                yield return t.GetGenericTypeDefinition();
-                foreach (var genarg in t.GetGenericArguments())
-                {
-                    foreach (var gent in FlattenGenericTypeHierarchy(genarg))
-                        yield return gent;
-                }
-            }
-            else
-                yield return t;
-        }
-
-
-        private bool IsAllowedClientReferencedAssembly(Assembly assembly)
-        {
-            return assembly == typeof(object).Assembly ||
-                   assembly == typeof(ICritter).Assembly ||
-                   assembly == typeof(PomonaClient).Assembly ||
-                   assembly == typeof(IQueryProvider).Assembly ||
-                   assembly == typeof(Uri).Assembly;
         }
 
         #region Nested type: IHasCustomAttributes
