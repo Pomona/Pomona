@@ -26,37 +26,12 @@
 
 #endregion
 
-using System;
 using System.Linq;
-using System.Linq.Expressions;
 
-namespace Pomona.Common.Linq
+namespace Pomona.Common
 {
-    public static class PomonaClientLinqExtensions
+    public interface IPomonaRootResource : IPomonaClient
     {
-        public static IQueryable<T> Query<T>(this IPomonaClient client, Expression<Func<T, bool>> predicate)
-        {
-            if (client == null)
-                throw new ArgumentNullException("client");
-
-            if (predicate == null)
-                throw new ArgumentNullException("predicate");
-
-            return client.Query<T>().Where(predicate);
-        }
-
-
-        public static IQueryable<TResource> Query<TResource>(this IQueryableRepository<TResource> repository,
-                                                             Expression<Func<TResource, bool>> predicate)
-            where TResource : class, IClientResource
-        {
-            if (repository == null)
-                throw new ArgumentNullException("repository");
-
-            if (predicate == null)
-                throw new ArgumentNullException("predicate");
-
-            return repository.Query().Where(predicate);
-        }
+        IQueryable<T> Query<T>();
     }
 }

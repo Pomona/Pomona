@@ -42,7 +42,7 @@ namespace Pomona.Common
         private readonly IClientResource parent;
 
 
-        public ChildResourceRepository(ClientBase client, string uri, IEnumerable results, IClientResource parent)
+        public ChildResourceRepository(IPomonaClient client, string uri, IEnumerable results, IClientResource parent)
             : base(client, uri, results, parent)
         {
             this.parent = parent;

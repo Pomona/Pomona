@@ -26,16 +26,24 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using Pomona.Common.Loading;
+using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
     public interface IPomonaClient : IClientTypeResolver, IResourceLoader
     {
         ClientSettings Settings { get; }
-        IQueryable<T> Query<T>();
+        ClientTypeMapper TypeMapper { get; }
+        IWebClient WebClient { get; }
+        void Delete(object resource, RequestOptions options);
+        object Patch(object form, RequestOptions options);
+        object Post(string uri, object form, RequestOptions options);
+        IQueryable<T> Query<T>(string uri);
         T Reload<T>(T resource);
+        event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
     }
 }

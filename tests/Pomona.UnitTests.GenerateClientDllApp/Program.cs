@@ -29,6 +29,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 using Pomona.CodeGen;
 using Pomona.Common.Internals;
@@ -54,6 +59,30 @@ namespace Pomona.UnitTests.GenerateClientDllApp
         }
 
 
+        private static void TransformAssemblyHook(AssemblyDefinition assembly)
+        {
+            var module = assembly.MainModule;
+            var td = new TypeDefinition("Donkey", "Kong", TypeAttributes.Public);
+            
+            // Empty public constructor
+            var baseCtor =  module.Import(module.TypeSystem.Object.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
+            var ctor = new MethodDefinition(
+                ".ctor",
+                MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
+                | MethodAttributes.Public,
+                module.TypeSystem.Void);
+            ctor.Body.MaxStackSize = 8;
+            var ctorIlProcessor = ctor.Body.GetILProcessor();
+            ctorIlProcessor.Append(Instruction.Create(OpCodes.Ldarg_0));
+            ctorIlProcessor.Append(Instruction.Create(OpCodes.Call, baseCtor));
+            ctorIlProcessor.Append(Instruction.Create(OpCodes.Ret));
+
+            td.Methods.Add(ctor);
+            td.BaseType = module.TypeSystem.Object;
+            module.Types.Add(td);
+
+        }
+
         private static void WriteClientLibrary(string dllName, TypeMapper typeMapper, bool embedPomonaClient)
         {
             dllName = Path.GetFullPath(dllName);
@@ -67,7 +96,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             {
                 if (!dllName.EndsWith(".dll"))
                     throw new ArgumentException("Filename should end with .dll");
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient, () => File.OpenWrite(xmlDocName));
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient, () => File.OpenWrite(xmlDocName), TransformAssemblyHook);
             }
         }
 

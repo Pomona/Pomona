@@ -50,12 +50,13 @@
     </Compile>
     <Compile Include="AllowedMethodsAttribute.cs" />
     <Compile Include="ChildResourceRepository.cs" />
-    <Compile Include="ClientBase.cs" />
     <Compile Include="ClientRepository.cs" />
     <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientSettings.cs" />
     <Compile Include="ClientServerSplittingSelectBuilder.cs" />
+    <Compile Include="PomonaClientExtensions.cs" />
+    <Compile Include="RootResource.cs" />
     <Compile Include="ClientTypeMapper.cs" />
     <Compile Include="ClientTypeResolver.cs" />
     <Compile Include="DictionaryExtensions.cs" />
@@ -121,7 +122,6 @@
     <Compile Include="Internals\MappedReadOnlyListExtensions.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
     <Compile Include="Internals\OdataFunctionMapping.cs" />
-    <Compile Include="Internals\PomonaClientExtensions.cs" />
     <Compile Include="Internals\ReflectionHelper.cs" />
     <Compile Include="Internals\StreamExtensions.cs" />
     <Compile Include="Internals\StringConversion.cs" />
@@ -129,6 +129,7 @@
     <Compile Include="Internals\TypeUtils.cs" />
     <Compile Include="IClientResource.cs" />
     <Compile Include="IPatchableRepository.cs" />
+    <Compile Include="IPomonaRootResource.cs" />
     <Compile Include="IRequestOptions.cs" />
     <Compile Include="IPomonaClient.cs" />
     <Compile Include="IPostableRepository.cs" />
@@ -145,7 +146,6 @@
     <Compile Include="Linq\NonGeneric\QueryProjectionUsingGenericMethod.cs" />
     <Compile Include="Linq\NonGeneric\QueryProjectionUsingNonGenericMethod.cs" />
     <Compile Include="Linq\NotSupportedByProviderExpression.cs" />
-    <Compile Include="Linq\PomonaClientLinqExtensions.cs" />
     <Compile Include="Internals\QueryableMethods.cs" />
     <Compile Include="Linq\PomonaExtendedExpression.cs" />
     <Compile Include="Linq\Queries\DefaultIfEmptyExpression.cs" />
@@ -196,6 +196,7 @@
     <Compile Include="Linq\RestQueryRoot.cs" />
     <Compile Include="Linq\WrappedQueryableBase.cs" />
     <Compile Include="NameUtils.cs" />
+    <Compile Include="PomonaClient.cs" />
     <Compile Include="PomonaException.cs" />
     <Compile Include="Profiling\IProfiler.cs" />
     <Compile Include="Profiling\IProfilerImplementation.cs" />

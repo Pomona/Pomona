@@ -111,7 +111,9 @@ namespace Pomona.CodeGen
         }
 
 
-        public void CreateClientDll(Stream stream, Action<XDoc> onXmlDocCompleted = null)
+        public void CreateClientDll(Stream stream,
+                                    Action<XDoc> onXmlDocCompleted = null,
+                                    Action<AssemblyDefinition> assemblyTransformHook = null)
         {
             var structuredTypes = this.typeMapper.SourceTypes.OfType<StructuredType>().ToList();
             this.@namespace = this.typeMapper.Filter.ClientMetadata.Namespace;
@@ -173,6 +175,9 @@ namespace Pomona.CodeGen
 
             AddAssemblyAttributes();
 
+            if (assemblyTransformHook != null)
+                assemblyTransformHook(assembly);
+
             var memstream = new MemoryStream();
             assembly.Write(memstream);
 
@@ -188,13 +193,15 @@ namespace Pomona.CodeGen
         public static void WriteClientLibrary(TypeMapper typeMapper,
                                               Stream stream,
                                               bool embedPomonaClient = true,
-                                              Func<Stream> xmlDocStreamFactory = null)
+                                              Func<Stream> xmlDocStreamFactory = null,
+                                              Action<AssemblyDefinition> assemblyTransformHook = null
+            )
         {
             var clientLibGenerator = new ClientLibGenerator(typeMapper, new XmlDocumentationProvider(typeMapper))
             {
                 PomonaClientEmbeddingEnabled = embedPomonaClient
             };
-            clientLibGenerator.CreateClientDll(stream, onXmlDocCompleted : doc =>
+            clientLibGenerator.CreateClientDll(stream, doc =>
             {
                 if (xmlDocStreamFactory == null)
                     return;
@@ -205,7 +212,7 @@ namespace Pomona.CodeGen
                         doc.Node.WriteTo(xmlWriter);
                     }
                 }
-            });
+            }, assemblyTransformHook);
         }
 
 
@@ -859,7 +866,7 @@ namespace Pomona.CodeGen
                                                       | TypeAttributes.Public
                                                       | TypeAttributes.Abstract);
 
-            this.clientInterface.Interfaces.Add(Import(typeof(IPomonaClient)));
+            this.clientInterface.Interfaces.Add(Import(typeof(IPomonaRootResource)));
 
             AddRepositoryPropertiesToClientType(this.clientInterface);
 
@@ -869,7 +876,7 @@ namespace Pomona.CodeGen
 
         private void CreateClientType(string clientTypeName)
         {
-            var clientBaseTypeRef = Import(typeof(ClientBase<>));
+            var clientBaseTypeRef = Import(typeof(RootResource<>));
 
             var clientTypeDefinition = new TypeDefinition(this.@namespace,
                                                           clientTypeName,
@@ -1130,7 +1137,7 @@ namespace Pomona.CodeGen
 
         private TypeReference GetProxyType(string proxyTypeName)
         {
-            return Import(typeof(ClientBase).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
+            return Import(typeof(PomonaClient).Assembly.GetTypes().First(x => x.Name == proxyTypeName));
         }
 
 

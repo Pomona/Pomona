@@ -150,7 +150,7 @@ namespace Pomona.CodeGen
             if (pomonaClientEmbeddingEnabled)
                 return;
 
-            var pomonaClientAssemblySourcePath = typeof(ClientBase<>).Assembly.Location;
+            var pomonaClientAssemblySourcePath = typeof(RootResource<>).Assembly.Location;
             var pomonaClientAssemblyDestPath = Path.Combine(dllDir, Path.GetFileName(pomonaClientAssemblySourcePath));
             File.Copy(pomonaClientAssemblySourcePath, pomonaClientAssemblyDestPath);
         }
