@@ -43,19 +43,26 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class SolutionTests
     {
+        private static readonly Lazy<string> solutionDirectory =
+            new Lazy<string>(() => Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>()) + @"\");
+
         private static string SolutionDirectory
         {
-            get { return Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>()); }
+            get { return solutionDirectory.Value; }
         }
 
 
         [Test]
         public void AllClassesAreContainedInFilesWithCorrectName()
         {
+            Console.WriteLine("SOlution dir is " + SolutionDirectory + " solution path is "
+                              + SolutionTestsHelper.FindSolutionPathOf<SolutionTests>());
             var p = new CSharpParser();
             var errorCount = 0;
 
-            var csFiles = SolutionTestsHelper.FindCSharpSourceFiles(SolutionDirectory).Select(x => p.Parse(File.ReadAllText(x), x));
+            var csFiles = FindCSharpFilesToVerify()
+                .Select(x => p.Parse(File.ReadAllText(x), x));
+
             foreach (var csFile in csFiles)
             {
                 var topLevelTypes =
@@ -78,7 +85,7 @@ namespace Pomona.UnitTests
         [Test]
         public void AllCsFilesAreIncludedInProjects()
         {
-            foreach (var csProjFile in SolutionTestsHelper.FindSourceFiles("*.csproj", SolutionDirectory))
+            foreach (var csProjFile in SolutionTestsHelper.FindSourceFiles("*.csproj", SolutionDirectory).Where(IsVerifiedPath))
                 SolutionTestsHelper.VerifyProjectNoOrphanSourceCodeFiles(csProjFile);
         }
 
@@ -97,6 +104,29 @@ namespace Pomona.UnitTests
         {
             const string commitBlockString = "NO" + "COMMIT";
             NoSourceCodeContains(commitBlockString);
+        }
+
+
+        private static IEnumerable<string> FindCSharpFilesToVerify()
+        {
+            return SolutionTestsHelper
+                .FindCSharpSourceFiles(SolutionDirectory)
+                .Where(IsVerifiedPath);
+        }
+
+
+        private static bool IsVerifiedPath(string x)
+        {
+            return !MakeRelative(x, SolutionDirectory)
+                .StartsWith("app\\Pomona.Antlr3.Runtime\\", StringComparison.OrdinalIgnoreCase);
+        }
+
+
+        private static string MakeRelative(string filePath, string referencePath)
+        {
+            var fileUri = new Uri(filePath);
+            var referenceUri = new Uri(referencePath);
+            return referenceUri.MakeRelativeUri(fileUri).ToString().Replace("/", Path.DirectorySeparatorChar.ToString());
         }
 
 
