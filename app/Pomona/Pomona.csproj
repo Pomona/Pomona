@@ -168,7 +168,6 @@
     <Compile Include="Plumbing\PomonaStartup.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="DefaultErrorHandler.cs" />
-    <Compile Include="PomonaCsvResponseProcessor.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaError.cs" />
     <Compile Include="PomonaModuleConfigurationBinder.cs" />

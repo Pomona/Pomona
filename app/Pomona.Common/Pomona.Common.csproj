@@ -238,8 +238,6 @@
     <Compile Include="ResourcePropertyAttribute.cs" />
     <Compile Include="Serialization\ClientDeserializationContext.cs" />
     <Compile Include="Serialization\ClientSerializationContext.cs" />
-    <Compile Include="Serialization\Csv\PomonaCsvSerializer.cs" />
-    <Compile Include="Serialization\Csv\PomonaCsvSerializerFactory.cs" />
     <Compile Include="Serialization\DeserializeOptions.cs" />
     <Compile Include="Serialization\DeserializerNodeOperation.cs" />
     <Compile Include="Serialization\IDeserializationContext.cs" />
