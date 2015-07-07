@@ -60,6 +60,14 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
+        public void Parse_InExpressionWithNullOnLeftSide_CreatesCorrectExpression()
+        {
+            int[] numbers = null;
+            ParseAndAssert("number in null", _this => numbers.Contains(_this.Number));
+        }
+
+
+        [Test]
         public void Parse_NullableBoolNotEqualsTrue_CreatesCorrectExpression()
         {
             ParseAndAssert("nullableBool ne true", _this => _this.NullableBool != true);
