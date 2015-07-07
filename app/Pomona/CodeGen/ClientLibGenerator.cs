@@ -192,14 +192,14 @@ namespace Pomona.CodeGen
 
         public static void WriteClientLibrary(TypeMapper typeMapper,
                                               Stream stream,
-                                              bool embedPomonaClient = true,
+                                              bool? embedPomonaClient = null,
                                               Func<Stream> xmlDocStreamFactory = null,
                                               Action<AssemblyDefinition> assemblyTransformHook = null
             )
         {
             var clientLibGenerator = new ClientLibGenerator(typeMapper, new XmlDocumentationProvider(typeMapper))
             {
-                PomonaClientEmbeddingEnabled = embedPomonaClient
+                PomonaClientEmbeddingEnabled = embedPomonaClient ?? typeMapper.Filter.GenerateIndependentClient()
             };
             clientLibGenerator.CreateClientDll(stream, doc =>
             {

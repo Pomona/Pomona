@@ -51,9 +51,9 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             // Modify property Protected of class Critter to not be protected in client dll.
             // This is to test setting a protected property will throw exception on server.
 
-            WriteClientLibrary(@"../../../../lib/Critters.Client.dll", new TypeMapper(new ModifiedCritterPomonaConfiguration()), false);
-            WriteClientLibrary(@"../../../../lib/Extra.Client.dll", new TypeMapper(new SimplePomonaConfiguration()), false);
-            WriteClientLibrary(@"../../../../lib/IndependentCritters.dll", new TypeMapper(new IndependentClientDllConfiguration()), true);
+            WriteClientLibrary(@"../../../../lib/Critters.Client.dll", new TypeMapper(new ModifiedCritterPomonaConfiguration()));
+            WriteClientLibrary(@"../../../../lib/Extra.Client.dll", new TypeMapper(new SimplePomonaConfiguration()));
+            WriteClientLibrary(@"../../../../lib/IndependentCritters.dll", new TypeMapper(new IndependentClientDllConfiguration()));
 
             Console.WriteLine("Wrote client dlls.");
         }
@@ -63,9 +63,10 @@ namespace Pomona.UnitTests.GenerateClientDllApp
         {
             var module = assembly.MainModule;
             var td = new TypeDefinition("Donkey", "Kong", TypeAttributes.Public);
-            
+
             // Empty public constructor
-            var baseCtor =  module.Import(module.TypeSystem.Object.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
+            var baseCtor =
+                module.Import(module.TypeSystem.Object.Resolve().GetConstructors().First(x => !x.IsStatic && x.Parameters.Count == 0));
             var ctor = new MethodDefinition(
                 ".ctor",
                 MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName
@@ -80,10 +81,10 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             td.Methods.Add(ctor);
             td.BaseType = module.TypeSystem.Object;
             module.Types.Add(td);
-
         }
 
-        private static void WriteClientLibrary(string dllName, TypeMapper typeMapper, bool embedPomonaClient)
+
+        private static void WriteClientLibrary(string dllName, TypeMapper typeMapper)
         {
             dllName = Path.GetFullPath(dllName);
             Console.WriteLine("Writing dll to {0}", dllName);
@@ -96,7 +97,8 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             {
                 if (!dllName.EndsWith(".dll"))
                     throw new ArgumentException("Filename should end with .dll");
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, embedPomonaClient, () => File.OpenWrite(xmlDocName), TransformAssemblyHook);
+                ClientLibGenerator.WriteClientLibrary(typeMapper, file, xmlDocStreamFactory : () => File.OpenWrite(xmlDocName),
+                                                      assemblyTransformHook : TransformAssemblyHook);
             }
         }
 
@@ -122,6 +124,12 @@ namespace Pomona.UnitTests.GenerateClientDllApp
                 public override ClientMetadata ClientMetadata
                 {
                     get { return base.ClientMetadata.With("IndependentCritters"); }
+                }
+
+
+                public override bool GenerateIndependentClient()
+                {
+                    return true;
                 }
             }
 
