@@ -98,12 +98,6 @@ namespace Pomona
         }
 
 
-        public void WriteClientLibrary(Stream stream, bool embedPomonaClient = true)
-        {
-            ClientLibGenerator.WriteClientLibrary(TypeMapper, stream, embedPomonaClient);
-        }
-
-
         protected virtual void OnConfiguration(IConfigurator config)
         {
         }
@@ -156,7 +150,7 @@ namespace Pomona
         {
             var response = new Response
             {
-                Contents = stream => WriteClientLibrary(stream),
+                Contents = stream => ClientLibGenerator.WriteClientLibrary(TypeMapper, stream),
                 ContentType = "binary/octet-stream"
             };
 

@@ -71,7 +71,9 @@ namespace Pomona.Common.Proxies
             var typeName = type.Name;
             var assemblyNameString = typeName + "Proxy" + Guid.NewGuid().ToString();
             AssemblyBuilder asmBuilder;
-            var modBuilder = EmitHelpers.CreateRuntimeModule(assemblyNameString, out asmBuilder);
+            var modBuilder =
+                EmitHelpers.CreateRuntimeModule(new AssemblyName(assemblyNameString) { Version = type.Assembly.GetName().Version },
+                                                out asmBuilder);
 
             var proxyBaseType = typeof(TProxyBase);
             var proxyBuilder = new WrappedPropertyProxyBuilder(modBuilder, proxyBaseType,

@@ -53,6 +53,15 @@ namespace Pomona.UnitTests.Proxies
 
 
         [Test]
+        public void GenerateProxy_ForInterface_CopiesVersionFromProxiedTypeToAssembly()
+        {
+            var proxy = RuntimeProxyFactory<RedirectProxy, ITakesNothingReturnsInt>.Create();
+            var version = proxy.GetType().Assembly.GetName().Version;
+            Assert.That(version, Is.EqualTo(typeof(ITakesNothingReturnsInt).Assembly.GetName().Version));
+        }
+
+
+        [Test]
         public void GenerateProxy_ForInterfaceImplementingMethodWithMatchingMethodInProxyBase_DoesNotGenerateMethod()
         {
             var proxy = RuntimeProxyFactory<RedirectProxy, IHasMethodWithSameSignatureAsProxy>.Create();

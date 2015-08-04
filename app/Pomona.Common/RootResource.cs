@@ -38,13 +38,7 @@ namespace Pomona.Common
     public abstract class RootResource<TClient> : IPomonaRootResource
     {
         private readonly IPomonaClient client;
-
-
-        static RootResource()
-        {
-            // Preload resource info attributes..
-            ClientTypeMapper = new ClientTypeMapper(typeof(TClient).Assembly);
-        }
+        private readonly ClientTypeMapper clientTypeMapper = ClientTypeMapper.GetTypeMapper(typeof(TClient));
 
 
         protected RootResource(string baseUri)
@@ -71,7 +65,11 @@ namespace Pomona.Common
 
 
         public string BaseUri { get; private set; }
-        internal static ClientTypeMapper ClientTypeMapper { get; private set; }
+
+        private ClientTypeMapper ClientTypeMapper
+        {
+            get { return this.clientTypeMapper; }
+        }
 
 
         public virtual object Post<T>(Action<T> postAction)
@@ -103,16 +101,19 @@ namespace Pomona.Common
 
             var repositoryImplementations =
                 repoProperties
-                .Select(x => x.PropertyType)
-                .Distinct()
-                .GroupBy(x => x.Assembly)
-                .Select(y =>
-                {
-                    var asmTypes = y.Key.GetTypes();
-                    return y.Select(x => new { Interface = x, Implementation = asmTypes.First(t => x.IsAssignableFrom(t) && !t.IsInterface) }).ToList();
-                })
-                .SelectMany(x => x)
-                .ToDictionary(x => x.Interface, x => x.Implementation);
+                    .Select(x => x.PropertyType)
+                    .Distinct()
+                    .GroupBy(x => x.Assembly)
+                    .Select(y =>
+                    {
+                        var asmTypes = y.Key.GetTypes();
+                        return
+                            y.Select(
+                                x => new { Interface = x, Implementation = asmTypes.First(t => x.IsAssignableFrom(t) && !t.IsInterface) })
+                             .ToList();
+                    })
+                    .SelectMany(x => x)
+                    .ToDictionary(x => x.Interface, x => x.Implementation);
 
             foreach (
                 var prop in

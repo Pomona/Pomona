@@ -95,16 +95,14 @@ namespace Pomona.Common.Proxies
         internal static ModuleBuilder CreateRuntimeModule(string assemblyNameString)
         {
             AssemblyBuilder asmBuilder;
-            return CreateRuntimeModule(assemblyNameString, out asmBuilder);
+            return CreateRuntimeModule(new AssemblyName(assemblyNameString), out asmBuilder);
         }
 
 
-        internal static ModuleBuilder CreateRuntimeModule(string assemblyNameString, out AssemblyBuilder asmBuilder)
+        internal static ModuleBuilder CreateRuntimeModule(AssemblyName assemblyName, out AssemblyBuilder asmBuilder)
         {
-            var assemblyName = new AssemblyName(assemblyNameString);
-
             asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-            var modBuilder = asmBuilder.DefineDynamicModule(assemblyNameString + ".dll", true);
+            var modBuilder = asmBuilder.DefineDynamicModule(assemblyName.Name + ".dll", true);
             return modBuilder;
         }
 

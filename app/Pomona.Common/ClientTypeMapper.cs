@@ -307,7 +307,7 @@ namespace Pomona.Common
         internal static ClientTypeMapper GetTypeMapper(Type type)
         {
             var assembly = type.Assembly;
-            return assemblyTypeMapperDict.GetOrAdd(assembly, GetTypeMapperFromAssembly);
+            return assemblyTypeMapperDict.GetOrAdd(assembly, x => new ClientTypeMapper(x));
         }
 
 
@@ -337,20 +337,6 @@ namespace Pomona.Common
 
             type = mostSubtypedInterface;
             return type;
-        }
-
-
-        private static ClientTypeMapper GetTypeMapperFromAssembly(Assembly assembly)
-        {
-            var generatedClientInterface =
-                assembly.GetTypes().Single(
-                    x => x.IsInterface && typeof(IPomonaClient).IsAssignableFrom(x) && x != typeof(IPomonaClient));
-            var clientBaseType = typeof(RootResource<>).MakeGenericType(generatedClientInterface);
-            var clientTypeMapper =
-                clientBaseType.GetProperty("ClientTypeMapper", BindingFlags.NonPublic | BindingFlags.Static).GetValue(
-                    null,
-                    null);
-            return (ClientTypeMapper)clientTypeMapper;
         }
 
 

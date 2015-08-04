@@ -67,6 +67,12 @@ namespace Pomona.Example
         }
 
 
+        public override bool GenerateIndependentClient()
+        {
+            return false;
+        }
+
+
         public override IEnumerable<PropertyInfo> GetAllPropertiesOfType(Type type, BindingFlags bindingFlags)
         {
             return base.GetAllPropertiesOfType(type, bindingFlags).Where(x => x.Name != "PropertyExcludedByGetAllPropertiesOfType");

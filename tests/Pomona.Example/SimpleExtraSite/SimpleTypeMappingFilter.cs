@@ -45,6 +45,12 @@ namespace Pomona.Example.SimpleExtraSite
         }
 
 
+        public override bool GenerateIndependentClient()
+        {
+            return false;
+        }
+
+
         public override bool TypeIsMapped(Type type)
         {
             return type == typeof(SimpleExtraData) || base.TypeIsMapped(type);
