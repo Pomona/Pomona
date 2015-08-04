@@ -45,25 +45,21 @@ namespace Pomona.Common.Serialization
         }
 
 
-        internal void Serialize(
-            ISerializationContext serializationContext,
-            object obj,
-            TextWriter textWriter,
-            TypeSpec expectedBaseType)
+        internal void Serialize(ISerializationContext serializationContext,
+                                object obj,
+                                TextWriter textWriter,
+                                TypeSpec expectedBaseType)
         {
-            var serializer = this;
-            if (serializer == null)
-                throw new ArgumentNullException("serializer");
             if (textWriter == null)
                 throw new ArgumentNullException("textWriter");
 
-            var writer = serializer.CreateWriter(textWriter);
+            var writer = CreateWriter(textWriter);
             var itemValueNode = new ItemValueSerializerNode(obj,
                                                             expectedBaseType,
                                                             string.Empty,
                                                             serializationContext,
                                                             null);
-            serializer.SerializeNode(itemValueNode, writer);
+            SerializeNode(itemValueNode, writer);
         }
 
 
