@@ -28,6 +28,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 using Nancy;
 
@@ -50,6 +52,34 @@ namespace Pomona.SystemTests.Serialization
     public class JsonServerSerializationTests
     {
         private TypeMapper typeMapper;
+
+
+        [Test]
+        [Explicit]
+        public void Serialize_LargeAmountOfObjects()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            var before = Process.GetCurrentProcess().VirtualMemorySize64;
+
+            Console.WriteLine("Virtual Memory Size");
+            Console.WriteLine("- Before:   {0,16:n0} bytes", before);
+
+            var range = Enumerable.Range(0, 1000).Select(i => QueryResult.Create(new List<Hat>
+            {
+                new Hat(new String('A', 85000)) { Id = i }
+            }, 0, 4, "http://prev", "http://next"));
+
+            var serializer = GetSerializer();
+            serializer.SerializeToString(range);
+
+            var after = Process.GetCurrentProcess().VirtualMemorySize64;
+
+            Console.WriteLine("- After:    {0,16:n0} bytes", after);
+            Console.WriteLine("- Increase: {0,16:n0} bytes", after - before);
+        }
 
 
         [Test]
@@ -86,17 +116,22 @@ namespace Pomona.SystemTests.Serialization
 
         #endregion
 
+        private PomonaJsonSerializer GetSerializer()
+        {
+            var serializerFactory = new PomonaJsonSerializerFactory();
+            var nancyContext = new NancyContext { Request = new Request("Get", "http://test") };
+            var uriResolver = new UriResolver(this.typeMapper, new BaseUriProvider(nancyContext, "/"));
+            var contextProvider = new ServerSerializationContextProvider(this.typeMapper,
+                                                                         uriResolver,
+                                                                         Substitute.For<IResourceResolver>(), new NoContainer());
+            var serializer = serializerFactory.GetSerializer(contextProvider);
+            return serializer;
+        }
+
+
         private JObject SerializeAndGetJsonObject<T>(T value)
         {
-            var serializerFactory =
-                new PomonaJsonSerializerFactory();
-            var nancyContext = new NancyContext();
-            nancyContext.Request = new Request("Get", "http://test");
-            var contextProvider =
-                new ServerSerializationContextProvider(this.typeMapper,
-                                                       new UriResolver(this.typeMapper, new BaseUriProvider(nancyContext, "/")),
-                                                       Substitute.For<IResourceResolver>(), new NoContainer());
-            var serializer = serializerFactory.GetSerializer(contextProvider);
+            var serializer = GetSerializer();
             Console.WriteLine("Serialized object to json:");
             var jsonString = serializer.SerializeToString(value);
             Console.WriteLine(jsonString);
