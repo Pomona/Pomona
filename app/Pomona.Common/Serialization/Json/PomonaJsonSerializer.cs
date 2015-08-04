@@ -75,10 +75,14 @@ namespace Pomona.Common.Serialization.Json
         {
             if (textWriter == null)
                 throw new ArgumentNullException("textWriter");
+            
             options = options ?? new SerializeOptions();
             var serializationContext = this.contextProvider.GetSerializationContext(options);
-            Serialize(serializationContext, o, textWriter,
-                      options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
+            var expectedBaseType = options.ExpectedBaseType != null
+                ? serializationContext.GetClassMapping(options.ExpectedBaseType)
+                : null;
+
+            Serialize(serializationContext, o, textWriter, expectedBaseType);
         }
 
 
