@@ -28,16 +28,14 @@
 
 using System;
 
-using StackExchange.Profiling;
-
 namespace Pomona.Profiling
 {
     public class MiniProfilerWrapper : Profiler
     {
-        private readonly MiniProfiler wrapped;
+        private readonly StackExchange.Profiling.MiniProfiler wrapped;
 
 
-        public MiniProfilerWrapper(MiniProfiler wrapped)
+        public MiniProfilerWrapper(StackExchange.Profiling.MiniProfiler wrapped)
         {
             this.wrapped = wrapped;
         }
@@ -45,7 +43,7 @@ namespace Pomona.Profiling
 
         protected override IDisposable OnStep(string name)
         {
-            return this.wrapped.Step(name);
+            return StackExchange.Profiling.MiniProfilerExtensions.Step(this.wrapped, name);
         }
     }
 }
