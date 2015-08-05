@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Pomona.NHibernate3.Tests</RootNamespace>
     <AssemblyName>Pomona.NHibernate3.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -32,34 +32,41 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Community.CsharpSqlite">
-      <HintPath>..\..\packages\Community.CsharpSqlite.SQLiteClient.3.7.7.3\lib\net40\Community.CsharpSqlite.dll</HintPath>
+    <Reference Include="Community.CsharpSqlite, Version=3.7.7.1, Culture=neutral, PublicKeyToken=a6e4873496fdc8b5, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Community.CsharpSqlite.SQLiteClient.3.7.7.3\lib\net45\Community.CsharpSqlite.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Community.CsharpSqlite.SQLiteClient">
-      <HintPath>..\..\packages\Community.CsharpSqlite.SQLiteClient.3.7.7.3\lib\net40\Community.CsharpSqlite.SQLiteClient.dll</HintPath>
+    <Reference Include="Community.CsharpSqlite.SQLiteClient, Version=3.7.7.1, Culture=neutral, PublicKeyToken=1ce56be3f3a785b7, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Community.CsharpSqlite.SQLiteClient.3.7.7.3\lib\net45\Community.CsharpSqlite.SQLiteClient.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="FluentNHibernate">
+    <Reference Include="FluentNHibernate, Version=1.4.0.0, Culture=neutral, PublicKeyToken=8aa435e3cb308880, processorArchitecture=MSIL">
       <HintPath>..\..\packages\FluentNHibernate.1.4.0.0\lib\net35\FluentNHibernate.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="FluentNHibernate.Cfg.Db.CsharpSqlite">
-      <HintPath>..\..\packages\FluentNHibernate.Cfg.Db.CsharpSqlite.1.0.4\lib\net40\FluentNHibernate.Cfg.Db.CsharpSqlite.dll</HintPath>
+    <Reference Include="FluentNHibernate.Cfg.Db.CsharpSqlite, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9f51ec5312fe5aa5, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\FluentNHibernate.Cfg.Db.CsharpSqlite.1.0.4\lib\net45\FluentNHibernate.Cfg.Db.CsharpSqlite.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Iesi.Collections">
+    <Reference Include="Iesi.Collections, Version=1.0.1.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Nancy, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Nancy.1.2.0\lib\net40\Nancy.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="NHibernate">
+    <Reference Include="NHibernate, Version=3.4.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NHibernate.3.4.0.4000\lib\Net35\NHibernate.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
