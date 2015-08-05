@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 using Nancy;
 
@@ -133,7 +134,29 @@ namespace Pomona.SystemTests.Serialization
 
         private class ProcessMeter
         {
-            private long before;
+            private readonly PropertyInfo[] meterProperties;
+            private IDictionary<string, long> before;
+
+
+            public ProcessMeter()
+            {
+                var allProperties = typeof(Process).GetProperties();
+                
+                var meterProperties64 = allProperties
+                    .Where(p => p.PropertyType == typeof(long) && p.Name.Contains("64"))
+                    .ToArray();
+
+                var meterPropertyNames32 = meterProperties64
+                    .Select(p => p.Name.Substring(0, p.Name.Length - 2));
+
+                var meterProperties32 = allProperties
+                    .Where(p => meterPropertyNames32.Contains(p.Name));
+
+                this.meterProperties = meterProperties64
+                    .Concat(meterProperties32)
+                    .OrderBy(p => p.Name)
+                    .ToArray();
+            }
 
 
             public void Start()
@@ -142,19 +165,54 @@ namespace Pomona.SystemTests.Serialization
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
 
-                this.before = Process.GetCurrentProcess().VirtualMemorySize64;
+                var process = Process.GetCurrentProcess();
+                this.before = new Dictionary<string, long>();
+                foreach (var property in this.meterProperties)
+                {
+                    var value = property.GetValue(process, null);
+                    long longValue;
+                    
+                    if (value is int)
+                        longValue = (int)value;
+                    else
+                        longValue = (long)value;
 
-                Console.WriteLine("Virtual Memory Size");
-                Console.WriteLine("- Before:   {0,16:n0} bytes", this.before);
+                    this.before.Add(property.Name, longValue);
+                }
             }
 
 
             public void Stop()
             {
-                var after = Process.GetCurrentProcess().VirtualMemorySize64;
+                var process = Process.GetCurrentProcess();
 
-                Console.WriteLine("- After:    {0,16:n0} bytes", after);
-                Console.WriteLine("- Increase: {0,16:n0} bytes", after - this.before);
+                foreach (var property in this.meterProperties)
+                {
+                    var beforeValue = this.before[property.Name];
+                    var value = property.GetValue(process, null);
+                    long afterValue;
+                    if (value is int)
+                        afterValue = (int)value;
+                    else
+                        afterValue = (long)value;
+
+                    Console.WriteLine();
+                    Console.WriteLine(property.Name);
+                    Console.WriteLine("- Before:     {0,16:n0} bytes", beforeValue);
+                    Console.WriteLine("- After:      {0,16:n0} bytes", afterValue);
+
+                    // It should be possible to do conditional formatting on positive, negative and zero with ';', but I couldn't get it to work in combination with 'n0'. @asbjornu
+                    var difference = afterValue - beforeValue;
+                    var differencePercent = ((double)(afterValue - beforeValue) / beforeValue) * 100;
+                    var differencePercentString = String.Concat('(', differencePercent.ToString("n0"), " %)");
+
+                    if (difference > 0)
+                        Console.WriteLine("- Increase:   {0,16:n0} bytes {1,10}", difference, differencePercentString);
+                    else if (difference < 0)
+                        Console.WriteLine("- Decrease:   {0,16:n0} bytes {1,10}", difference, differencePercentString);
+                    else
+                        Console.WriteLine("- Difference: {0,16:n0} bytes {1,10}", difference, differencePercentString);
+                }
             }
         }
     }
