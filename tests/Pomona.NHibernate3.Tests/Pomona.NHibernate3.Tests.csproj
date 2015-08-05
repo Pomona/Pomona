@@ -76,6 +76,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\app\Shared\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\OrderLine.cs" />
     <Compile Include="NhQueryProviderCapabilityResolverTests.cs" />

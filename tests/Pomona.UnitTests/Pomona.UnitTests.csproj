@@ -99,6 +99,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\app\Shared\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="Client\ClientResourceTests.cs" />
     <Compile Include="Client\CritterServiceTestsBase.cs" />
     <Compile Include="Client\QueryPredicateBuilderTests.cs" />
