@@ -44,6 +44,8 @@ namespace Pomona.SystemTests
         {
             var entity = Save(new VirtualPropertyThing() { Number = 25.0 });
             var resource = Client.VirtualPropertyThings.Get(entity.Id);
+            
+            Assert.That(resource, Is.Not.Null);
             Assert.That(resource.Rocky, Is.EqualTo("BALOBA"));
             Assert.That(resource.NumberSquareRoot, Is.EqualTo(5.0));
         }
@@ -57,6 +59,8 @@ namespace Pomona.SystemTests
                 NumberSquareRoot = 13,
                 Rocky = "IS DA MAN"
             });
+
+            Assert.That(resource, Is.Not.Null);
             Assert.That(resource.Number, Is.EqualTo(13.0 * 13.0));
             Assert.That(resource.NumberSquareRoot, Is.EqualTo(13.0));
             Assert.That(resource.Rocky, Is.EqualTo("IS DA MAN"));
