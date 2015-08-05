@@ -165,7 +165,7 @@ namespace Pomona
                 var response = new Response();
                 var htmlLinks = GetHtmlLinks(context);
                 var jsonString = serializer.SerializeToString(pomonaResponse.Entity, serializeOptions);
-               
+
                 HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(response,
                                                                     htmlLinks,
                                                                     jsonString,
@@ -179,13 +179,10 @@ namespace Pomona
                     //Headers = {{"Content-Length", bytes.Length.ToString()}},
                     Contents = stream =>
                     {
-                        var streamWriter = new StreamWriter(stream);
-                        serializer.Serialize(streamWriter, pomonaResponse.Entity, serializeOptions);
-
-                        /*using (var streamWriter = new StreamWriter(stream))
+                        using (var streamWriter = new NonClosingStreamWriter(stream))
                         {
                             serializer.Serialize(streamWriter, pomonaResponse.Entity, serializeOptions);
-                        }*/
+                        }
                     },
                     ContentType = ContentType,
                     StatusCode = pomonaResponse.StatusCode
@@ -214,6 +211,24 @@ namespace Pomona
                 }
 
                 return response;
+            }
+        }
+
+
+        private class NonClosingStreamWriter : StreamWriter
+        {
+            public NonClosingStreamWriter(Stream stream)
+                : base(stream, new UTF8Encoding(false))
+            {
+            }
+
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    Flush();
+
+                base.Dispose(false);
             }
         }
     }
