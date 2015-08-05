@@ -32,6 +32,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+
 namespace Pomona.Common
 {
     public class ReadOnlyDictionary<TKey, TValue> : IDictionary<TKey, TValue>
@@ -50,25 +51,25 @@ namespace Pomona.Common
             this.dictionary = dictionary;
         }
 
-        #region IEnumerable<KeyValuePair<TKey,TValue>> Members
+#region IEnumerable<KeyValuePair<TKey,TValue>> Members
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             return this.dictionary.GetEnumerator();
         }
 
-        #endregion
+#endregion
 
-        #region IEnumerable Members
+#region IEnumerable Members
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return (this.dictionary as IEnumerable).GetEnumerator();
         }
 
-        #endregion
+#endregion
 
-        #region IDictionary<TKey,TValue> Members
+#region IDictionary<TKey,TValue> Members
 
         public TValue this[TKey key]
         {
@@ -110,9 +111,9 @@ namespace Pomona.Common
             return this.dictionary.TryGetValue(key, out value);
         }
 
-        #endregion
+#endregion
 
-        #region ICollection<KeyValuePair<TKey,TValue>> Members
+#region ICollection<KeyValuePair<TKey,TValue>> Members
 
         public int Count
         {
@@ -154,7 +155,8 @@ namespace Pomona.Common
             throw new NotSupportedException("This dictionary is read-only");
         }
 
-        #endregion
+#endregion
     }
 }
+
 #endif

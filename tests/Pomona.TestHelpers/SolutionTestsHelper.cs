@@ -301,10 +301,14 @@ namespace Pomona.TestHelpers
 
         public class NugetPackageElement
         {
+            private static readonly string[] knownFrameworkVersions = { "net451", "net45", "net40", "net35", "net20" };
+            private static readonly string[] preferredFrameworkVersions = { "net45", "net40", "net35", "net20" };
             private readonly string id;
             private readonly string projectFile;
             private readonly string solutionDirectoy;
             private readonly string version;
+            private string[] availableFrameworkVersions;
+            private string fullPackagePath;
             private XDocument projectXmlDocument;
 
 
@@ -336,6 +340,11 @@ namespace Pomona.TestHelpers
                 get { return this.id; }
             }
 
+            public string PreferredFrameworkVersion
+            {
+                get { return preferredFrameworkVersions.FirstOrDefault(x => AvailableFrameworkVersions.Contains(x)); }
+            }
+
             public string ProjectDirectory
             {
                 get { return Path.GetDirectoryName(this.projectFile); }
@@ -363,6 +372,28 @@ namespace Pomona.TestHelpers
             public string Version
             {
                 get { return this.version; }
+            }
+
+            private string[] AvailableFrameworkVersions
+            {
+                get
+                {
+                    return this.availableFrameworkVersions
+                           ?? (this.availableFrameworkVersions =
+                               Directory.GetDirectories(Path.Combine(FullPackagePath, "lib"))
+                                        .Select(x => Path.GetFileName(x).ToLower())
+                                        .Where(x => knownFrameworkVersions.Contains(x))
+                                        .ToArray());
+                }
+            }
+
+            private string FullPackagePath
+            {
+                get
+                {
+                    return this.fullPackagePath
+                           ?? (this.fullPackagePath = Path.Combine(this.solutionDirectoy, "packages", Id + "." + Version));
+                }
             }
 
 
@@ -398,9 +429,9 @@ namespace Pomona.TestHelpers
             public int ValidateHintPathReference(StringBuilder errorLog)
             {
                 int errorCount = 0;
-                var fullPackagePath = Path.Combine(this.solutionDirectoy, "packages", Id + "." + Version);
-                if (!Directory.Exists(fullPackagePath))
-                    Console.WriteLine("Warning: Could not find package directory " + fullPackagePath);
+                if (!Directory.Exists(FullPackagePath))
+                    Console.WriteLine("Warning: Could not find package directory " + FullPackagePath);
+
                 XNamespace ns = "http://schemas.microsoft.com/developer/msbuild/2003";
                 var nsManager = new XmlNamespaceManager(new NameTable());
                 nsManager.AddNamespace("x", ns.NamespaceName);
@@ -416,8 +447,8 @@ namespace Pomona.TestHelpers
                             x => x.PathVersionPart).ToList();
                 if (referencesGroupedByVersion.Count == 0)
                 {
-                    if (Directory.Exists(fullPackagePath)
-                        && Directory.EnumerateFiles(fullPackagePath, "*.dll", SearchOption.AllDirectories).Any())
+                    if (Directory.Exists(this.fullPackagePath)
+                        && Directory.EnumerateFiles(this.fullPackagePath, "*.dll", SearchOption.AllDirectories).Any())
                     {
                         errorLog.AppendFormat(
                             "Warning: Could not find any reference to {0} in {1}.\r\n    Suggestion: Update-Package -reinstall {0} -ProjectName {1}\r\n",
@@ -445,6 +476,14 @@ namespace Pomona.TestHelpers
                             Id,
                             refVerGroup.First().HintPath,
                             AssumedPackagePath);
+                        errorCount++;
+                    }
+                    foreach (var item in refVerGroup.Where(x => x.TargetFrameworkVersion != PreferredFrameworkVersion))
+                    {
+                        errorLog.AppendFormat(
+                            "Reference from {0} to {1} got hintpath {2} targeting wrong framework {3}, should be {4}.\r\n    Suggestion: Update-Package –reinstall {1} -ProjectName {0}\r\n",
+                            ProjectName, Id, item.HintPath, item.TargetFrameworkVersion, PreferredFrameworkVersion);
+                        errorCount++;
                     }
                 }
                 return errorCount;
@@ -500,6 +539,7 @@ namespace Pomona.TestHelpers
                 private readonly string hintPath;
                 private readonly NugetPackageElement parent;
                 private readonly string pathVersionPart;
+                private readonly string targetFrameworkVersion;
 
 
                 public LibReference(NugetPackageElement parent,
@@ -514,6 +554,19 @@ namespace Pomona.TestHelpers
                                                                    this.hintPath.IndexOfAny(new char[] { '\\', '/' },
                                                                                             hintPathBeforePrefix.Length)
                                                                    - hintPathBeforePrefix.Length);
+                    var packageRelativePath = this.hintPath.Substring(hintPathBeforePrefix.Length + this.pathVersionPart.Length + 1);
+
+                    var pathSegments = packageRelativePath.Split(Path.DirectorySeparatorChar);
+                    if (pathSegments[0] == "lib")
+                    {
+                        this.targetFrameworkVersion =
+                            pathSegments
+                                .Skip(1)
+                                .Take(1)
+                                .Where(x => knownFrameworkVersions.Contains(x, StringComparer.OrdinalIgnoreCase))
+                                .Select(x => x.ToLower())
+                                .FirstOrDefault();
+                    }
                 }
 
 
@@ -525,6 +578,11 @@ namespace Pomona.TestHelpers
                 public string PathVersionPart
                 {
                     get { return this.pathVersionPart; }
+                }
+
+                public string TargetFrameworkVersion
+                {
+                    get { return this.targetFrameworkVersion; }
                 }
             }
 

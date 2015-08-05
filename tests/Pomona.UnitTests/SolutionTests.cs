@@ -91,7 +91,7 @@ namespace Pomona.UnitTests
 
 
         [Test]
-        public void AllPackagesInSolutionHaveSameVersion()
+        public void AllPackagesInSolutionHaveSameVersionAndReferencesAreCorrect()
         {
             var excludedPackages = new string[] { "NHibernate", "Iesi.Collections" };
             SolutionTestsHelper.VerifyNugetPackageReferences(SolutionTestsHelper.FindSolutionPathOf(this),

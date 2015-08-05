@@ -19,6 +19,6 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="..\..\lib\Antlr3\Antlr3.Runtime.dll" target="lib\net40" />
+        <file src="..\..\lib\Antlr3\Antlr3.Runtime.dll" target="lib\net45" />
     </files>
 </package>
