@@ -58,14 +58,8 @@ namespace Pomona.SystemTests.Serialization
         [Explicit("This is a performance test and should only be run when doing performance optimization")]
         public void Serialize_LargeAmountOfObjects()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-
-            var before = Process.GetCurrentProcess().VirtualMemorySize64;
-
-            Console.WriteLine("Virtual Memory Size");
-            Console.WriteLine("- Before:   {0,16:n0} bytes", before);
+            var processMeter = new ProcessMeter();
+            processMeter.Start();
 
             var range = Enumerable.Range(0, 1000).Select(i => QueryResult.Create(new List<Hat>
             {
@@ -75,10 +69,7 @@ namespace Pomona.SystemTests.Serialization
             var serializer = GetSerializer();
             serializer.SerializeToString(range);
 
-            var after = Process.GetCurrentProcess().VirtualMemorySize64;
-
-            Console.WriteLine("- After:    {0,16:n0} bytes", after);
-            Console.WriteLine("- Increase: {0,16:n0} bytes", after - before);
+            processMeter.Stop();
         }
 
 
@@ -137,6 +128,34 @@ namespace Pomona.SystemTests.Serialization
             Console.WriteLine(jsonString);
 
             return (JObject)JToken.Parse(jsonString);
+        }
+
+
+        private class ProcessMeter
+        {
+            private long before;
+
+
+            public void Start()
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+
+                this.before = Process.GetCurrentProcess().VirtualMemorySize64;
+
+                Console.WriteLine("Virtual Memory Size");
+                Console.WriteLine("- Before:   {0,16:n0} bytes", this.before);
+            }
+
+
+            public void Stop()
+            {
+                var after = Process.GetCurrentProcess().VirtualMemorySize64;
+
+                Console.WriteLine("- After:    {0,16:n0} bytes", after);
+                Console.WriteLine("- Increase: {0,16:n0} bytes", after - this.before);
+            }
         }
     }
 }
