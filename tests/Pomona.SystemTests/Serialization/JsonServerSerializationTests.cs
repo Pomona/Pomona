@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -68,7 +69,10 @@ namespace Pomona.SystemTests.Serialization
             }, 0, 4, "http://prev", "http://next"));
 
             var serializer = GetSerializer();
-            serializer.SerializeToString(range);
+            using (var writer = new StringWriter())
+            {
+                serializer.Serialize(writer, range, null);
+            }
 
             processMeter.Stop();
         }
@@ -125,8 +129,13 @@ namespace Pomona.SystemTests.Serialization
         {
             var serializer = GetSerializer();
             Console.WriteLine("Serialized object to json:");
-            var jsonString = serializer.SerializeToString(value);
-            Console.WriteLine(jsonString);
+            string jsonString;
+            using (var stringWriter = new StringWriter())
+            {
+                serializer.Serialize(stringWriter, value, null);
+                jsonString = stringWriter.ToString();
+                Console.WriteLine(jsonString);
+            }
 
             return (JObject)JToken.Parse(jsonString);
         }

@@ -110,10 +110,10 @@ namespace Pomona.Common.Serialization
                                                object obj,
                                                SerializeOptions options = null)
         {
-            using (var sw = new StringWriter())
+            using (var stringWriter = new StringWriter())
             {
-                serializer.Serialize(sw, obj, options);
-                return sw.ToString();
+                serializer.Serialize(stringWriter, obj, options);
+                return stringWriter.ToString();
             }
         }
     }
