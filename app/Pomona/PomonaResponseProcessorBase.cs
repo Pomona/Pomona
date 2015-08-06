@@ -213,23 +213,5 @@ namespace Pomona
                 return response;
             }
         }
-
-
-        private class NonClosingStreamWriter : StreamWriter
-        {
-            public NonClosingStreamWriter(Stream stream)
-                : base(stream, new UTF8Encoding(false))
-            {
-            }
-
-
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing)
-                    Flush();
-
-                base.Dispose(false);
-            }
-        }
     }
 }

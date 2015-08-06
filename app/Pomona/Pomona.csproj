@@ -162,7 +162,7 @@
     <Compile Include="Mapping\ITypeConventions.cs" />
     <Compile Include="PomonaConfigurationAttribute.cs" />
     <Compile Include="NancyExtensions.cs" />
-    <Compile Include="NoCloseStreamWriter.cs" />
+    <Compile Include="NonClosingStreamWriter.cs" />
     <Compile Include="PathNodeType.cs" />
     <Compile Include="Plumbing\PomonaRegistrations.cs" />
     <Compile Include="Plumbing\PomonaStartup.cs" />

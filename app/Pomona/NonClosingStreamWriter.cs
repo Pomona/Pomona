@@ -34,9 +34,9 @@ namespace Pomona
     /// <summary>
     /// A version of StreamWriter that doesn't close underlying stream when disposed.
     /// </summary>
-    internal class NoCloseStreamWriter : StreamWriter
+    internal class NonClosingStreamWriter : StreamWriter
     {
-        public NoCloseStreamWriter(Stream stream)
+        public NonClosingStreamWriter(Stream stream)
             : base(stream, new UTF8Encoding(false))
         {
         }
@@ -44,6 +44,9 @@ namespace Pomona
 
         protected override void Dispose(bool disposing)
         {
+            if (disposing)
+                Flush();
+
             base.Dispose(false);
         }
     }
