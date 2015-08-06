@@ -42,7 +42,6 @@ using NSubstitute;
 using NUnit.Framework;
 
 using Pomona.Common;
-using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
@@ -144,13 +143,23 @@ namespace Pomona.SystemTests.Serialization
         private class ProcessMeter
         {
             private readonly PropertyInfo[] meterProperties;
+            private readonly IDictionary<PerformanceCounter, CounterSample> performanceCounters;
             private IDictionary<string, long> before;
+            private long survivedMemorySizeBefore;
+            private long totalAllocatedMemorySizeBefore;
+            private long totalProcessorTimeBefore;
+
+
+            static ProcessMeter()
+            {
+                AppDomain.MonitoringIsEnabled = true;
+            }
 
 
             public ProcessMeter()
             {
                 var allProperties = typeof(Process).GetProperties();
-                
+
                 var meterProperties64 = allProperties
                     .Where(p => p.PropertyType == typeof(long) && p.Name.Contains("64"))
                     .ToArray();
@@ -165,6 +174,12 @@ namespace Pomona.SystemTests.Serialization
                     .Concat(meterProperties32)
                     .OrderBy(p => p.Name)
                     .ToArray();
+
+                var instanceName = Process.GetCurrentProcess().ProcessName;
+                this.performanceCounters = new Dictionary<PerformanceCounter, CounterSample>
+                {
+                    { new PerformanceCounter(".NET CLR Memory", "Large Object Heap Size", instanceName, true), CounterSample.Empty }
+                };
             }
 
 
@@ -174,13 +189,24 @@ namespace Pomona.SystemTests.Serialization
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
 
+                this.survivedMemorySizeBefore = AppDomain.CurrentDomain.MonitoringSurvivedMemorySize;
+                this.totalAllocatedMemorySizeBefore = AppDomain.CurrentDomain.MonitoringTotalAllocatedMemorySize;
+                this.totalProcessorTimeBefore = AppDomain.CurrentDomain.MonitoringTotalProcessorTime.Ticks;
+
+                foreach (var kv in this.performanceCounters.ToDictionary(kv => kv.Key, kv => kv.Value))
+                {
+                    var performanceCounter = kv.Key;
+                    var sample = performanceCounter.NextSample();
+                    this.performanceCounters[performanceCounter] = sample;
+                }
+
                 var process = Process.GetCurrentProcess();
                 this.before = new Dictionary<string, long>();
                 foreach (var property in this.meterProperties)
                 {
                     var value = property.GetValue(process, null);
                     long longValue;
-                    
+
                     if (value is int)
                         longValue = (int)value;
                     else
@@ -195,6 +221,28 @@ namespace Pomona.SystemTests.Serialization
             {
                 var process = Process.GetCurrentProcess();
 
+                var survivedMemorySizeAfter = AppDomain.CurrentDomain.MonitoringSurvivedMemorySize;
+                var totalAllocatedMemorySizeAfter = AppDomain.CurrentDomain.MonitoringTotalAllocatedMemorySize;
+                var totalProcessorTimeAfter = AppDomain.CurrentDomain.MonitoringTotalProcessorTime.Ticks;
+
+                var survivedMemorySizeDifference = new Difference(this.survivedMemorySizeBefore, survivedMemorySizeAfter);
+                var totalAllocatedMemorySizeDifference = new Difference(this.totalAllocatedMemorySizeBefore, totalAllocatedMemorySizeAfter);
+                var totalProcessorTimeDifference = new Difference(this.totalProcessorTimeBefore, totalProcessorTimeAfter);
+
+                survivedMemorySizeDifference.Write("SurvivedMemorySize");
+                totalAllocatedMemorySizeDifference.Write("TotalAllocatedMemorySize");
+                totalProcessorTimeDifference.Write("TotalProcessorTime");
+
+                foreach (var kv in this.performanceCounters)
+                {
+                    var performanceCounter = kv.Key;
+                    var beforeValue = kv.Value.RawValue;
+                    var afterValue = performanceCounter.NextSample().RawValue;
+                    var difference = new Difference(beforeValue, afterValue);
+
+                    difference.Write(performanceCounter.CounterName);
+                }
+
                 foreach (var property in this.meterProperties)
                 {
                     var beforeValue = this.before[property.Name];
@@ -205,22 +253,55 @@ namespace Pomona.SystemTests.Serialization
                     else
                         afterValue = (long)value;
 
+                    var difference = new Difference(beforeValue, afterValue);
+                    difference.Write(property.Name);
+                }
+            }
+
+
+            private struct Difference : IFormattable
+            {
+                private readonly long after;
+                private readonly long before;
+                private readonly long difference;
+                private readonly string percentDifferenceString;
+
+
+                public Difference(long before, long after)
+                {
+                    this.before = before;
+                    this.after = after;
+                    this.difference = after - before;
+                    var differencePercent = ((double)(this.after - this.before) / this.before) * 100;
+                    this.percentDifferenceString = String.Concat('(', differencePercent.ToString("n0"), " %)");
+                }
+
+
+                public override string ToString()
+                {
+                    return this.percentDifferenceString;
+                }
+
+
+                public void Write(string header)
+                {
                     Console.WriteLine();
-                    Console.WriteLine(property.Name);
-                    Console.WriteLine("- Before:     {0,16:n0} bytes", beforeValue);
-                    Console.WriteLine("- After:      {0,16:n0} bytes", afterValue);
+                    Console.WriteLine(header);
+                    Console.WriteLine("- Before:     {0,16:n0} bytes", this.before);
+                    Console.WriteLine("- After:      {0,16:n0} bytes", this.after);
 
-                    // It should be possible to do conditional formatting on positive, negative and zero with ';', but I couldn't get it to work in combination with 'n0'. @asbjornu
-                    var difference = afterValue - beforeValue;
-                    var differencePercent = ((double)(afterValue - beforeValue) / beforeValue) * 100;
-                    var differencePercentString = String.Concat('(', differencePercent.ToString("n0"), " %)");
-
-                    if (difference > 0)
-                        Console.WriteLine("- Increase:   {0,16:n0} bytes {1,10}", difference, differencePercentString);
-                    else if (difference < 0)
-                        Console.WriteLine("- Decrease:   {0,16:n0} bytes {1,10}", difference, differencePercentString);
+                    if (this.difference > 0)
+                        Console.WriteLine("- Increase:   {0,16:n0} bytes {1,10}", this.difference, this.percentDifferenceString);
+                    else if (this.difference < 0)
+                        Console.WriteLine("- Decrease:   {0,16:n0} bytes {1,10}", this.difference, this.percentDifferenceString);
                     else
-                        Console.WriteLine("- Difference: {0,16:n0} bytes {1,10}", difference, differencePercentString);
+                        Console.WriteLine("- Difference: {0,16:n0} bytes {1,10}", this.difference, this.percentDifferenceString);
+                }
+
+
+                public string ToString(string format, IFormatProvider formatProvider)
+                {
+                    return this.difference.ToString(format, formatProvider);
                 }
             }
         }
