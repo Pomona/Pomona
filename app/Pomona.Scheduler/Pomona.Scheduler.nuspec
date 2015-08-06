@@ -7,7 +7,7 @@
         <authors>$author$</authors>
         <owners>$author$</owners>
         <licenseUrl>http://pomona.io/license.txt</licenseUrl>
-        <projectUrl>https://github.com/okb/Pomona</projectUrl>
+        <projectUrl>https://pomona.io/</projectUrl>
         <iconUrl>http://pomona.io/images/pomona-icon-100.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>$description$</description>
