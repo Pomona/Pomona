@@ -40,9 +40,9 @@ namespace Pomona.Mapping
         IEnumerable<Attribute> GetPropertyAttributes(Type type, PropertyInfo propertyInfo);
         ExpandMode GetPropertyExpandMode(Type type, PropertyInfo propertyInfo);
         LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo);
-        Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo);
+        PropertyGetter GetPropertyGetter(Type type, PropertyInfo propertyInfo);
         string GetPropertyMappedName(Type type, PropertyInfo propertyInfo);
-        Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo);
+        PropertySetter GetPropertySetter(Type type, PropertyInfo propertyInfo);
         Type GetPropertyType(Type type, PropertyInfo propertyInfo);
         bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo);
     }

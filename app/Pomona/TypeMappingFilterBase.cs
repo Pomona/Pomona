@@ -253,7 +253,7 @@ namespace Pomona
         }
 
 
-        public virtual Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
+        public virtual PropertyGetter GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
             return null;
         }
@@ -277,7 +277,7 @@ namespace Pomona
         }
 
 
-        public virtual Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo)
+        public virtual PropertySetter GetPropertySetter(Type type, PropertyInfo propertyInfo)
         {
             return null;
         }

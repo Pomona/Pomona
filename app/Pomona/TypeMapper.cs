@@ -171,7 +171,7 @@ namespace Pomona
         }
 
 
-        public override Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
+        public override PropertyGetter LoadGetter(PropertySpec propertySpec)
         {
             return this.filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
                    ?? base.LoadGetter(propertySpec);
@@ -266,7 +266,7 @@ namespace Pomona
         }
 
 
-        public override Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
+        public override PropertySetter LoadSetter(PropertySpec propertySpec)
         {
             return this.filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
                    ?? base.LoadSetter(propertySpec);

@@ -291,6 +291,9 @@
     <Compile Include="TypeSystem\EnumerableTypeSpec.cs" />
     <Compile Include="TypeSystem\EnumTypeSpec.cs" />
     <Compile Include="TypeSystem\IResourceTypeResolver.cs" />
+    <Compile Include="TypeSystem\PropertyExpressionGetter.cs" />
+    <Compile Include="TypeSystem\PropertyGetter.cs" />
+    <Compile Include="TypeSystem\PropertySetter.cs" />
     <Compile Include="TypeSystem\QueryResultType.cs" />
     <Compile Include="TypeSystem\QuerySetResultType.cs" />
     <Compile Include="TypeSystem\ResourceProperty.cs" />

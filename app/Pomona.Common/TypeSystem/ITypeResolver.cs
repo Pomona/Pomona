@@ -43,7 +43,7 @@ namespace Pomona.Common.TypeSystem
         IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec);
         TypeSpec LoadDeclaringType(PropertySpec propertySpec);
         IEnumerable<TypeSpec> LoadGenericArguments(TypeSpec typeSpec);
-        Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec);
+        PropertyGetter LoadGetter(PropertySpec propertySpec);
         IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec);
         string LoadName(MemberSpec memberSpec);
         string LoadNamespace(TypeSpec typeSpec);
@@ -52,7 +52,7 @@ namespace Pomona.Common.TypeSystem
         TypeSpec LoadPropertyType(PropertySpec propertySpec);
         IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec);
         RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec);
-        Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec);
+        PropertySetter LoadSetter(PropertySpec propertySpec);
         ResourceType LoadUriBaseType(ResourceType resourceType);
         bool TryGetTypeByName(string typeName, out TypeSpec typeSpec);
         PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo);

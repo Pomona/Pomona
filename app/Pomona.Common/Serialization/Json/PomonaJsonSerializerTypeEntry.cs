@@ -88,7 +88,7 @@ namespace Pomona.Common.Serialization.Json
                     expressions.Add(
                         Expression.Call(
                             jsonWriterParam, writePropertyNameMethod, Expression.Constant(prop.JsonName)));
-                    var getter = prop.GetterFunc;
+                    var getter = prop.Getter;
                     expressions.Add(
                         Expression.Call(jsonWriterParam, method,
                                         Expression.Convert(Expression.Invoke(Expression.Constant(getter), valueVariable, containerParam),

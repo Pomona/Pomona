@@ -39,12 +39,12 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly Lazy<PropertySpec> baseDefinition;
         private readonly Lazy<TypeSpec> declaringType;
-        private readonly Lazy<Func<object, IContainer, object>> getter;
+        private readonly Lazy<PropertyGetter> getter;
         private readonly Lazy<bool> isRequiredForConstructor;
         private readonly PropertyFlags propertyFlags;
         private readonly Lazy<TypeSpec> propertyType;
         private readonly TypeSpec reflectedType;
-        private readonly Lazy<Action<object, object, IContainer>> setter;
+        private readonly Lazy<PropertySetter> setter;
 
 
         protected PropertySpec(ITypeResolver typeResolver,
@@ -75,7 +75,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.declaringType.Value; }
         }
 
-        public virtual Func<object, IContainer, object> GetterFunc
+        public virtual PropertyGetter Getter
         {
             get { return this.getter.Value; }
         }
@@ -100,7 +100,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.reflectedType; }
         }
 
-        public virtual Action<object, object, IContainer> SetterDelegate
+        public virtual PropertySetter Setter
         {
             get { return this.setter.Value; }
         }
@@ -130,8 +130,7 @@ namespace Pomona.Common.TypeSystem
 
         public virtual object GetValue(object target, IContainer container)
         {
-            container = container ?? new NoContainer();
-            return GetterFunc(target, container);
+            return Getter.Invoke(target, container);
         }
 
 
@@ -143,8 +142,7 @@ namespace Pomona.Common.TypeSystem
 
         public virtual void SetValue(object target, object value, IContainer container)
         {
-            container = container ?? new NoContainer();
-            SetterDelegate(target, value, container);
+            Setter.Invoke(target, value, container);
         }
 
 
@@ -177,7 +175,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal virtual Func<object, IContainer, object> OnLoadGetter()
+        protected internal virtual PropertyGetter OnLoadGetter()
         {
             if (!PropertyInfo.CanRead)
                 return null;
@@ -188,7 +186,7 @@ namespace Pomona.Common.TypeSystem
                         Expression.Property(Expression.Convert(param, PropertyInfo.DeclaringType), PropertyInfo),
                         typeof(object)),
                     param,
-                    Expression.Parameter(typeof(IContainer))).Compile();
+                    Expression.Parameter(typeof(IContainer)));
         }
 
 
@@ -211,7 +209,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected internal virtual Action<object, object, IContainer> OnLoadSetter()
+        protected internal virtual PropertySetter OnLoadSetter()
         {
             if (!PropertyInfo.CanWrite)
                 return null;
@@ -230,7 +228,7 @@ namespace Pomona.Common.TypeSystem
                 valueParam,
                 Expression.Parameter(typeof(IContainer), "ctx"));
 
-            return expr.Compile();
+            return new PropertySetter(expr.Compile());
         }
 
         #region PropertySpec implementation

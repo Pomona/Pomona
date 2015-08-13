@@ -172,7 +172,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual Func<object, IContainer, object> LoadGetter(PropertySpec propertySpec)
+        public virtual PropertyGetter LoadGetter(PropertySpec propertySpec)
         {
             if (propertySpec == null)
                 throw new ArgumentNullException("propertySpec");
@@ -245,7 +245,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual Action<object, object, IContainer> LoadSetter(PropertySpec propertySpec)
+        public virtual PropertySetter LoadSetter(PropertySpec propertySpec)
         {
             if (propertySpec == null)
                 throw new ArgumentNullException("propertySpec");

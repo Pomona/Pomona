@@ -406,11 +406,11 @@ namespace TestNs
         }
 
 
-        public Func<object, IContainer, object> GetPropertyGetter(Type type, PropertyInfo propertyInfo)
+        public PropertyGetter GetPropertyGetter(Type type, PropertyInfo propertyInfo)
         {
             var getter = FromMappingOrDefault(type,
                                               propertyInfo,
-                                              x => x.OnGetDelegate,
+                                              x => (PropertyGetter)x.OnGetDelegate,
                                               () => this.wrappedFilter.GetPropertyGetter(type, propertyInfo));
             return getter;
         }
@@ -435,11 +435,11 @@ namespace TestNs
         }
 
 
-        public Action<object, object, IContainer> GetPropertySetter(Type type, PropertyInfo propertyInfo)
+        public PropertySetter GetPropertySetter(Type type, PropertyInfo propertyInfo)
         {
             return FromMappingOrDefault(type,
                                         propertyInfo,
-                                        x => x.OnSetDelegate,
+                                        x => (PropertySetter)x.OnSetDelegate,
                                         () => this.wrappedFilter.GetPropertySetter(type, propertyInfo));
         }
 
