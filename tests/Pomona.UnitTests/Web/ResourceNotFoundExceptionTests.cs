@@ -27,10 +27,10 @@
 #endregion
 
 using System;
+using System.Net;
+using System.Net.Http;
 
 using NUnit.Framework;
-
-using Pomona.Common.Web;
 
 using RNFException = Pomona.Common.Web.ResourceNotFoundException;
 
@@ -42,7 +42,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoRequest_ReturnsExpectedMessage()
         {
-            var response = new HttpResponse(HttpStatusCode.NotFound);
+            var response = new HttpResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(null, response);
             Console.WriteLine(exception);
 
@@ -54,7 +54,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoRequestAndEmptyUri_ReturnsExpectedMessage()
         {
-            var response = new HttpResponse(HttpStatusCode.NotFound);
+            var response = new HttpResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(null, response);
             Console.WriteLine(exception);
 
@@ -75,7 +75,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithNoResponse_ReturnsExpectedMessage()
         {
-            var request = new HttpRequest("http://example.com/", method : "GET");
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://example.com/");
             var exception = new RNFException(request, null);
             Console.WriteLine(exception);
 
@@ -84,43 +84,21 @@ namespace Pomona.UnitTests.Web
 
 
         [Test]
-        public void Constructor_WithNoResponseEmptyUriAndNoMethod_ReturnsExpectedMessage()
+        public void Constructor_WithNoResponseAndNoUriReturnsExpectedMessage()
         {
-            var request = new HttpRequest("");
+            var request = new HttpRequestMessage();
             var exception = new RNFException(request, null);
             Console.WriteLine(exception);
 
-            Assert.That(exception.Message, Is.EqualTo("The request got no response."));
-        }
-
-
-        [Test]
-        public void Constructor_WithNoResponseNoUriAndEmptyMethod_ReturnsExpectedMessage()
-        {
-            var request = new HttpRequest(null, method : "");
-            var exception = new RNFException(request, null);
-            Console.WriteLine(exception);
-
-            Assert.That(exception.Message, Is.EqualTo("The request got no response."));
-        }
-
-
-        [Test]
-        public void Constructor_WithNoResponseNoUriAndNoMethod_ReturnsExpectedMessage()
-        {
-            var request = new HttpRequest(null);
-            var exception = new RNFException(request, null);
-            Console.WriteLine(exception);
-
-            Assert.That(exception.Message, Is.EqualTo("The request got no response."));
+            Assert.That(exception.Message, Is.EqualTo("The GET request got no response."));
         }
 
 
         [Test]
         public void Constructor_WithRequestAndResponse_ReturnsExpectedMessage()
         {
-            var request = new HttpRequest("http://example.com/", method : "GET");
-            var response = new HttpResponse(HttpStatusCode.NotFound);
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://example.com/");
+            var response = new HttpResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(request, response);
             Console.WriteLine(exception);
 
@@ -132,8 +110,8 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void Constructor_WithRequestAndResponseAndBodyWithMessage_ReturnsExpectedMessage()
         {
-            var request = new HttpRequest("http://example.com/", method : "GET");
-            var response = new HttpResponse(HttpStatusCode.NotFound);
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://example.com/");
+            var response = new HttpResponseMessage(HttpStatusCode.NotFound);
             var exception = new RNFException(request, response, new
             {
                 Message = "HALP!"

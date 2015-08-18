@@ -26,43 +26,15 @@
 
 #endregion
 
-using System;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Net.Http;
 
 namespace Pomona.Common.Web
 {
-    internal class HttpRequestConverter : HttpMessageConverterBase
+    public static class WebClientExtensions
     {
-        public override bool CanConvert(Type objectType)
+        public static HttpResponseMessage SendSync(this IWebClient client, HttpRequestMessage request)
         {
-            return typeof(HttpRequest).IsAssignableFrom(objectType);
-        }
-
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            var jobj = JObject.Load(reader);
-            var url = (string)jobj["url"];
-            var method = (string)jobj["method"];
-            var body = ReadBody(jobj);
-            var headers = ReadHeaders(jobj, serializer);
-            return new HttpRequest(url, body, method, headers);
-        }
-
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var req = (HttpRequest)value;
-            writer.WriteStartObject();
-            writer.WritePropertyName("method");
-            writer.WriteValue(req.Method);
-            writer.WritePropertyName("url");
-            writer.WriteValue(req.Uri);
-            WriteHeaders(writer, serializer, req.Headers);
-            WriteBody(writer, req.Body, req.Headers.ContentType);
-            writer.WriteEndObject();
+            return client.Send(request).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

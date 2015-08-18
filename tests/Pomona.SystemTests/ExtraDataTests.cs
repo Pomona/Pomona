@@ -49,7 +49,7 @@ namespace Pomona.SystemTests
 
         public override ExtraClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
         {
-            var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
+            var nancyTestingWebClient = new NancyTestingWebClient(critterBootstrapper.GetEngine());
             return new ExtraClient(baseUri + "Extra/", nancyTestingWebClient);
         }
 

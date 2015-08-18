@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 
 using Pomona.Common.Web;
 
@@ -49,7 +50,7 @@ namespace Pomona.Scheduler
 
         private void RunJob(IJob job)
         {
-            var response = this.webClient.Send(new HttpRequest(job.Url, null, job.Method));
+            var response = this.webClient.SendSync(new HttpRequestMessage(new HttpMethod(job.Method), job.Url));
             var statusCode = (int)response.StatusCode;
             if (statusCode - (statusCode % 100) != 200)
                 throw new NotImplementedException("TODO: Implement error handling and retrying.");

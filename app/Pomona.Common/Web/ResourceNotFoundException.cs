@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 using System.Runtime.Serialization;
 
 namespace Pomona.Common.Web
@@ -34,8 +35,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class ResourceNotFoundException<TBody> : ResourceNotFoundException, IWebClientException<TBody>
     {
-        public ResourceNotFoundException(HttpRequest request,
-                                         HttpResponse response,
+        public ResourceNotFoundException(HttpRequestMessage request,
+                                         HttpResponseMessage response,
                                          TBody body = default(TBody),
                                          Exception innerException = null)
             : base(request, response, body, innerException)
@@ -58,8 +59,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class ResourceNotFoundException : WebClientException
     {
-        public ResourceNotFoundException(HttpRequest request,
-                                         HttpResponse response,
+        public ResourceNotFoundException(HttpRequestMessage request,
+                                         HttpResponseMessage response,
                                          object body = null,
                                          Exception innerException = null)
             : base(request, response, body, innerException)

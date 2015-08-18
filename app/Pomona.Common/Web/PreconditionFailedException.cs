@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 using System.Runtime.Serialization;
 
 namespace Pomona.Common.Web
@@ -34,8 +35,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class PreconditionFailedException<TBody> : PreconditionFailedException, IWebClientException<TBody>
     {
-        public PreconditionFailedException(HttpRequest request,
-                                           HttpResponse response,
+        public PreconditionFailedException(HttpRequestMessage request,
+                                           HttpResponseMessage response,
                                            object body,
                                            Exception innerException)
             : base(request, response, body, innerException)
@@ -58,8 +59,8 @@ namespace Pomona.Common.Web
     [Serializable]
     public class PreconditionFailedException : WebClientException
     {
-        public PreconditionFailedException(HttpRequest request,
-                                           HttpResponse response,
+        public PreconditionFailedException(HttpRequestMessage request,
+                                           HttpResponseMessage response,
                                            object body,
                                            Exception innerException)
             : base(request, response, body, innerException)

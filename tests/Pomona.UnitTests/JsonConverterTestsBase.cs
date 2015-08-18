@@ -28,6 +28,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -46,6 +48,34 @@ namespace Pomona.UnitTests.TestHelpers.Web
         public void SetUp()
         {
             Converter = CreateConverter();
+        }
+
+
+        protected static void AssertHttpContentEquals(HttpContent expected, HttpContent actual)
+        {
+            if (expected != null && actual != null)
+            {
+                foreach (var kvp in expected.Headers
+                                            .Join(actual.Headers, x => x.Key, x => x.Key, (x, y) => new { x, y }))
+                    Assert.That(kvp.x.Value, Is.EquivalentTo(kvp.y.Value));
+
+                if (expected.Headers.ContentType.MediaType == "application/json")
+                {
+                    var expectedJson = JToken.Parse(expected.ReadAsStringAsync().Result);
+                    var actualJson = JToken.Parse(actual.ReadAsStringAsync().Result);
+
+                    Assert.That(JToken.DeepEquals(expectedJson, actualJson),
+                                string.Format("Expected:\r\n{0}\r\nActual:\r\n{1}\r\n", expectedJson, actualJson));
+                }
+                else
+                {
+                    var expectedBytes = expected.ReadAsByteArrayAsync().Result;
+                    var actualBytes = actual.ReadAsByteArrayAsync().Result;
+                    Assert.That(actualBytes, Is.EqualTo(expectedBytes));
+                }
+            }
+            else
+                Assert.That(expected, Is.EqualTo(actual));
         }
 
 

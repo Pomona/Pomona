@@ -27,22 +27,16 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
 
 using Critters.Client;
 using Critters.Client.Pomona.Common;
 using Critters.Client.Pomona.Common.Web;
 
-using Nancy.Testing;
+using Nancy;
 
-using Pomona.Common.Internals;
 using Pomona.Example;
+using Pomona.TestHelpers;
 using Pomona.UnitTests.Client;
-
-using HttpStatusCode = Critters.Client.Pomona.Common.Web.HttpStatusCode;
 
 namespace Pomona.IndependentClientTests
 {
@@ -57,7 +51,7 @@ namespace Pomona.IndependentClientTests
         public override CritterClient CreateInMemoryTestingClient(string baseUri,
                                                                   CritterBootstrapper critterBootstrapper)
         {
-            return new CritterClient(baseUri, new NancyTestingWebClient(new Browser(critterBootstrapper)));
+            return new CritterClient(baseUri, new IndependentNancyTestingWebClient(critterBootstrapper.GetEngine()));
         }
 
 
@@ -80,82 +74,13 @@ namespace Pomona.IndependentClientTests
                               (object)e.Response ?? "(nothing received)");
         }
 
-        #region Nested type: NancyTestingWebClient
 
-        public class NancyTestingWebClient : IWebClient
+        private class IndependentNancyTestingWebClient : NancyTestingWebClient, IWebClient
         {
-            private readonly Browser browser;
-            private readonly HttpHeaders headers = new HttpHeaders();
-
-
-            public NancyTestingWebClient(Browser browser)
+            public IndependentNancyTestingWebClient(INancyEngine engine)
+                : base(engine)
             {
-                if (browser == null)
-                    throw new ArgumentNullException("browser");
-                this.browser = browser;
-            }
-
-
-            public HttpHeaders Headers
-            {
-                get { return this.headers; }
-            }
-
-            public NetworkCredential Credentials { get; set; }
-
-
-            public HttpResponse Send(HttpRequest request)
-            {
-                Func<string, Action<BrowserContext>, BrowserResponse> browserMethod;
-
-                switch (request.Method.ToUpper())
-                {
-                    case "POST":
-                        browserMethod = this.browser.Post;
-                        break;
-                    case "PATCH":
-                        browserMethod = this.browser.Patch;
-                        break;
-                    case "GET":
-                        browserMethod = this.browser.Get;
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
-
-                var uri = new Uri(request.Uri);
-                var creds = Credentials;
-
-                var browserResponse = browserMethod(uri.LocalPath, bc =>
-                {
-                    bc.HttpRequest();
-                    if (creds != null)
-                        bc.BasicAuth(creds.UserName, creds.Password);
-                    ((IBrowserContextValues)bc).QueryString = uri.Query;
-                    foreach (var kvp in this.headers.Concat(request.Headers))
-                    {
-                        foreach (var v in kvp.Value)
-                            bc.Header(kvp.Key, v);
-                    }
-                    if (request.Body != null)
-                        bc.Body(new MemoryStream(request.Body));
-                });
-
-                var responseHeaders = new HttpHeaders(
-                    browserResponse
-                        .Headers
-                        .Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, x.Value.WrapAsEnumerable())));
-
-                if (browserResponse.Context.Response != null &&
-                    (!string.IsNullOrEmpty(browserResponse.Context.Response.ContentType)))
-                    responseHeaders.ContentType = browserResponse.Context.Response.ContentType;
-
-                return new HttpResponse((HttpStatusCode)browserResponse.StatusCode,
-                                        browserResponse.Body.ToArray(),
-                                        responseHeaders);
             }
         }
-
-        #endregion
     }
 }

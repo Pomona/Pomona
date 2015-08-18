@@ -71,7 +71,7 @@ namespace Pomona.SystemTests.Linq
         public void QueryWithRequestModifications_RequestModificationDelegateIsAddedToList()
         {
             var parser =
-                Parse<ICritter>(x => x.WithOptions(y => y.ModifyRequest(z => z.Uri = "http://nanah")));
+                Parse<ICritter>(x => x.WithOptions(y => y.ModifyRequest(z => z.RequestUri = new Uri("http://nanah"))));
             Assert.That(parser.RequestOptionActions, Has.Count.EqualTo(1));
         }
 

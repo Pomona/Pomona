@@ -27,6 +27,8 @@
 #endregion
 
 using System;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 
 using CsQuery;
@@ -39,6 +41,8 @@ using NUnit.Framework;
 using Pomona.Common;
 using Pomona.Common.Web;
 
+using HttpMethod = System.Net.Http.HttpMethod;
+
 namespace Pomona.SystemTests
 {
     [TestFixture]
@@ -48,12 +52,12 @@ namespace Pomona.SystemTests
         public void Get_AcceptIsHtmlText_ReturnsJsonAsHtmlDocument()
         {
             var response =
-                WebClient.Send(new HttpRequest("http://test/critters", null, "GET")
+                WebClient.SendSync(new HttpRequestMessage(new HttpMethod("GET"), "http://test/critters")
                 {
                     Headers = { { "Accept", "text/html" } }
                 });
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            CQ dom = Encoding.UTF8.GetString(response.Body);
+            CQ dom = response.Content.ReadAsStringAsync().Result;
             var jsonContent = HttpUtility.HtmlDecode(dom["pre"].RenderSelection(new FormatPlainText()));
             Console.WriteLine(jsonContent);
             Assert.DoesNotThrow(() => JObject.Parse(jsonContent));

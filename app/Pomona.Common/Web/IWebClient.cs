@@ -26,16 +26,19 @@
 
 #endregion
 
+using System;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Pomona.Common.Web
 {
     /// <summary>
     /// Wrapper for webclient, to make testing easier.
     /// </summary>
-    public interface IWebClient
+    public interface IWebClient : IDisposable
     {
         NetworkCredential Credentials { get; set; }
-        HttpResponse Send(HttpRequest request);
+        Task<HttpResponseMessage> Send(HttpRequestMessage request);
     }
 }

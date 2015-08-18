@@ -28,6 +28,8 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 
 using Newtonsoft.Json.Linq;
@@ -39,6 +41,8 @@ using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 using Pomona.Profiling;
+
+using HttpHeaders = Pomona.Common.Web.HttpHeaders;
 
 namespace Pomona.Common
 {
@@ -65,10 +69,16 @@ namespace Pomona.Common
         }
 
 
-        private void AddDefaultHeaders(HttpRequest request)
+        private void AddDefaultHeaders(HttpRequestMessage request)
         {
             if (this.defaultHeaders != null)
-                this.defaultHeaders.Where(x => !request.Headers.ContainsKey(x.Key)).ToList().AddTo(request.Headers);
+            {
+                foreach (var header in this.defaultHeaders)
+                {
+                    if (!request.Headers.Contains(header.Key))
+                        request.Headers.Add(header.Key, header.Value);
+                }
+            }
         }
 
 
@@ -96,7 +106,7 @@ namespace Pomona.Common
                                        RequestOptions options)
         {
             byte[] requestBytes = null;
-            HttpResponse response = null;
+            HttpResponseMessage response = null;
             if (requestBodyEntity != null)
             {
                 requestBytes = this.serializerFactory
@@ -106,7 +116,7 @@ namespace Pomona.Common
                                        ExpectedBaseType = requestBodyBaseType
                                    });
             }
-            var request = new HttpRequest(uri, requestBytes, httpMethod);
+            var request = new HttpRequestMessage(new System.Net.Http.HttpMethod(httpMethod), uri);
 
             string responseString = null;
             Exception thrownException = null;
@@ -120,20 +130,27 @@ namespace Pomona.Common
                 const string jsonContentType = "application/json; charset=utf-8";
                 request.Headers.Add("Accept", jsonContentType);
                 if (requestBytes != null)
-                    request.Headers.ContentType = jsonContentType;
-
-                using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
-                    response = this.webClient.Send(request);
+                    var requestContent = new ByteArrayContent(requestBytes);
+                    requestContent.Headers.ContentType = MediaTypeHeaderValue.Parse(jsonContentType);
+                    request.Content = requestContent;
                 }
 
-                responseString = (response.Body != null && response.Body.Length > 0)
-                    ? Encoding.UTF8.GetString(response.Body)
-                    : null;
+                using (Profiler.Step("client: " + request.Method + " " + request.RequestUri))
+                {
+                    response = this.webClient.Send(request).ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+
+                if (response.Content != null)
+                {
+                    responseString = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    if (responseString.Length == 0)
+                        responseString = null;
+                }
 
                 if ((int)response.StatusCode >= 400)
                 {
-                    var gotJsonResponseBody = responseString != null && response.Headers.MediaType == "application/json";
+                    var gotJsonResponseBody = responseString != null && response.Content.Headers.ContentType.MediaType == "application/json";
 
                     var responseObject = gotJsonResponseBody
                         ? Deserialize(responseString, null, serializationContextProvider)

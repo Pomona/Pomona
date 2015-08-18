@@ -30,6 +30,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 
@@ -37,120 +40,63 @@ namespace Pomona.Common.Web
 {
     public class HttpWebRequestClient : IWebClient
     {
-        private readonly HttpHeaders defaultHeaders;
-
+        private HttpClient httpClient = new HttpClient();
 
         public HttpWebRequestClient()
         {
         }
 
 
-        public HttpWebRequestClient(HttpHeaders defaultHeaders)
+        public HttpWebRequestClient(HttpHeaders httpHeaders) : this()
         {
-            this.defaultHeaders = defaultHeaders;
-        }
-
-
-        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> DefaultHeaders
-        {
-            get { return this.defaultHeaders.Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, x.Value)); }
-        }
-
-
-        private static IEnumerable<KeyValuePair<string, IEnumerable<string>>> ConvertHeaders(
-            WebHeaderCollection webHeaders)
-        {
-            for (var i = 0; i < webHeaders.Count; i++)
+            if (httpHeaders != null)
             {
-                var key = webHeaders.GetKey(i);
-                yield return new KeyValuePair<string, IEnumerable<string>>(key, webHeaders.GetValues(i));
-            }
-        }
-
-
-        private static HttpWebResponse GetResponseNoThrow(HttpWebRequest request, out Exception thrownException)
-        {
-            try
-            {
-                thrownException = null;
-                return (HttpWebResponse)request.GetResponse();
-            }
-            catch (WebException ex)
-            {
-                if (ex.Response == null)
-                    throw;
-                thrownException = ex;
-                return (HttpWebResponse)ex.Response;
-            }
-        }
-
-
-        public NetworkCredential Credentials { get; set; }
-
-
-        public HttpResponse Send(HttpRequest request)
-        {
-            var webRequest = (HttpWebRequest)WebRequest.Create(request.Uri);
-
-            if (Credentials != null)
-            {
-                webRequest.Credentials = Credentials;
-                webRequest.PreAuthenticate = true;
-            }
-
-            foreach (var h in request.Headers.Concat(this.defaultHeaders.EmptyIfNull()))
-            {
-                if (h.Value.Count == 0)
-                    continue;
-
-                if (!WebHeaderCollection.IsRestricted(h.Key))
+                foreach (var header in httpHeaders)
                 {
-                    foreach (var v in h.Value)
-                        webRequest.Headers.Add(h.Key, v);
+                    this.httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
                 }
-                else
+            }
+        }
+
+
+        private NetworkCredential credentials;
+
+        public NetworkCredential Credentials
+        {
+            get { return this.credentials; }
+            set
+            {
+                CheckDisposed();
+                if (this.credentials != value)
                 {
-                    switch (h.Key)
+                    this.credentials = value;
+                    if (this.httpClient != null)
                     {
-                        case "Accept":
-                            webRequest.Accept = h.Value.Last();
-                            break;
-
-                        case "Content-Type":
-                            webRequest.ContentType = h.Value.Last();
-                            break;
-
-                        default:
-                            throw new NotImplementedException("Setting restricted header " + h.Key + " not implemented.");
+                        this.httpClient.Dispose();
                     }
+                    this.httpClient = new HttpClient(new HttpClientHandler() { PreAuthenticate = false, Credentials = value });
                 }
             }
+        }
 
-            webRequest.ProtocolVersion = Version.Parse(request.ProtocolVersion);
-            webRequest.Method = request.Method;
+        public Task<HttpResponseMessage> Send(HttpRequestMessage request)
+        {
+            CheckDisposed();
+            return this.httpClient.SendAsync(request);
+        }
 
-            if (request.Body != null)
+        private void CheckDisposed()
+        {
+            if (this.httpClient == null)
+                throw new ObjectDisposedException(this.GetType().FullName);
+        }
+
+        public void Dispose()
+        {
+            if (this.httpClient != null)
             {
-                webRequest.ContentLength = request.Body.Length;
-                using (var requestStream = webRequest.GetRequestStream())
-                {
-                    requestStream.Write(request.Body, 0, request.Body.Length);
-                }
-            }
-
-            Exception innerException;
-            using (var webResponse = GetResponseNoThrow(webRequest, out innerException))
-            {
-                using (var responseStream = webResponse.GetResponseStream())
-                {
-                    var responseBytes = responseStream.ReadAllBytes();
-
-                    var protocolVersion = webResponse.ProtocolVersion ?? new Version(1, 1);
-
-                    return new HttpResponse((HttpStatusCode)webResponse.StatusCode,
-                                            responseBytes,
-                                            new HttpHeaders(ConvertHeaders(webResponse.Headers)), protocolVersion.ToString());
-                }
+                this.httpClient.Dispose();
+                this.httpClient = null;
             }
         }
     }

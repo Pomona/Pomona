@@ -31,84 +31,116 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-using Nancy.Testing;
+using Nancy;
+using Nancy.IO;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Web;
 
-using HttpStatusCode = Pomona.Common.Web.HttpStatusCode;
+using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace Pomona.TestHelpers
 {
     public class NancyTestingWebClient : IWebClient
     {
-        private readonly Browser browser;
-
-
-        public NancyTestingWebClient(Browser browser)
+        private static readonly HashSet<string> contentHeaders = new HashSet<string>()
         {
-            if (browser == null)
-                throw new ArgumentNullException("browser");
-            this.browser = browser;
+            "Allow",
+            "Content-Disposition",
+            "Content-Encoding",
+            "Content-Language",
+            "Content-Length",
+            "Content-Location",
+            "Content-MD5",
+            "Content-Range",
+            "Content-Type",
+            "Expires",
+            "Last-Modified"
+        };
+
+        private readonly INancyEngine engine;
+        private readonly CancellationTokenSource cts = new CancellationTokenSource();
+
+
+        public NancyTestingWebClient(INancyEngine engine)
+        {
+            if (engine == null)
+                throw new ArgumentNullException(nameof(engine));
+            this.engine = engine;
+        }
+
+
+        private async Task<Request> MapNancyRequest(HttpRequestMessage request)
+        {
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>> headersToCopy = request.Headers;
+            RequestStream requestStream = null;
+            if (request.Content != null)
+            {
+                headersToCopy = headersToCopy.Concat(request.Content.Headers);
+                requestStream = new RequestStream(await request.Content.ReadAsStreamAsync(),
+                                                  request.Content.Headers.ContentLength.GetValueOrDefault(), true);
+            }
+
+            if (Credentials != null)
+            {
+                string encodedCredentials =
+                    Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", Credentials.UserName, Credentials.Password)));
+                headersToCopy =
+                    headersToCopy.Append(new KeyValuePair<string, IEnumerable<string>>("Authorization",
+                                                                                       new[] { "Basic " + encodedCredentials }));
+            }
+
+            var nancyRequest = new Request(request.Method.ToString(), request.RequestUri,
+                                           requestStream, headersToCopy.ToDictionary(x => x.Key, x => x.Value));
+            return nancyRequest;
+        }
+
+
+        private HttpResponseMessage MapNancyResponse(Response src)
+        {
+            var dst = new HttpResponseMessage((HttpStatusCode)src.StatusCode);
+            if (src.Contents != null)
+            {
+                using (var memStream = new MemoryStream())
+                {
+                    src.Contents(memStream);
+                    dst.Content = new ByteArrayContent(memStream.ToArray());
+                }
+                foreach (var header in src.Headers)
+                {
+                    if (contentHeaders.Contains(header.Key))
+                        dst.Content.Headers.Add(header.Key, header.Value);
+                }
+                if (src.ContentType != null)
+                    dst.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(src.ContentType);
+            }
+            foreach (var header in src.Headers.Where(x => !contentHeaders.Contains(x.Key)))
+                dst.Headers.Add(header.Key, header.Value);
+            return dst;
         }
 
 
         public NetworkCredential Credentials { get; set; }
 
 
-        public HttpResponse Send(HttpRequest request)
+        public void Dispose()
         {
-            Func<string, Action<BrowserContext>, BrowserResponse> browserMethod;
+        }
 
-            switch (request.Method.ToUpper())
-            {
-                case "POST":
-                    browserMethod = this.browser.Post;
-                    break;
-                case "PATCH":
-                    browserMethod = this.browser.Patch;
-                    break;
-                case "GET":
-                    browserMethod = this.browser.Get;
-                    break;
-                case "DELETE":
-                    browserMethod = this.browser.Delete;
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
 
-            var uri = new Uri(request.Uri);
-            var creds = Credentials;
+        public async Task<HttpResponseMessage> Send(HttpRequestMessage request)
+        {
+            var nancyRequest = await MapNancyRequest(request);
 
-            var browserResponse = browserMethod(request.Uri, bc =>
-            {
-                bc.HttpRequest();
-                if (creds != null)
-                    bc.BasicAuth(creds.UserName, creds.Password);
-                ((IBrowserContextValues)bc).QueryString = uri.Query;
-                foreach (var kvp in request.Headers)
-                {
-                    foreach (var v in kvp.Value)
-                        bc.Header(kvp.Key, v);
-                }
-                if (request.Body != null)
-                    bc.Body(new MemoryStream(request.Body));
-            });
+            var context = await this.engine.HandleRequest(nancyRequest, ctx => ctx, this.cts.Token);
 
-            var responseHeaders = new HttpHeaders(
-                browserResponse
-                    .Headers
-                    .Select(x => new KeyValuePair<string, IEnumerable<string>>(x.Key, x.Value.WrapAsEnumerable())));
-
-            if (browserResponse.Context.Response != null &&
-                (!string.IsNullOrEmpty(browserResponse.Context.Response.ContentType)))
-                responseHeaders.ContentType = browserResponse.Context.Response.ContentType;
-
-            return new HttpResponse((HttpStatusCode)browserResponse.StatusCode,
-                                    browserResponse.Body.ToArray(),
-                                    responseHeaders, "1.1");
+            return MapNancyResponse(context.Response);
         }
     }
 }
