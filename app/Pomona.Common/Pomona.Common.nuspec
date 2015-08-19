@@ -14,5 +14,8 @@
         <releaseNotes></releaseNotes>
         <copyright>Copyright Karsten N. Strand 2012</copyright>
         <tags>rest linq mapping dto odata query</tags>
+        <frameworkAssemblies>
+          <frameworkAssembly assemblyName="System.Net.Http"  />
+        </frameworkAssemblies>
     </metadata>
 </package>
