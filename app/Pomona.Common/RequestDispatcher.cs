@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
 
@@ -93,7 +94,7 @@ namespace Pomona.Common
         }
 
 
-        private string SendHttpRequest(ISerializationContextProvider serializationContextProvider,
+        private async Task<string> SendHttpRequestAsync(ISerializationContextProvider serializationContextProvider,
                                        string uri,
                                        string httpMethod,
                                        object requestBodyEntity,
@@ -133,12 +134,12 @@ namespace Pomona.Common
 
                 using (Profiler.Step("client: " + request.Method + " " + request.RequestUri))
                 {
-                    response = this.WebClient.SendAsync(request).ConfigureAwait(false).GetAwaiter().GetResult();
+                    response = await this.WebClient.SendAsync(request);
                 }
 
                 if (response.Content != null)
                 {
-                    responseString = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                    responseString = await response.Content.ReadAsStringAsync();
                     if (responseString.Length == 0)
                         responseString = null;
                 }
@@ -163,14 +164,24 @@ namespace Pomona.Common
             {
                 var eh = RequestCompleted;
                 if (eh != null)
+                {
+                    // Since request content has been disposed at this point we recreate it..
+                    if (request.Content != null)
+                    {
+                        var nonDisposedContent = new ByteArrayContent(requestBytes);
+                        nonDisposedContent.Headers.CopyHeadersFrom(request.Content.Headers);
+                        request.Content = nonDisposedContent;
+                    }
                     eh(this, new ClientRequestLogEventArgs(request, response, thrownException));
+                }
             }
 
             return responseString;
         }
 
 
-        private object SendRequestInner(string uri,
+
+        private async Task<object> SendRequestInnerAsync(string uri,
                                         string httpMethod,
                                         object body,
                                         ISerializationContextProvider provider,
@@ -188,7 +199,7 @@ namespace Pomona.Common
             if (body is IExtendedResourceProxy)
                 throw new ArgumentException("SendRequestInner should never get a body of type IExtendedResourceProxy");
 
-            var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
+            var response = await SendHttpRequestAsync(provider, uri, httpMethod, body, null, options);
             return response != null ? Deserialize(response, options.ExpectedResponseType, provider) : null;
         }
 
@@ -197,6 +208,14 @@ namespace Pomona.Common
 
 
         public object SendRequest(string uri,
+                                  string httpMethod,
+                                  object body,
+                                  ISerializationContextProvider provider,
+                                  RequestOptions options = null)
+        {
+            return SendRequestAsync(uri, httpMethod, body, provider, options).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+        public async Task<object> SendRequestAsync(string uri,
                                   string httpMethod,
                                   object body,
                                   ISerializationContextProvider provider,
@@ -230,7 +249,7 @@ namespace Pomona.Common
                 }
             }
 
-            var innerResult = SendRequestInner(uri, httpMethod, innerBody, provider, innerOptions);
+            var innerResult = await SendRequestInnerAsync(uri, httpMethod, innerBody, provider, innerOptions);
             if (innerResponseType == null && proxyBody != null && innerResult != null)
             {
                 // Special case: No response type specified, but response has same type as posted body,
