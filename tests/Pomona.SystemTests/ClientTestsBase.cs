@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Reflection;
 
 using Critters.Client;
@@ -57,7 +58,7 @@ namespace Pomona.SystemTests
             get { return this.requestLog; }
         }
 
-        protected IWebClient WebClient
+        protected HttpClient WebClient
         {
             get { return Client.WebClient; }
         }
@@ -66,15 +67,15 @@ namespace Pomona.SystemTests
         public override CritterClient CreateHttpTestingClient(string baseUri)
         {
             return new CritterClient(baseUri,
-                                     new HttpWebRequestClient(new HttpHeaders() { { "MongoHeader", "lalaal" } }));
+                                     new HttpClient() { DefaultRequestHeaders = { { "MongoHeader", "lalaal" } } });
         }
 
 
         public override CritterClient CreateInMemoryTestingClient(string baseUri,
                                                                   CritterBootstrapper critterBootstrapper)
         {
-            var nancyTestingWebClient = new NancyTestingWebClient(critterBootstrapper.GetEngine());
-            return new CritterClient(baseUri, nancyTestingWebClient);
+            var nancyTestingWebClient = new NancyTestingHttpMessageHandler(critterBootstrapper.GetEngine());
+            return new CritterClient(baseUri,  new HttpClient(nancyTestingWebClient));
         }
 
 

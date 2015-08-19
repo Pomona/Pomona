@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 
 using Critters.Client;
 using Critters.Client.Pomona.Common;
@@ -51,7 +52,7 @@ namespace Pomona.IndependentClientTests
         public override CritterClient CreateInMemoryTestingClient(string baseUri,
                                                                   CritterBootstrapper critterBootstrapper)
         {
-            return new CritterClient(baseUri, new IndependentNancyTestingWebClient(critterBootstrapper.GetEngine()));
+            return new CritterClient(baseUri, new HttpClient(new IndependentNancyTestingHttpMessageHandler(critterBootstrapper.GetEngine())));
         }
 
 
@@ -75,9 +76,9 @@ namespace Pomona.IndependentClientTests
         }
 
 
-        private class IndependentNancyTestingWebClient : NancyTestingWebClient, IWebClient
+        private class IndependentNancyTestingHttpMessageHandler : NancyTestingHttpMessageHandler
         {
-            public IndependentNancyTestingWebClient(INancyEngine engine)
+            public IndependentNancyTestingHttpMessageHandler(INancyEngine engine)
                 : base(engine)
             {
             }

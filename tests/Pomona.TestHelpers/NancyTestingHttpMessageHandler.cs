@@ -47,7 +47,7 @@ using HttpStatusCode = System.Net.HttpStatusCode;
 
 namespace Pomona.TestHelpers
 {
-    public class NancyTestingWebClient : IWebClient
+    public class NancyTestingHttpMessageHandler : HttpMessageHandler
     {
         private static readonly HashSet<string> contentHeaders = new HashSet<string>()
         {
@@ -65,10 +65,8 @@ namespace Pomona.TestHelpers
         };
 
         private readonly INancyEngine engine;
-        private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-
-        public NancyTestingWebClient(INancyEngine engine)
+        public NancyTestingHttpMessageHandler(INancyEngine engine)
         {
             if (engine == null)
                 throw new ArgumentNullException(nameof(engine));
@@ -128,19 +126,18 @@ namespace Pomona.TestHelpers
 
         public NetworkCredential Credentials { get; set; }
 
-
-        public void Dispose()
-        {
-        }
-
-
-        public async Task<HttpResponseMessage> Send(HttpRequestMessage request)
+        protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var nancyRequest = await MapNancyRequest(request);
 
-            var context = await this.engine.HandleRequest(nancyRequest, ctx => ctx, this.cts.Token);
+            var context = await this.engine.HandleRequest(nancyRequest, ctx => ctx, cancellationToken);
 
             return MapNancyResponse(context.Response);
+        }
+
+
+        public void Dispose()
+        {
         }
     }
 }

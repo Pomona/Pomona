@@ -69,7 +69,7 @@
     </Compile>
     <Compile Include="ExpressionAssertExtensions.cs" />
     <Compile Include="JsonAssertExtensions.cs" />
-    <Compile Include="NancyTestingWebClient.cs" />
+    <Compile Include="NancyTestingHttpMessageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ApiChangeVerifier.cs" />
     <Compile Include="SolutionTestsHelper.cs" />

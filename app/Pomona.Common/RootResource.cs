@@ -28,6 +28,7 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 
 using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
@@ -48,7 +49,7 @@ namespace Pomona.Common
         }
 
 
-        protected RootResource(string baseUri, IWebClient webClient)
+        protected RootResource(string baseUri, HttpClient webClient)
         {
             BaseUri = baseUri;
             this.client = new PomonaClient(ClientTypeMapper, webClient);
@@ -180,7 +181,7 @@ namespace Pomona.Common
             get { return this.client.TypeMapper; }
         }
 
-        public IWebClient WebClient
+        public HttpClient WebClient
         {
             get { return this.client.WebClient; }
         }

@@ -38,66 +38,23 @@ using Pomona.Common.Internals;
 
 namespace Pomona.Common.Web
 {
-    public class HttpWebRequestClient : IWebClient
+    [Obsolete("Use System.Net.Http.HttpClient instead")]
+    public class HttpWebRequestClient : HttpClient
     {
-        private HttpClient httpClient = new HttpClient();
-
         public HttpWebRequestClient()
         {
         }
 
 
-        public HttpWebRequestClient(HttpHeaders httpHeaders) : this()
+        public HttpWebRequestClient(HttpMessageHandler handler)
+            : base(handler)
         {
-            if (httpHeaders != null)
-            {
-                foreach (var header in httpHeaders)
-                {
-                    this.httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
-                }
-            }
         }
 
 
-        private NetworkCredential credentials;
-
-        public NetworkCredential Credentials
+        public HttpWebRequestClient(HttpMessageHandler handler, bool disposeHandler)
+            : base(handler, disposeHandler)
         {
-            get { return this.credentials; }
-            set
-            {
-                CheckDisposed();
-                if (this.credentials != value)
-                {
-                    this.credentials = value;
-                    if (this.httpClient != null)
-                    {
-                        this.httpClient.Dispose();
-                    }
-                    this.httpClient = new HttpClient(new HttpClientHandler() { PreAuthenticate = false, Credentials = value });
-                }
-            }
-        }
-
-        public Task<HttpResponseMessage> Send(HttpRequestMessage request)
-        {
-            CheckDisposed();
-            return this.httpClient.SendAsync(request);
-        }
-
-        private void CheckDisposed()
-        {
-            if (this.httpClient == null)
-                throw new ObjectDisposedException(this.GetType().FullName);
-        }
-
-        public void Dispose()
-        {
-            if (this.httpClient != null)
-            {
-                this.httpClient.Dispose();
-                this.httpClient = null;
-            }
         }
     }
 }

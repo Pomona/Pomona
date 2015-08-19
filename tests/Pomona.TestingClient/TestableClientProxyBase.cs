@@ -30,6 +30,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 
 using Pomona.Common;
@@ -427,7 +428,7 @@ namespace Pomona.TestingClient
             get { return this.typeMapper; }
         }
 
-        public IWebClient WebClient
+        public HttpClient WebClient
         {
             get { throw new NotImplementedException(); }
         }

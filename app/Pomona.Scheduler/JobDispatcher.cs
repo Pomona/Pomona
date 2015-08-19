@@ -36,7 +36,7 @@ namespace Pomona.Scheduler
     public class JobDispatcher : IJobDispatcher
     {
         private readonly IJobStore jobStore;
-        private readonly IWebClient webClient;
+        private readonly HttpClient webClient;
 
 
         public JobDispatcher(IJobStore jobStore)

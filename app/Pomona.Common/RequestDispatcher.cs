@@ -27,43 +27,38 @@
 #endregion
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 
 using Newtonsoft.Json.Linq;
 
 using Pomona.Common.ExtendedResources;
-using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Common.Web;
 using Pomona.Profiling;
 
-using HttpHeaders = Pomona.Common.Web.HttpHeaders;
-
 namespace Pomona.Common
 {
     public class RequestDispatcher : IRequestDispatcher
     {
-        private readonly HttpHeaders defaultHeaders;
+        private readonly IEnumerable<KeyValuePair<string, IEnumerable<string>>> defaultHeaders;
         private readonly ITextSerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
-        private readonly IWebClient webClient;
 
 
         public RequestDispatcher(ClientTypeMapper typeMapper,
-                                 IWebClient webClient,
+                                 HttpClient webClient,
                                  ITextSerializerFactory serializerFactory,
-                                 HttpHeaders defaultHeaders = null)
+                                 IEnumerable<KeyValuePair<string, IEnumerable<string>>> defaultHeaders = null)
         {
             this.defaultHeaders = defaultHeaders;
             if (typeMapper != null)
                 this.typeMapper = typeMapper;
             if (webClient != null)
-                this.webClient = webClient;
+                this.WebClient = webClient;
             if (serializerFactory != null)
                 this.serializerFactory = serializerFactory;
         }
@@ -138,7 +133,7 @@ namespace Pomona.Common
 
                 using (Profiler.Step("client: " + request.Method + " " + request.RequestUri))
                 {
-                    response = this.webClient.Send(request).ConfigureAwait(false).GetAwaiter().GetResult();
+                    response = this.WebClient.SendAsync(request).ConfigureAwait(false).GetAwaiter().GetResult();
                 }
 
                 if (response.Content != null)
@@ -255,9 +250,6 @@ namespace Pomona.Common
         }
 
 
-        public IWebClient WebClient
-        {
-            get { return this.webClient; }
-        }
+        public HttpClient WebClient { get; }
     }
 }

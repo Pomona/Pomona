@@ -28,6 +28,7 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 
 using Pomona.Common.Loading;
 using Pomona.Common.Web;
@@ -38,7 +39,7 @@ namespace Pomona.Common
     {
         ClientSettings Settings { get; }
         ClientTypeMapper TypeMapper { get; }
-        IWebClient WebClient { get; }
+        HttpClient WebClient { get; }
         void Delete(object resource, RequestOptions options);
         object Patch(object form, RequestOptions options);
         object Post(string uri, object form, RequestOptions options);

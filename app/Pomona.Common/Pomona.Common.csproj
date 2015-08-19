@@ -339,11 +339,8 @@
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
     <Compile Include="Web\BadRequestException.cs" />
-    <Compile Include="Web\HttpHeaders.cs" />
-    <Compile Include="Web\HttpHeadersConverter.cs" />
     <Compile Include="Web\HttpRequestMessageConverter.cs" />
     <Compile Include="Web\HttpResponseMessageConverter.cs" />
-    <Compile Include="Web\IWebClient.cs" />
     <Compile Include="Web\IWebClientException.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
     <Compile Include="Web\ResourceNotFoundException.cs" />

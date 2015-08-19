@@ -26,6 +26,8 @@
 
 #endregion
 
+using System.Net.Http;
+
 using Extra.Client;
 
 using Nancy.Testing;
@@ -49,8 +51,8 @@ namespace Pomona.SystemTests
 
         public override ExtraClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
         {
-            var nancyTestingWebClient = new NancyTestingWebClient(critterBootstrapper.GetEngine());
-            return new ExtraClient(baseUri + "Extra/", nancyTestingWebClient);
+            var nancyTestingWebClient = new NancyTestingHttpMessageHandler(critterBootstrapper.GetEngine());
+            return new ExtraClient(baseUri + "Extra/", new HttpClient(nancyTestingWebClient));
         }
 
 
