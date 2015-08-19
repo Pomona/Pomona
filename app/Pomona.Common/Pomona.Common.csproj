@@ -339,6 +339,7 @@
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
     <Compile Include="Web\BadRequestException.cs" />
+    <Compile Include="Web\HttpMessageExtensions.cs" />
     <Compile Include="Web\HttpRequestMessageConverter.cs" />
     <Compile Include="Web\HttpResponseMessageConverter.cs" />
     <Compile Include="Web\IWebClientException.cs" />

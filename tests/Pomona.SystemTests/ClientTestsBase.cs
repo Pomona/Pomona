@@ -144,8 +144,8 @@ namespace Pomona.SystemTests
             if (RequestTraceEnabled)
             {
                 Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                                  e.Request,
-                                  (object)e.Response ?? "(nothing received)");
+                                  e.Request.ToStringWithContent(),
+                                  e.Response?.ToStringWithContent() ?? "(nothing received)");
             }
         }
 
