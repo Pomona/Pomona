@@ -58,6 +58,8 @@ namespace Pomona.Common.ExtendedResources
         private static ExtendedProperty Create<TDictValue, TProperty>(PropertyInfo property,
                                                                       ExtendedResourceInfo declaringTypeInfo)
         {
+            if (property.HasAttribute<SerializedAsJsonAttribute>(true))
+                return new SerializedExtendedAttributeProperty<TDictValue, TProperty>(property, declaringTypeInfo);
             return new ExtendedAttributeProperty<TDictValue, TProperty>(property, declaringTypeInfo);
         }
     }

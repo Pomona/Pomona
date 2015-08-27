@@ -28,6 +28,8 @@
 
 using System.Linq;
 
+using Newtonsoft.Json.Linq;
+
 using NUnit.Framework;
 
 using Pomona.Common;
@@ -41,6 +43,15 @@ namespace Pomona.UnitTests.ExtendedResources
     {
         private ExtendedResourceMapper extendedMapper;
         private ClientTypeMapper typeMapper;
+
+
+        [Test]
+        public void GetExtendedResourceInfo_ForCustomTestResourceThatGotSerializedAttributeProperty_PropertyIsOfRightType()
+        {
+            var resInfo = this.extendedMapper.GetExtendedResourceInfo(typeof(ICustomTestResourceThatGotSerializedAttributeProperty));
+            Assert.That(resInfo.ExtendedProperties.Single(x => x.Property.Name == "SomeObject"),
+                        Is.InstanceOf<SerializedExtendedAttributeProperty<object, FooBar>>());
+        }
 
 
         [Test]
@@ -74,9 +85,47 @@ namespace Pomona.UnitTests.ExtendedResources
         }
 
 
+        [Test]
+        public void Unwrap_resource_with_serialized_attribute_property()
+        {
+            var form = new TestResourcePostForm();
+            form.Attributes["SomeObject"] = "{\"Bar\":\"hahaha\",\"Foo\":\"hihihi\"}";
+            var wrapped =
+                (ICustomTestResourceThatGotSerializedAttributeProperty)
+                    this.extendedMapper.WrapForm(form, typeof(ICustomTestResourceThatGotSerializedAttributeProperty));
+            Assert.That(wrapped.SomeObject, Is.Not.Null);
+            Assert.That(wrapped.SomeObject.Bar, Is.EqualTo("hahaha"));
+            Assert.That(wrapped.SomeObject.Foo, Is.EqualTo("hihihi"));
+        }
+
+
+        [Test]
+        public void Wrap_resource_with_serialized_attribute_property()
+        {
+            var wrapped =
+                (ICustomTestResourceThatGotSerializedAttributeProperty)
+                    this.extendedMapper.WrapForm(new TestResourcePostForm(), typeof(ICustomTestResourceThatGotSerializedAttributeProperty));
+            wrapped.SomeObject = new FooBar() { Bar = "hahaha", Foo = "hihihi" };
+            var serialized = (string)wrapped.Attributes["SomeObject"];
+            Assert.That(JToken.DeepEquals(JToken.Parse("{\"Bar\":\"hahaha\",\"Foo\":\"hihihi\"}"), JToken.Parse(serialized)));
+        }
+
+
+        public class FooBar
+        {
+            public string Bar { get; set; }
+            public string Foo { get; set; }
+        }
+
         private interface ICustomTestResourceThatGotNonNullableInteger : ITestResource
         {
             int NotNullable { get; set; }
+        }
+
+        public interface ICustomTestResourceThatGotSerializedAttributeProperty : ITestResource
+        {
+            [SerializedAsJson]
+            FooBar SomeObject { get; set; }
         }
 
         private interface ICustomTestResourceWithSelfReference : ITestResource

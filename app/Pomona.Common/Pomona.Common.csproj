@@ -55,6 +55,8 @@
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientSettings.cs" />
     <Compile Include="ClientServerSplittingSelectBuilder.cs" />
+    <Compile Include="ExtendedResources\SerializedAsJsonAttribute.cs" />
+    <Compile Include="ExtendedResources\SerializedExtendedAttributeProperty.cs" />
     <Compile Include="PomonaClientExtensions.cs" />
     <Compile Include="RootResource.cs" />
     <Compile Include="ClientTypeMapper.cs" />
