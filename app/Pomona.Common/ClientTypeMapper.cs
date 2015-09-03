@@ -55,9 +55,7 @@ namespace Pomona.Common
         public ClientTypeMapper(Assembly scanAssembly)
             : this(
                 scanAssembly.GetTypes().Where(
-                    x =>
-                        x.IsInterface && typeof(IClientResource).IsAssignableFrom(x)
-                        && x.HasAttribute<ResourceInfoAttribute>(false)))
+                    x => IsResourceType(x) || (x.IsEnum && x.IsPublic)))
         {
         }
 
@@ -65,6 +63,7 @@ namespace Pomona.Common
         public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
         {
             this.resourceTypes = clientResourceTypes.ToList().AsReadOnly();
+
             this.typeNameMap =
                 this.resourceTypes
                     .Select(FromType)
@@ -343,6 +342,13 @@ namespace Pomona.Common
         private static bool IsAnonType(Type type)
         {
             return type.IsAnonymous() || type.IsTuple();
+        }
+
+
+        private static bool IsResourceType(Type x)
+        {
+            return x.IsInterface && typeof(IClientResource).IsAssignableFrom(x)
+                   && x.HasAttribute<ResourceInfoAttribute>(false);
         }
 
 
