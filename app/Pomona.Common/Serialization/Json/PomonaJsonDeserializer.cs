@@ -43,12 +43,6 @@ namespace Pomona.Common.Serialization.Json
 {
     public class PomonaJsonDeserializer : ITextDeserializer
     {
-        private static readonly Func<Type, PomonaJsonDeserializer, JObject, IDeserializerNode, IJsonPropertyValueSource>
-            createPropertyValueSourceMethod =
-                GenericInvoker.Instance<PomonaJsonDeserializer>()
-                              .CreateFunc1<JObject, IDeserializerNode, IJsonPropertyValueSource>(
-                                  x => x.CreatePropertyValueSource<object>(null, null));
-
         private static readonly Action<Type, PomonaJsonDeserializer, IDeserializerNode, Reader>
             deserializeArrayNodeGenericMethod =
                 GenericInvoker.Instance<PomonaJsonDeserializer>().CreateAction1<IDeserializerNode, Reader>(
@@ -72,13 +66,6 @@ namespace Pomona.Common.Serialization.Json
             this.contextProvider = contextProvider;
             this.jsonSerializer = new JsonSerializer() { DateParseHandling = DateParseHandling.None };
             this.jsonSerializer.Converters.Add(new StringEnumConverter());
-        }
-
-
-        private PropertyValueSource<T> CreatePropertyValueSource<T>(JObject jobj,
-                                                                    IDeserializerNode node)
-        {
-            return new PropertyValueSource<T>(jobj, node, this);
         }
 
 
@@ -238,7 +225,7 @@ namespace Pomona.Common.Serialization.Json
             if (node.Operation == DeserializerNodeOperation.Default)
                 node.Operation = node.Value == null ? DeserializerNodeOperation.Post : DeserializerNodeOperation.Patch;
 
-            var propertyValueSource = createPropertyValueSourceMethod(node.ValueType, this, jobj, node);
+            var propertyValueSource = new PropertyValueSource(jobj, node, this);
             propertyValueSource.Deserialize();
         }
 
@@ -551,7 +538,7 @@ namespace Pomona.Common.Serialization.Json
 
         #region Nested type: IJsonPropertyValueSource
 
-        private interface IJsonPropertyValueSource
+        private interface IJsonPropertyValueSource : IConstructorPropertySource
         {
             void Deserialize();
         }
@@ -560,7 +547,7 @@ namespace Pomona.Common.Serialization.Json
 
         #region Nested type: PropertyValueSource
 
-        private class PropertyValueSource<T> : IConstructorPropertySource<T>, IJsonPropertyValueSource
+        private class PropertyValueSource : IJsonPropertyValueSource
         {
             private readonly PomonaJsonDeserializer deserializer;
             private readonly IDeserializerNode node;
@@ -651,12 +638,6 @@ namespace Pomona.Common.Serialization.Json
             }
 
 
-            public T Optional()
-            {
-                throw new InvalidOperationException("Unexpected error: Should be replaced by a call to GetValue.");
-            }
-
-
             public TParentType Parent<TParentType>()
             {
                 var resourceNode = (IResourceNode)this.node;
@@ -667,53 +648,33 @@ namespace Pomona.Common.Serialization.Json
                             (x => x.Value).OfType<TParentType>().First();
             }
 
-
-            public T Requires()
-            {
-                throw new InvalidOperationException("Unexpected error: Should be replaced by a call to GetValue.");
-            }
-
             #region Nested type: PropertyContainer
 
             private class PropertyContainer
             {
-                private readonly JProperty jProperty;
-                private readonly string name;
-                private readonly DeserializerNodeOperation operation;
-
-
                 public PropertyContainer(JProperty jProperty)
                 {
-                    this.jProperty = jProperty;
+                    this.JProperty = jProperty;
                     if (jProperty.Name.StartsWith("!"))
                     {
-                        this.name = jProperty.Name.Substring(1);
-                        this.operation = DeserializerNodeOperation.Post;
+                        this.Name = jProperty.Name.Substring(1);
+                        this.Operation = DeserializerNodeOperation.Post;
                     }
                     else
                     {
-                        this.name = jProperty.Name;
-                        this.operation = DeserializerNodeOperation.Patch;
+                        this.Name = jProperty.Name;
+                        this.Operation = DeserializerNodeOperation.Patch;
                     }
                 }
 
 
                 public bool Fetched { get; set; }
 
-                public JProperty JProperty
-                {
-                    get { return this.jProperty; }
-                }
+                public JProperty JProperty { get; }
 
-                public string Name
-                {
-                    get { return this.name; }
-                }
+                public string Name { get; }
 
-                public DeserializerNodeOperation Operation
-                {
-                    get { return this.operation; }
-                }
+                public DeserializerNodeOperation Operation { get; }
             }
 
             #endregion
@@ -725,19 +686,13 @@ namespace Pomona.Common.Serialization.Json
 
         internal class Reader
         {
-            private readonly JToken token;
-
-
             public Reader(JToken token)
             {
-                this.token = token;
+                this.Token = token;
             }
 
 
-            public JToken Token
-            {
-                get { return this.token; }
-            }
+            public JToken Token { get; }
         }
 
         #endregion

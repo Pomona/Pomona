@@ -28,11 +28,15 @@
 
 namespace Pomona.Common.TypeSystem
 {
-    public interface IConstructorControl<TDeclaringType>
+    public interface IConstructorControl
     {
         TContext Context<TContext>();
-        TDeclaringType Optional();
         TParentType Parent<TParentType>();
+    }
+
+    public interface IConstructorControl<TDeclaringType> : IConstructorControl
+    {
+        TDeclaringType Optional();
         TDeclaringType Requires();
     }
 }

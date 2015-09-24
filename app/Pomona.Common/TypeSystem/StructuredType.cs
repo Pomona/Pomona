@@ -123,11 +123,8 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override object Create<T>(IConstructorPropertySource<T> propertySource)
+        public override object Create(IConstructorPropertySource propertySource)
         {
-            if (typeof(T) != Type)
-                throw new InvalidOperationException(string.Format("T ({0}) does not match Type property", typeof(T)));
-
             if (IsAbstract)
             {
                 throw new PomonaSerializationException("Pomona was unable to instantiate type " + Name
@@ -142,15 +139,15 @@ namespace Pomona.Common.TypeSystem
 
             if (this.createUsingPropertySourceFunc == null)
             {
-                var param = Expression.Parameter(typeof(IConstructorPropertySource<T>));
+                var param = Expression.Parameter(typeof(IConstructorPropertySource));
                 var expr =
-                    Expression.Lambda<Func<IConstructorPropertySource<T>, T>>(
+                    Expression.Lambda(
                         Expression.Invoke(Constructor.InjectingConstructorExpression, param),
                         param);
                 this.createUsingPropertySourceFunc = expr.Compile();
             }
 
-            return ((Func<IConstructorPropertySource<T>, T>)this.createUsingPropertySourceFunc)(propertySource);
+            return ((Func<IConstructorPropertySource, object>)this.createUsingPropertySourceFunc)(propertySource);
         }
 
 
@@ -175,7 +172,7 @@ namespace Pomona.Common.TypeSystem
 
         #region Nested type: ConstructorPropertySource
 
-        private class ConstructorPropertySource<T> : IConstructorPropertySource<T>
+        private class ConstructorPropertySource : IConstructorPropertySource
         {
             private readonly IDictionary<PropertySpec, object> args;
 
@@ -208,19 +205,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public T Optional()
-            {
-                throw new NotImplementedException();
-            }
-
-
             public TParentType Parent<TParentType>()
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public T Requires()
             {
                 throw new NotImplementedException();
             }
