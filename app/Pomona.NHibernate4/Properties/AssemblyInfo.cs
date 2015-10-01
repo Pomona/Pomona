@@ -33,9 +33,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("Pomona.NHibernate3")]
-[assembly : AssemblyDescription("Pomona helper library for NH3 querying.")]
+[assembly : AssemblyTitle("Pomona.NHibernate4")]
+[assembly : AssemblyDescription("Pomona helper library for NH4 querying.")]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly : Guid("0b939d88-50c9-4ebf-8564-53bb3d3911b6")]
+[assembly : Guid("5c0a8d60-f46e-461a-b6d3-a8d0436fc923")]
