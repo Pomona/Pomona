@@ -183,7 +183,7 @@ namespace Pomona.Common.TypeSystem
                         typeof(IConstructorControl<>),
                         out paramGenArgs))
                     throw new InvalidOperationException("Lambda is not of correct type");
-                var propSourceGenericTypeInstance = typeof(IConstructorPropertySource<>).MakeGenericType(paramGenArgs);
+                var propSourceGenericTypeInstance = typeof(IConstructorPropertySource);
                 this.newParam = Expression.Parameter(propSourceGenericTypeInstance);
                 this.getValueMethod = propSourceGenericTypeInstance.GetMethod("GetValue");
                 return Expression.Lambda(Visit(node.Body), this.newParam);

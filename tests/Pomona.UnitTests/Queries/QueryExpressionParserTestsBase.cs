@@ -94,6 +94,7 @@ namespace Pomona.UnitTests.Queries
             public IList<double> ListOfDoubles { get; set; }
             public IList<float> ListOfFloats { get; set; }
             public IList<int> ListOfInts { get; set; }
+            public IList<int> ListOfDateTimes { get; set; }
             public bool? NullableBool { get; set; }
             public TestEnum? NullableEnum { get; set; }
             public long? NullableInt64 { get; set; }

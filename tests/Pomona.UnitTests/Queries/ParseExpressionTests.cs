@@ -174,6 +174,7 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDoubles.max()", _this => _this.ListOfDoubles.Max());
             ParseAndAssert("listOfDecimals.max()", _this => _this.ListOfDecimals.Max());
             ParseAndAssert("listOfFloats.max()", _this => _this.ListOfFloats.Max());
+            ParseAndAssert("listOfDateTimes.max()", _this => _this.ListOfDateTimes.Max());
         }
 
 
@@ -184,6 +185,7 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDoubles.max(y: y)", _this => _this.ListOfDoubles.Max(y => y));
             ParseAndAssert("listOfDecimals.max(y: y)", _this => _this.ListOfDecimals.Max(y => y));
             ParseAndAssert("listOfFloats.max(y: y)", _this => _this.ListOfFloats.Max(y => y));
+            ParseAndAssert("listOfDateTimes.max(y: y)", _this => _this.ListOfDateTimes.Max(y => y));
         }
 
 
@@ -194,6 +196,7 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDoubles.min()", _this => _this.ListOfDoubles.Min());
             ParseAndAssert("listOfDecimals.min()", _this => _this.ListOfDecimals.Min());
             ParseAndAssert("listOfFloats.min()", _this => _this.ListOfFloats.Min());
+            ParseAndAssert("listOfDateTimes.min()", _this => _this.ListOfDateTimes.Min());
         }
 
 
@@ -204,6 +207,7 @@ namespace Pomona.UnitTests.Queries
             ParseAndAssert("listOfDoubles.min(y: y)", _this => _this.ListOfDoubles.Min(y => y));
             ParseAndAssert("listOfDecimals.min(y: y)", _this => _this.ListOfDecimals.Min(y => y));
             ParseAndAssert("listOfFloats.min(y: y)", _this => _this.ListOfFloats.Min(y => y));
+            ParseAndAssert("listOfDateTimes.min(y: y)", _this => _this.ListOfDateTimes.Min(y => y));
         }
 
 

@@ -139,7 +139,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual object Create<T>(IConstructorPropertySource<T> propertySource)
+        public virtual object Create(IConstructorPropertySource propertySource)
         {
             throw new NotSupportedException("Unable to instantiate type " + FullName);
         }

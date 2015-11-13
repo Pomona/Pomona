@@ -31,7 +31,7 @@ using System.Reflection;
 
 namespace Pomona.Common.TypeSystem
 {
-    public interface IConstructorPropertySource<T> : IConstructorControl<T>
+    public interface IConstructorPropertySource : IConstructorControl
     {
         TProperty GetValue<TProperty>(PropertyInfo propertyInfo, Func<TProperty> defaultFactory);
     }

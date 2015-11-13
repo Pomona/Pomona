@@ -33,10 +33,11 @@ using System.Linq;
 using System.Reflection;
 
 using Pomona.Common.Internals;
+using Pomona.Common.Serialization;
 
 namespace Pomona.Common
 {
-    public abstract class QueryResult
+    public abstract class QueryResult : IPomonaSerializable
     {
         private static readonly MethodInfo createMethod;
         private readonly Dictionary<string, string> debugInfo = new Dictionary<string, string>();
@@ -104,6 +105,16 @@ namespace Pomona.Common
             return isSetCollection
                 ? (QueryResult)new QuerySetResult<TSource>(castSource, skip, totalCount, previousPageUrl, nextPageUrl)
                 : new QueryResult<TSource>(castSource, skip, totalCount, previousPageUrl, nextPageUrl);
+        }
+
+
+        public bool PropertyIsSerialized(string propertyName)
+        {
+            if (propertyName == nameof(DebugInfo) && (DebugInfo == null || DebugInfo.Count == 0))
+            {
+                return false;
+            }
+            return true;
         }
     }
 

@@ -101,6 +101,35 @@ namespace Pomona.SystemTests.Serialization
             Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
         }
 
+
+        [Test]
+        public void Serialize_QueryResult_with_DebugInfo_is_successful()
+        {
+            var qr = QueryResult.Create(new List<Hat>() { new Hat("fedora") { Id = 1337 } }, 0, 4,
+                                        "http://prev", "http://next");
+            qr.DebugInfo["haha"] = "hihi";
+            var jobj = SerializeAndGetJsonObject(qr);
+            var expected = JObject.Parse(@"{
+  ""_type"": ""__result__"",
+  ""totalCount"": 4,
+  ""items"": [
+    {
+      ""_uri"": ""http://test/hats/1337"",
+      ""hatType"": ""fedora"",
+      ""style"": null,
+      ""id"": 1337
+    }
+  ],
+  ""skip"": 0,
+  ""previous"": ""http://prev"",
+  ""next"": ""http://next"",
+  ""debugInfo"": {
+    ""haha"": ""hihi""
+  }
+}");
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
         #region Setup/Teardown
 
         [SetUp]
