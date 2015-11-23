@@ -158,6 +158,16 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void PatchCritter_SetWeaponCollectionToNewList_ReplacesTheCollection()
+        {
+            var critter = Client.Critters.Get(Repository.CreateRandomCritter().Id);
+            Assert.That(critter.Weapons.Count, Is.GreaterThan(1));
+            var response = Client.Patch(critter, x => x.Weapons = new List<IWeapon>());
+            Assert.That(response.Weapons.Count, Is.EqualTo(0));
+        }
+
+
+        [Test]
         public void PatchCritter_SetWriteOnlyProperty()
         {
             var critter = Repository.CreateRandomCritter();
