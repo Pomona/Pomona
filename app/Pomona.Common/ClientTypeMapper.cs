@@ -79,6 +79,12 @@ namespace Pomona.Common
         }
 
 
+        public static T CreatePostForm<T>()
+        {
+            return PostFormFactory<T>.Create();
+        }
+
+
         public override ConstructorSpec LoadConstructor(TypeSpec typeSpec)
         {
             var ria = typeSpec.DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault();
@@ -405,6 +411,25 @@ namespace Pomona.Common
         public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
             return ResourceInfoAttribute.TryGet(type, out resourceInfo);
+        }
+
+
+        private static class PostFormFactory<T>
+        {
+            private static Func<T> factory;
+
+
+            public static T Create()
+            {
+                if (factory == null)
+                {
+                    var type = typeof(T);
+                    var realInterface = ClientTypeResolver.Default.GetMostInheritedResourceInterface(type);
+                    var clientTypeMapper = GetTypeMapper(realInterface);
+                    factory = () => (T)clientTypeMapper.CreatePostForm(type);
+                }
+                return factory();
+            }
         }
     }
 }
