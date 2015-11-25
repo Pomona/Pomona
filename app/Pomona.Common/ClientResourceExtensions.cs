@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 
 using Pomona.Common.Proxies;
@@ -34,6 +35,20 @@ namespace Pomona.Common
 {
     public static class ClientResourceExtensions
     {
+        public static T AddNew<T>(this ICollection<T> collection, Action<T> initAction)
+            where T : IClientResource
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+            if (initAction == null)
+                throw new ArgumentNullException(nameof(initAction));
+            var form = ClientTypeMapper.CreatePostForm<T>();
+            initAction(form);
+            collection.Add(form);
+            return form;
+        }
+
+
         public static bool IsLoaded<T>(this IEnumerable<T> collection)
             where T : IClientResource
         {

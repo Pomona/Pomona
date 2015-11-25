@@ -285,8 +285,8 @@ namespace Pomona.Common.Serialization.Json
                 if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Structured &&
                     !(propNode.Value is IDelta))
                     jsonWriter.WritePropertyName("!" + prop.JsonName);
-                else if (propNode.ValueType.SerializationMode == TypeSerializationMode.Array
-                         && propNode.Value.Maybe().OfType<ICollectionDelta>().Select(x => x.Cleared).OrDefault())
+                else if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Array
+                         && propNode.Value.Maybe().OfType<ICollectionDelta>().Select(x => x.Cleared).OrDefault(true))
                     jsonWriter.WritePropertyName("!" + prop.JsonName);
                 else
                     jsonWriter.WritePropertyName(prop.JsonName);

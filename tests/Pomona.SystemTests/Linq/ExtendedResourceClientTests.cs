@@ -36,7 +36,6 @@ using NUnit.Framework;
 
 using Pomona.Common;
 using Pomona.Common.ExtendedResources;
-using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Example.Models;
 
@@ -69,11 +68,7 @@ namespace Pomona.SystemTests.Linq
                 Client.Patch(resource,
                              x =>
                              {
-                                 var extendedForm = new StringToObjectDictionaryContainerForm()
-                                     .Wrap<IStringToObjectDictionaryContainer, ITestClientResource>();
-                                 x.OtherContainers.Add(
-                                     extendedForm);
-                                 extendedForm.Jalla = "Hahaha";
+                                 x.OtherContainers.AddNew(item => item.Jalla = "Hahaha");
                              },
                              x => x.Expand(y => y.OtherContainers));
 
