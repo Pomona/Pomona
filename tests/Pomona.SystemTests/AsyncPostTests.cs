@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,15 +26,22 @@
 
 #endregion
 
-using System;
+using System.Threading.Tasks;
 
-using Pomona.Common.Proxies;
+using Critters.Client;
 
-namespace Pomona.Common.TypeSystem
+using NUnit.Framework;
+
+namespace Pomona.SystemTests
 {
-    public interface IClientTypeFactory
-    {
-        object CreatePatchForm(Type resourceType, object original);
-        IPostForm CreatePostForm(Type resourceType);
+    [TestFixture]
+    public class AsyncPostTests : ClientTestsBase
+    { 
+        [Test]
+        public async Task PostAsync_UsingAction_IsSuccessful()
+        {
+            var result = await Client.Critters.PostAsync<ICritter, ICritter>(f => f.Name = "New critter on the block", null);
+            Assert.That(result.Name, Is.EqualTo("New critter on the block"));
+        }
     }
 }

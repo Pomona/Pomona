@@ -29,9 +29,11 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 using Pomona.Common.ExtendedResources;
 using Pomona.Common.Internals;
+using Pomona.Common.Proxies;
 using Pomona.Common.Web;
 
 namespace Pomona.Common
@@ -140,6 +142,12 @@ namespace Pomona.Common
         }
 
 
+        public Task<object> GetAsync(string uri, Type type, RequestOptions requestOptions)
+        {
+            return this.client.GetAsync(uri, type, requestOptions);
+        }
+
+
         public virtual IQueryable<T> Query<T>()
         {
             return this.client.Query<T>(GetUriOfType(typeof(T)));
@@ -163,6 +171,12 @@ namespace Pomona.Common
             add { this.client.RequestCompleted += value; }
             remove { this.client.RequestCompleted -= value; }
         }
+
+        public Task<object> PostAsync(string uri, IPostForm form, RequestOptions options)
+        {
+            return this.client.PostAsync(uri, form, options);
+        }
+
 
         public ClientSettings Settings
         {

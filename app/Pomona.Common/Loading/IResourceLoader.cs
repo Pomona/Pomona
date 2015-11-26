@@ -27,11 +27,13 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.Common.Loading
 {
     public interface IResourceLoader
     {
         object Get(string uri, Type type, RequestOptions requestOptions);
+        Task<object> GetAsync(string uri, Type type, RequestOptions requestOptions);
     }
 }

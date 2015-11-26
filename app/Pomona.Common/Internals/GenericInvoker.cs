@@ -169,6 +169,19 @@ namespace Pomona.Common.Internals
             }
 
 
+            public Func<Type, Type, TInstance, T1, T2, T3, T4, T5, TReturn> CreateFunc2<T1, T2, T3, T4, T5, TReturn>(
+                Expression<Func<TInstance, object>> expr)
+            {
+                return WrapInstanceGenericMethod<Func<Type, Type, TInstance, T1, T2, T3, T4, T5, TReturn>>(2, expr);
+            }
+
+            public Func<Type, Type, Type, TInstance, T1, T2, T3, T4, T5, TReturn> CreateFunc3<T1, T2, T3, T4, T5, TReturn>(
+                Expression<Func<TInstance, object>> expr)
+            {
+                return WrapInstanceGenericMethod<Func<Type, Type, Type, TInstance, T1, T2, T3, T4, T5, TReturn>>(3, expr);
+            }
+
+
             public Func<Type[], TInstance, T1, T2, TReturn> CreateFuncy<T1, T2, TReturn>(
                 Expression<Func<TInstance, object>> expr)
             {

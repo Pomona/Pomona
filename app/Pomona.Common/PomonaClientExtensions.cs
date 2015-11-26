@@ -30,6 +30,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
@@ -53,6 +54,21 @@ namespace Pomona.Common
 
             var type = typeof(T);
             var resource = client.Get(uri, type, requestOptions);
+
+            if (resource == null && type.IsValueType && !type.IsNullable())
+                throw new InvalidCastException(String.Format("The response from {0} was null, which can't be cast to {1}.", uri, type));
+
+            return (T)resource;
+        }
+
+
+        public static async Task<T> GetAsync<T>(this IPomonaClient client, string uri, RequestOptions requestOptions)
+        {
+            if (client == null)
+                throw new ArgumentNullException("client");
+
+            var type = typeof(T);
+            var resource = await client.GetAsync(uri, type, requestOptions);
 
             if (resource == null && type.IsValueType && !type.IsNullable())
                 throw new InvalidCastException(String.Format("The response from {0} was null, which can't be cast to {1}.", uri, type));
@@ -147,6 +163,14 @@ namespace Pomona.Common
             return client.Post(uri, postForm, options);
         }
 
+        internal static Task<object> PostAsync<T>(this IPomonaClient client, string uri, Action<T> postAction, RequestOptions options)
+        {
+            if (client == null)
+                throw new ArgumentNullException("client");
+            var postForm = client.TypeMapper.CreatePostForm(typeof(T));
+            postAction((T)postForm);
+            return client.PostAsync(uri, postForm, options);
+        }
 
         internal static bool TryGetResourceInfoAttribute(this Type type, out ResourceInfoAttribute resourceInfoAttribute)
         {

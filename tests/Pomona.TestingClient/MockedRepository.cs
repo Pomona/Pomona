@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -185,6 +186,12 @@ namespace Pomona.TestingClient
         public virtual TPostReturnType Post(Action<TResource> postAction)
         {
             return Post<TResource, TPostReturnType>(postAction);
+        }
+
+
+        public Task<TSubResponseResource> PostAsync<TSubResource, TSubResponseResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResponseResource>> options) where TSubResource : class, TResource where TSubResponseResource : TPostReturnType
+        {
+            throw new NotImplementedException();
         }
 
 

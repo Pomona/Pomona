@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
@@ -163,6 +164,12 @@ namespace Pomona.Common
         public virtual TPostResponseResource Post(Action<TResource> postAction)
         {
             return (TPostResponseResource)this.client.Post<TResource>(Uri, postAction, null);
+        }
+
+
+        public virtual async Task<TSubResponseResource> PostAsync<TSubResource, TSubResponseResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResponseResource>> options) where TSubResource : class, TResource where TSubResponseResource : TPostResponseResource
+        {
+            return (TSubResponseResource)await this.client.PostAsync(Uri, postAction, RequestOptions.Create(options));
         }
 
 

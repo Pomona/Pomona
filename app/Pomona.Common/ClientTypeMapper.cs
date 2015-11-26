@@ -390,13 +390,13 @@ namespace Pomona.Common
         }
 
 
-        public object CreatePostForm(Type resourceType)
+        public IPostForm CreatePostForm(Type resourceType)
         {
             ExtendedResourceInfo extendedResourceInfo;
 
             if (TryGetExtendedTypeInfo(resourceType, out extendedResourceInfo))
             {
-                return this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
+                return (IPostForm)this.extendedResourceMapper.WrapForm(CreatePostForm(extendedResourceInfo.ServerType),
                                                             extendedResourceInfo.ExtendedType);
             }
 
@@ -404,7 +404,7 @@ namespace Pomona.Common
             if (resourceInfo.PostFormType == null)
                 throw new InvalidOperationException("Method POST is not allowed for uri.");
             var serverPostForm = Activator.CreateInstance(resourceInfo.PostFormType);
-            return serverPostForm;
+            return (IPostForm)serverPostForm;
         }
 
 

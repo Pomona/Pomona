@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.Common.Loading
 {
@@ -50,6 +51,15 @@ namespace Pomona.Common.Loading
                 requestOptions.ResourceLoader = this;
 
             return this.loader.Get(uri, type, requestOptions);
+        }
+
+
+        public Task<object> GetAsync(string uri, Type type, RequestOptions requestOptions)
+        {
+            if (requestOptions != null)
+                requestOptions.ResourceLoader = this;
+
+            return this.loader.GetAsync(uri, type, requestOptions);
         }
     }
 }

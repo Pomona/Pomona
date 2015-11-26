@@ -29,8 +29,10 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 using Pomona.Common.Loading;
+using Pomona.Common.Proxies;
 using Pomona.Common.Web;
 
 namespace Pomona.Common
@@ -46,5 +48,6 @@ namespace Pomona.Common
         IQueryable<T> Query<T>(string uri);
         T Reload<T>(T resource);
         event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+        Task<object> PostAsync(string uri, IPostForm form, RequestOptions options);
     }
 }

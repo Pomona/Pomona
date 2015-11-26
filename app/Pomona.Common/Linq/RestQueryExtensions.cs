@@ -31,9 +31,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
 
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.Common.Linq
@@ -229,9 +231,29 @@ namespace Pomona.Common.Linq
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(new[] { typeof(TSource) });
-            var methodCallExpression = Expression.Call(null, genericMethod, new[] { source.Expression });
+            var methodCallExpression1 = Expression.Call(null, genericMethod, new[] { source.Expression });
+            var methodCallExpression = methodCallExpression1;
 
             return source.Provider.Execute<QueryResult<TSource>>(methodCallExpression);
+        }
+
+
+        public static Task<TResult> Future<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<IQueryable<TSource>, TResult>> expr)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            if (expr == null)
+                throw new ArgumentNullException(nameof(expr));
+
+            var mergedExpression = expr.Body.Replace(expr.Parameters[0], source.Expression);
+
+            return source.Provider.Execute<Task<TResult>>(mergedExpression);
+        }
+
+
+        public static Task<QueryResult<TSource>> ToQueryResultAsync<TSource>(this IQueryable<TSource> source)
+        {
+            return source.Future(x => x.ToQueryResult());
         }
 
 

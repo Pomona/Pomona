@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
 
@@ -42,8 +43,8 @@ namespace Pomona.Common.Linq
 {
     using ExecuteWithClientSelectPartDelegate =
         Func<Type, Type, RestQueryProvider, string, RestQueryableTreeParser.QueryProjection, LambdaExpression,
-            RequestOptions, object>;
-    using ExecuteGenericMethodDelegate = Func<Type, RestQueryProvider, RestQueryableTreeParser, object>;
+            RequestOptions, bool, object>;
+    using ExecuteGenericMethodDelegate = Func<Type, RestQueryProvider, RestQueryableTreeParser, bool, object>;
 
     public class RestQueryProvider : QueryProviderBase
     {
@@ -56,15 +57,16 @@ namespace Pomona.Common.Linq
         {
             executeGenericMethod = GenericInvoker
                 .Instance<RestQueryProvider>()
-                .CreateFunc1<RestQueryableTreeParser, object>(x => x.Execute<object>(null));
+                .CreateFunc1<RestQueryableTreeParser, bool, object>(x => x.Execute<object>(null, false));
 
             executeWithClientSelectPart = GenericInvoker
                 .Instance<RestQueryProvider>()
-                .CreateFunc2<string, RestQueryableTreeParser.QueryProjection, LambdaExpression, RequestOptions, object>(
+                .CreateFunc2<string, RestQueryableTreeParser.QueryProjection, LambdaExpression, RequestOptions, bool, object>(
                     x => x.ExecuteWithClientSelectPart<int, bool>(null,
                                                                   default(RestQueryableTreeParser.QueryProjection),
                                                                   null,
-                                                                  null));
+                                                                  null,
+                                                                  false));
         }
 
 
@@ -106,7 +108,9 @@ namespace Pomona.Common.Linq
             var queryTreeParser = new RestQueryableTreeParser();
             queryTreeParser.Visit(expression);
 
-            return executeGenericMethod.Invoke(queryTreeParser.SelectReturnType, this, queryTreeParser);
+            var executeAsync = resultType != null && typeof(Task).IsAssignableFrom(resultType);
+
+            return executeGenericMethod.Invoke(queryTreeParser.SelectReturnType, this, queryTreeParser, executeAsync);
         }
 
 
@@ -164,7 +168,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        private object Execute<T>(RestQueryableTreeParser parser)
+        private object Execute<T>(RestQueryableTreeParser parser, bool executeAsync)
         {
             LambdaExpression clientSideSelectPart;
             var uri = BuildUri(parser, out clientSideSelectPart);
@@ -186,17 +190,92 @@ namespace Pomona.Common.Linq
                                                           uri,
                                                           queryProjection,
                                                           clientSideSelectPart,
-                                                          requestOptions);
+                                                          requestOptions,
+                                                          executeAsync);
             }
 
-            return Execute<T, T>(uri, queryProjection, null, requestOptions);
+            return Execute<T, T>(uri, queryProjection, null, requestOptions, executeAsync);
         }
 
 
         private object Execute<T, TConverted>(string uri,
                                               RestQueryableTreeParser.QueryProjection queryProjection,
                                               Func<T, TConverted> clientSideSelectPart,
-                                              RequestOptions requestOptions)
+                                              RequestOptions requestOptions,
+                                              bool executeAsync)
+        {
+            if (executeAsync)
+                return ExecuteAsync(uri, queryProjection, clientSideSelectPart, requestOptions);
+
+;            return ExecuteSync(uri, queryProjection, clientSideSelectPart, requestOptions);
+        }
+
+        private object ExecuteAsync<T, TConverted>(string uri,
+                                          RestQueryableTreeParser.QueryProjection queryProjection,
+                                          Func<T, TConverted> clientSideSelectPart,
+                                          RequestOptions requestOptions)
+        {
+            if (queryProjection == RestQueryableTreeParser.QueryProjection.FirstLazy)
+            {
+                throw new InvalidOperationException("Don't use FirstLazy when executing async as this is redundant.");
+            }
+
+            switch (queryProjection)
+            {
+                case RestQueryableTreeParser.QueryProjection.ToQueryResult:
+                    return ExecuteToQueryResultAsync(uri, clientSideSelectPart, requestOptions);
+
+                case RestQueryableTreeParser.QueryProjection.Enumerable:
+                    return ExecuteToEnumerableAsync(uri, clientSideSelectPart, requestOptions);
+                case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
+                case RestQueryableTreeParser.QueryProjection.First:
+                case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
+                case RestQueryableTreeParser.QueryProjection.Single:
+                case RestQueryableTreeParser.QueryProjection.Last:
+                case RestQueryableTreeParser.QueryProjection.LastOrDefault:
+                    return GetOneAsync(uri, requestOptions, clientSideSelectPart);
+                case RestQueryableTreeParser.QueryProjection.Any:
+                case RestQueryableTreeParser.QueryProjection.Max:
+                case RestQueryableTreeParser.QueryProjection.Min:
+                case RestQueryableTreeParser.QueryProjection.Sum:
+                case RestQueryableTreeParser.QueryProjection.Count:
+                    return this.client.GetAsync<TConverted>(uri, requestOptions);
+                default:
+                    throw new NotImplementedException("Don't recognize projection type " + queryProjection);
+            }
+        }
+
+
+        private async Task<IEnumerable<TConverted>> ExecuteToEnumerableAsync<T, TConverted>(string uri, Func<T, TConverted> clientSideSelectPart, RequestOptions requestOptions)
+        {
+            {
+                var result = await this.client.GetAsync<IEnumerable<T>>(uri, requestOptions);
+                if (clientSideSelectPart != null)
+                {
+                    return result.Select(clientSideSelectPart).ToList();
+                }
+                return (QueryResult<TConverted>)((object)result);
+            }
+        }
+
+        private async Task<QueryResult<TConverted>> ExecuteToQueryResultAsync<T, TConverted>(string uri, Func<T, TConverted> clientSideSelectPart, RequestOptions requestOptions)
+        {
+            {
+                var result = await this.client.GetAsync<QueryResult<T>>(uri, requestOptions);
+                if (clientSideSelectPart != null)
+                {
+                    return new QueryResult<TConverted>(result.Select(clientSideSelectPart), result.Skip, result.TotalCount, result.Previous,
+                                                       result.Next);
+                }
+                return (QueryResult<TConverted>)((object)result);
+            }
+        }
+
+
+        private object ExecuteSync<T, TConverted>(string uri,
+                                                  RestQueryableTreeParser.QueryProjection queryProjection,
+                                                  Func<T, TConverted> clientSideSelectPart,
+                                                  RequestOptions requestOptions)
         {
             if (queryProjection == RestQueryableTreeParser.QueryProjection.FirstLazy)
             {
@@ -212,18 +291,31 @@ namespace Pomona.Common.Linq
 
             switch (queryProjection)
             {
+                case RestQueryableTreeParser.QueryProjection.ToQueryResult:
+                {
+                    var result = this.client.Get<QueryResult<T>>(uri, requestOptions);
+                    if (clientSideSelectPart != null)
+                    {
+                        return new QueryResult<TConverted>(result.Select(clientSideSelectPart), result.Skip, result.TotalCount, result.Previous,
+                                                           result.Next);
+                    }
+                    return result;
+                }
+
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
+                {
                     var result = this.client.Get<IList<T>>(uri, requestOptions);
                     if (clientSideSelectPart != null)
                         return result.Select(clientSideSelectPart).ToList();
                     return result;
+                }
                 case RestQueryableTreeParser.QueryProjection.SingleOrDefault:
                 case RestQueryableTreeParser.QueryProjection.First:
                 case RestQueryableTreeParser.QueryProjection.FirstOrDefault:
                 case RestQueryableTreeParser.QueryProjection.Single:
                 case RestQueryableTreeParser.QueryProjection.Last:
                 case RestQueryableTreeParser.QueryProjection.LastOrDefault:
-                    return GetFirst(uri, requestOptions, clientSideSelectPart);
+                    return GetOne(uri, requestOptions, clientSideSelectPart);
                 case RestQueryableTreeParser.QueryProjection.Any:
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
@@ -241,13 +333,29 @@ namespace Pomona.Common.Linq
                                                                          queryProjection,
                                                                      Expression<Func<TServer, TClient>>
                                                                          clientSideExpression,
-                                                                     RequestOptions requestOptions)
+                                                                     RequestOptions requestOptions,
+                                                                     bool executeAsync)
         {
-            return Execute(uri, queryProjection, clientSideExpression.Compile(), requestOptions);
+            return Execute(uri, queryProjection, clientSideExpression.Compile(), requestOptions, executeAsync);
+        }
+        private async Task<TConverted> GetOneAsync<T, TConverted>(string uri, RequestOptions requestOptions, Func<T, TConverted> clientSideSelectPart)
+        {
+            try
+            {
+                var result = await this.client.GetAsync<T>(uri, requestOptions);
+                if (clientSideSelectPart != null)
+                    return clientSideSelectPart(result);
+                return (TConverted)((object)result);
+            }
+            catch (ResourceNotFoundException ex)
+            {
+                throw new InvalidOperationException("Sequence contains no matching element", ex);
+            }
         }
 
 
-        private object GetFirst<T, TConverted>(string uri, RequestOptions requestOptions, Func<T, TConverted> clientSideSelectPart)
+
+        private object GetOne<T, TConverted>(string uri, RequestOptions requestOptions, Func<T, TConverted> clientSideSelectPart)
         {
             try
             {
