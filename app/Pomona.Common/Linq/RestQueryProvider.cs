@@ -224,14 +224,12 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Last:
                 case RestQueryableTreeParser.QueryProjection.LastOrDefault:
                     return GetFirst(uri, requestOptions, clientSideSelectPart);
+                case RestQueryableTreeParser.QueryProjection.Any:
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
                 case RestQueryableTreeParser.QueryProjection.Count:
                     return this.client.Get<T>(uri, requestOptions);
-                case RestQueryableTreeParser.QueryProjection.Any:
-                    // TODO: Implement count querying without returning any results..
-                    return this.client.Get<IList<T>>(uri, requestOptions).Count > 0;
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + queryProjection);
             }
@@ -300,6 +298,9 @@ namespace Pomona.Common.Linq
                     break;
                 case RestQueryableTreeParser.QueryProjection.Sum:
                     projection = "sum";
+                    break;
+                case RestQueryableTreeParser.QueryProjection.Any:
+                    projection = "any";
                     break;
             }
             if (projection != null)

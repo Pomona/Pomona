@@ -61,7 +61,8 @@ namespace Pomona
             Sum,
             Count,
             Last,
-            LastOrDefault
+            LastOrDefault,
+            Any
         }
 
         #endregion
@@ -217,6 +218,8 @@ namespace Pomona
                     return new PomonaResponse(this, totalQueryable.Max());
                 case ProjectionType.Min:
                     return new PomonaResponse(this, totalQueryable.Min());
+                case ProjectionType.Any:
+                    return new PomonaResponse(this, totalQueryable.Any());
                 case ProjectionType.Count:
                     return new PomonaResponse(this, totalQueryable.Count());
                 case ProjectionType.Sum:
