@@ -1,10 +1,13 @@
-
+@echo off
 
 echo "Building Nuget packages"
 
 del build\*.nupkg
 mkdir build
 
+call "%VS140COMNTOOLS%\VsDevCmd.bat"
+
+msbuild Pomona.sln /target:Build /p:Configuration=Release
 
 nuget pack -Prop Configuration=Release app\Pomona.Common\Pomona.Common.csproj -build -OutputDirectory build
 nuget pack -Prop Configuration=Release app\Pomona\Pomona.csproj -build -OutputDirectory build
