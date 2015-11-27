@@ -96,22 +96,28 @@ namespace Pomona.Common.Web
                     //writer.WriteValue(str);
 
                     // Represent the text as an array of strings split at \r\n to make long text content easier to read.
-                    writer.WriteStartArray();
-                    StringBuilder sb = new StringBuilder();
-                    foreach (var c in str)
-                    {
-                        sb.Append(c);
-                        if (c == '\n')
-                        {
-                            writer.WriteValue(sb.ToString());
-                            sb.Clear();
-                        }
-                    }
-                    if (sb.Length > 0)
-                        writer.WriteValue(sb.ToString());
-                    writer.WriteEndArray();
+                    WriteStringFomat(writer, contentType, str);
                 }
             }
+        }
+
+
+        protected virtual void WriteStringFomat(JsonWriter writer, ContentType contentType, string str)
+        {
+            writer.WriteStartArray();
+            StringBuilder sb = new StringBuilder();
+            foreach (var c in str)
+            {
+                sb.Append(c);
+                if (c == '\n')
+                {
+                    writer.WriteValue(sb.ToString());
+                    sb.Clear();
+                }
+            }
+            if (sb.Length > 0)
+                writer.WriteValue(sb.ToString());
+            writer.WriteEndArray();
         }
     }
 }
