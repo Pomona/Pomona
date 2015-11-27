@@ -1,9 +1,36 @@
-﻿using System;
+﻿#region License
+
+// ----------------------------------------------------------------------------
+// Pomona source code
+// 
+// Copyright © 2015 Karsten Nikolai Strand
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
+
+#endregion
+
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
+using System.Net.Http.Headers;
 using System.Text;
 
 using Newtonsoft.Json;
@@ -13,6 +40,33 @@ namespace Pomona.Common.Web
 {
     public abstract class HttpMessageConverterBase : JsonConverter
     {
+        private static readonly HashSet<string> contentHeaderKeys = new HashSet<string>(new string[]
+        {
+            "Allow",
+            "Content-Disposition",
+            "Content-Encoding",
+            "Content-Language",
+            "Content-Length",
+            "Content-Location",
+            "Content-MD5",
+            "Content-Range",
+            "Content-Type",
+            "Expires",
+            "Last-Modified"
+        }, StringComparer.OrdinalIgnoreCase);
+
+        private static readonly HashSet<string> ignoredHeaders =
+            new HashSet<string>(new[] { "Content-Length", "Expect", "Accept-Encoding", "Cache-Control" });
+
+        private readonly HttpMessageContentWriter contentWriter;
+
+
+        protected HttpMessageConverterBase(HttpMessageContentWriter contentWriter)
+        {
+            this.contentWriter = contentWriter ?? new HttpMessageContentWriter();
+        }
+
+
         protected static HttpContent ReadBody(JObject jobj)
         {
             byte[] body;
@@ -29,7 +83,18 @@ namespace Pomona.Common.Web
                     body = Convert.FromBase64String((string)bodyToken);
                     break;
                 case "text":
-                    body =  Encoding.UTF8.GetBytes((string)bodyToken);
+                    // When format is text and body is a JSON array containing only strings,
+                    // the strings will be joined together to form the body.
+                    var bodyAsArray = bodyToken as JArray;
+                    if (bodyAsArray != null)
+                    {
+                        var sb = new StringBuilder();
+                        foreach (var jstr in bodyAsArray)
+                            sb.Append((string)jstr);
+                        body = Encoding.UTF8.GetBytes(sb.ToString());
+                    }
+                    else
+                        body = Encoding.UTF8.GetBytes((string)bodyToken);
                     break;
                 default:
                     throw new JsonSerializationException("Format of request body " + format + " not recognized");
@@ -38,25 +103,10 @@ namespace Pomona.Common.Web
         }
 
 
-
-
-
-        private readonly static HashSet<string> contentHeaderKeys = new HashSet<string>(new string[]
-        {
-            "Allow",
-            "Content-Disposition",
-            "Content-Encoding",
-            "Content-Language",
-            "Content-Length",
-            "Content-Location",
-            "Content-MD5",
-            "Content-Range",
-            "Content-Type",
-            "Expires",
-            "Last-Modified"
-        }, StringComparer.OrdinalIgnoreCase);
-
-        protected static void ReadHeaders(JObject jobj, JsonSerializer serializer, System.Net.Http.Headers.HttpHeaders headers, HttpContent content)
+        protected static void ReadHeaders(JObject jobj,
+                                          JsonSerializer serializer,
+                                          HttpHeaders headers,
+                                          HttpContent content)
         {
             JToken headersToken;
             if (jobj.TryGetValue("headers", out headersToken))
@@ -67,6 +117,9 @@ namespace Pomona.Common.Web
                 foreach (var prop in headersJobj)
                 {
                     var key = prop.Key;
+                    if (IsIgnoredHeader(key))
+                        continue;
+
                     var jValues = prop.Value;
                     List<string> values = new List<string>();
                     if (jValues.Type == JTokenType.Array)
@@ -91,81 +144,26 @@ namespace Pomona.Common.Web
                         content.Headers.Add(key, values);
                     }
                     else
-                    {
                         headers.Add(key, values);
-                    }
                 }
             }
         }
 
 
-        protected static void WriteBody(JsonWriter writer, HttpContent content)
+        protected void WriteBody(JsonWriter writer, HttpContent content)
         {
-            if (content == null)
-                return;
-
-            var bytes = content.ReadAsByteArrayAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-
-            IEnumerable<string> contentTypeValues;
-            string contentTypeHeaderValue;
-            if (content.Headers.TryGetValues("Content-Type", out contentTypeValues))
-            {
-                contentTypeHeaderValue = contentTypeValues.Last();
-            }
-            else
-            {
-                contentTypeHeaderValue = "text/html; charset=utf-8";
-            }
-
-            writer.WritePropertyName("format");
-
-            var contentType = new ContentType(contentTypeHeaderValue);
-            bool formatAsBinary = false;
-            var encoding = Encoding.ASCII;
-            if (contentType.CharSet != null)
-                encoding = Encoding.GetEncoding(contentType.CharSet);
-            else
-                formatAsBinary = bytes.Any(c => c == 0 || c > 127);
-            if (formatAsBinary)
-            {
-                writer.WriteValue("binary");
-                writer.WritePropertyName("body");
-                writer.WriteValue(Convert.ToBase64String(bytes));
-            }
-            else
-            {
-                // Need to use memory stream to avoid UTF-8 BOM weirdness
-                string str;
-                using (var ms = new MemoryStream(bytes))
-                using (var sr = new StreamReader(ms, encoding))
-                {
-                    str = sr.ReadToEnd();
-                }
-
-                if (contentType.MediaType == "application/json" || contentType.MediaType.EndsWith("+json"))
-                {
-                    var jtoken = JToken.Parse(str);
-                    writer.WriteValue("json");
-                    writer.WritePropertyName("body");
-                    jtoken.WriteTo(writer);
-                }
-                else
-                {
-                    writer.WriteValue("text");
-                    writer.WritePropertyName("body");
-                    writer.WriteValue(str);
-                }
-            }
+            this.contentWriter.Write(writer, content);
         }
 
 
-        protected static void WriteHeaders(JsonWriter writer, JsonSerializer serializer, System.Net.Http.Headers.HttpHeaders headers, HttpContent content)
+        protected static void WriteHeaders(JsonWriter writer,
+                                           JsonSerializer serializer,
+                                           HttpHeaders headers,
+                                           HttpContent content)
         {
             IEnumerable<KeyValuePair<string, IEnumerable<string>>> allHeaders = headers;
             if (content != null)
-            {
                 allHeaders = allHeaders.Concat(content.Headers);
-            }
             if (allHeaders.Any())
             {
                 writer.WritePropertyName("headers");
@@ -173,19 +171,25 @@ namespace Pomona.Common.Web
                 foreach (var header in allHeaders)
                 {
                     var key = header.Key;
+                    if (IsIgnoredHeader(key))
+                        continue;
+
                     var values = header.Value;
                     writer.WritePropertyName(key);
                     if (values.Count() == 1)
-                    {
                         writer.WriteValue(values.First());
-                    }
                     else
-                    {
                         serializer.Serialize(writer, values, typeof(IEnumerable<KeyValuePair<string, IEnumerable<string>>>));
-                    }
                 }
                 writer.WriteEndObject();
             }
+        }
+
+
+        private static bool IsIgnoredHeader(string key)
+        {
+            // Content-Length will be implicit by body.
+            return ignoredHeaders.Contains(key);
         }
     }
 }

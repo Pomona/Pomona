@@ -36,6 +36,18 @@ namespace Pomona.Common.Web
 {
     public class HttpRequestMessageConverter : HttpMessageConverterBase
     {
+        public HttpRequestMessageConverter()
+            : this(null)
+        {
+        }
+
+
+        public HttpRequestMessageConverter(HttpMessageContentWriter contentWriter)
+            : base(contentWriter)
+        {
+        }
+
+
         public override bool CanConvert(Type objectType)
         {
             return typeof(HttpRequestMessage).IsAssignableFrom(objectType);

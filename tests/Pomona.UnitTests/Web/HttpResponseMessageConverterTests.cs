@@ -70,7 +70,7 @@ namespace Pomona.UnitTests.Web
                     Headers = { ContentType = MediaTypeHeaderValue.Parse("application/json; charset=utf-8") }
                 }
             };
-            var input = "{'statusCode':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}";
+            var input = "{'status':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}";
             var result = ReadJson(JToken.Parse(input));
             AssertObjectEquals(expected, result);
         }
@@ -79,7 +79,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void WriteJson_with_headers_serializes_request()
         {
-            var expected = JObject.Parse("{'statusCode':202,'headers':{'Boof':'lala'}}");
+            var expected = JObject.Parse("{'status':202,'headers':{'Boof':'lala'}}");
             var response = new HttpResponseMessage(HttpStatusCode.Accepted)
             { Headers = { { "Boof", "lala" } } };
             WriteJsonAssertEquals(response, expected);
@@ -91,7 +91,7 @@ namespace Pomona.UnitTests.Web
         {
             var expected =
                 JObject.Parse(
-                    "{'statusCode':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}");
+                    "{'status':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}");
             var response = new HttpResponseMessage(HttpStatusCode.Accepted)
             {
                 Content =
@@ -108,7 +108,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void WriteJson_with_no_body_serializes_request()
         {
-            var expected = JObject.Parse("{'statusCode':202}");
+            var expected = JObject.Parse("{'status':202}");
             var response = new HttpResponseMessage(HttpStatusCode.Accepted);
             WriteJsonAssertEquals(response, expected);
         }

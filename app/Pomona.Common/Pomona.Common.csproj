@@ -44,6 +44,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
@@ -339,6 +340,7 @@
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
     <Compile Include="Web\BadRequestException.cs" />
+    <Compile Include="Web\HttpMessageContentWriter.cs" />
     <Compile Include="Web\HttpMessageExtensions.cs" />
     <Compile Include="Web\HttpRequestMessageConverter.cs" />
     <Compile Include="Web\HttpResponseMessageConverter.cs" />
