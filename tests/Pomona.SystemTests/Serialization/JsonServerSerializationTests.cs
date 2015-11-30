@@ -56,6 +56,27 @@ namespace Pomona.SystemTests.Serialization
 
 
         [Test]
+        public void Serialize_AnonymousObject_with_resource_is_successful()
+        {
+            var obj = new
+            {
+                Method = "POST",
+                Resource = new Hat("fedora") { Id = 1337 }
+            };
+
+            var jobj = SerializeAndGetJsonObject(obj);
+            var expected = JObject.Parse(@"{
+  ""method"": ""POST"",
+  ""resource"": {
+    ""_ref"": ""http://test/hats/1337""
+  }
+}");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
+
+        [Test]
         [Explicit("This is a performance test and should only be run when doing performance optimization")]
         public void Serialize_LargeAmountOfObjects()
         {
