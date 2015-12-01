@@ -27,28 +27,19 @@
 #endregion
 
 using System;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-
-using Pomona.Common.Loading;
-using Pomona.Common.Proxies;
-using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
-    public interface IPomonaClient : IClientTypeResolver, IResourceLoader
+    public static class ClientRepositoryExtensions
     {
-        ClientSettings Settings { get; }
-        ClientTypeMapper TypeMapper { get; }
-        HttpClient WebClient { get; }
-        void Delete(object resource, RequestOptions options);
-        object Patch(object form, RequestOptions options);
-        object Post(string uri, object form, RequestOptions options);
-        IQueryable<T> Query<T>(string uri);
-        T Reload<T>(T resource);
-        event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
-        Task<object> PostAsync(string uri, IPostForm form, RequestOptions options);
-        Task<object> PatchAsync(object form, RequestOptions options);
+        public static Task<TPostResponseResource> PostAsync<TResource, TPostResponseResource>(
+            this IPostableRepository<TResource, TPostResponseResource> repository,
+            Action<TResource> action)
+            where TResource : class, IClientResource
+            where TPostResponseResource : IClientResource
+        {
+            return repository.PostAsync<TResource, TPostResponseResource>(action, null);
+        }
     }
 }

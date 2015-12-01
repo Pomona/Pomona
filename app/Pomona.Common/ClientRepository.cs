@@ -128,6 +128,12 @@ namespace Pomona.Common
         }
 
 
+        public Task<TSubResource> PatchAsync<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return this.client.PatchAsync(resource, patchAction, options);
+        }
+
+
         public virtual TPostResponseResource Post(IPostForm form)
         {
             return (TPostResponseResource)this.client.Post(Uri, (TResource)((object)form), null);

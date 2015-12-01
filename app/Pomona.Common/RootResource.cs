@@ -178,6 +178,12 @@ namespace Pomona.Common
         }
 
 
+        public Task<object> PatchAsync(object form, RequestOptions options)
+        {
+            return this.client.PatchAsync(form, options);
+        }
+
+
         public ClientSettings Settings
         {
             get { return this.client.Settings; }

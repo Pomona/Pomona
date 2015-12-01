@@ -32,11 +32,21 @@ using Critters.Client;
 
 using NUnit.Framework;
 
+using Pomona.Common;
+
 namespace Pomona.SystemTests
 {
     [TestFixture]
     public class AsyncPostTests : ClientTestsBase
-    { 
+    {
+        [Test]
+        public async Task PostAsync_ExtensionMethod_UsingAction_WithNoOptionSpecified_IsSuccessful()
+        {
+            var critter = await Client.Critters.PostAsync(c => c.Name = "Blah");
+            Assert.That(critter.Name, Is.EqualTo("Blah"));
+        }
+
+
         [Test]
         public async Task PostAsync_UsingAction_IsSuccessful()
         {

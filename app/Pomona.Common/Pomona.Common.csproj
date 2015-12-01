@@ -53,6 +53,7 @@
     <Compile Include="AllowedMethodsAttribute.cs" />
     <Compile Include="ChildResourceRepository.cs" />
     <Compile Include="ClientRepository.cs" />
+    <Compile Include="ClientRepositoryExtensions.cs" />
     <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientSettings.cs" />

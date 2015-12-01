@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2015 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,29 +26,24 @@
 
 #endregion
 
-using System;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 
-using Pomona.Common.Loading;
-using Pomona.Common.Proxies;
-using Pomona.Common.Web;
+using NUnit.Framework;
 
-namespace Pomona.Common
+using Pomona.Common;
+
+namespace Pomona.SystemTests
 {
-    public interface IPomonaClient : IClientTypeResolver, IResourceLoader
+    [TestFixture]
+    public class AsyncPatchTests : ClientTestsBase
     {
-        ClientSettings Settings { get; }
-        ClientTypeMapper TypeMapper { get; }
-        HttpClient WebClient { get; }
-        void Delete(object resource, RequestOptions options);
-        object Patch(object form, RequestOptions options);
-        object Post(string uri, object form, RequestOptions options);
-        IQueryable<T> Query<T>(string uri);
-        T Reload<T>(T resource);
-        event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
-        Task<object> PostAsync(string uri, IPostForm form, RequestOptions options);
-        Task<object> PatchAsync(object form, RequestOptions options);
+        [Test]
+        public async Task Patch_IsSuccessful()
+        {
+            var critterEntity = Client.Critters.First();
+            var updatedCritter = await Client.PatchAsync(critterEntity, c => c.Name = "UPDATED!");
+            Assert.That(updatedCritter.Name, Is.EqualTo("UPDATED!"));
+        }
     }
 }

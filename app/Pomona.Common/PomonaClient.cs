@@ -217,6 +217,18 @@ namespace Pomona.Common
         }
 
 
+        public virtual Task<object> PatchAsync(object form, RequestOptions options)
+        {
+            if (form == null)
+                throw new ArgumentNullException("form");
+
+            var uri = GetUriOfForm(form);
+
+            AddIfMatchToPatch(form, options);
+            return this.dispatcher.SendRequestAsync(uri, "PATCH", form, GetSerializationContextProvider(options), options);
+        }
+
+
         public virtual IQueryable<T> Query<T>(string uri)
         {
             if (uri == null)

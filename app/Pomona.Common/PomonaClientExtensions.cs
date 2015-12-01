@@ -62,6 +62,14 @@ namespace Pomona.Common
         }
 
 
+        public static object Get(this IPomonaClient client, string uri, Type type)
+        {
+            if (client == null)
+                throw new ArgumentNullException("client");
+            return client.Get(uri, type, null);
+        }
+
+
         public static async Task<T> GetAsync<T>(this IPomonaClient client, string uri, RequestOptions requestOptions)
         {
             if (client == null)
@@ -74,14 +82,6 @@ namespace Pomona.Common
                 throw new InvalidCastException(String.Format("The response from {0} was null, which can't be cast to {1}.", uri, type));
 
             return (T)resource;
-        }
-
-
-        public static object Get(this IPomonaClient client, string uri, Type type)
-        {
-            if (client == null)
-                throw new ArgumentNullException("client");
-            return client.Get(uri, type, null);
         }
 
 
@@ -154,6 +154,23 @@ namespace Pomona.Common
         }
 
 
+        internal static async Task<T> PatchAsync<T>(this IPomonaClient client,
+                                                    T target,
+                                                    Action<T> updateAction,
+                                                    Action<IRequestOptions<T>> options = null)
+        {
+            if (client == null)
+                throw new ArgumentNullException("client");
+            var patchForm = (T)client.TypeMapper.CreatePatchForm(typeof(T), target);
+            updateAction(patchForm);
+
+            var requestOptions = new RequestOptions<T>();
+            options?.Invoke(requestOptions);
+
+            return (T)await client.PatchAsync(patchForm, requestOptions);
+        }
+
+
         internal static object Post<T>(this IPomonaClient client, string uri, Action<T> postAction, RequestOptions options)
         {
             if (client == null)
@@ -163,6 +180,7 @@ namespace Pomona.Common
             return client.Post(uri, postForm, options);
         }
 
+
         internal static Task<object> PostAsync<T>(this IPomonaClient client, string uri, Action<T> postAction, RequestOptions options)
         {
             if (client == null)
@@ -171,6 +189,7 @@ namespace Pomona.Common
             postAction((T)postForm);
             return client.PostAsync(uri, postForm, options);
         }
+
 
         internal static bool TryGetResourceInfoAttribute(this Type type, out ResourceInfoAttribute resourceInfoAttribute)
         {

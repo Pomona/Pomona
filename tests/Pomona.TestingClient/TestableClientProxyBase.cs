@@ -412,6 +412,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public Task<object> PatchAsync(object form, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public ClientSettings Settings
         {
             get { return this.settings; }

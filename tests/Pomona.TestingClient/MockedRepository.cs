@@ -135,6 +135,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public Task<TSubResource> PatchAsync<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            throw new NotImplementedException();
+        }
+
+
         public virtual TPostReturnType Post(IPostForm form)
         {
             return (TPostReturnType)Client.OnPost(form);
