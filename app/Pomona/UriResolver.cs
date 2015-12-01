@@ -60,9 +60,10 @@ namespace Pomona
 
         private void BuildRelativeUri(object entity, PropertySpec property, StringBuilder sb)
         {
-            var type = this.typeMapper.FromType(entity.GetType()) as ResourceType;
+            var entityType = entity.GetType();
+            var type = this.typeMapper.FromType(entityType) as ResourceType;
             if (type == null)
-                throw new InvalidOperationException("Can only get Uri for a ResourceType.");
+                throw new InvalidOperationException($"Can't get URI for {entityType}; can only get Uri for a ResourceType.");
 
             type.AppendUri(entity, sb);
 

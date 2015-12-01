@@ -42,6 +42,7 @@ using NSubstitute;
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Serialization;
 using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
@@ -53,6 +54,74 @@ namespace Pomona.SystemTests.Serialization
     public class JsonServerSerializationTests
     {
         private TypeMapper typeMapper;
+
+
+        [Test]
+        public void Serialize_AnonymousObject_with_resource_cast_to_object_and_expanded_is_successful()
+        {
+            var obj = new
+            {
+                Method = "POST",
+                Resource = (object)new Hat("fedora") { Id = 1337 }
+            };
+
+            var jobj = SerializeAndGetJsonObject(obj, "resource");
+            var expected = JObject.Parse(@"{
+  ""method"": ""POST"",
+  ""resource"": {
+    ""_uri"": ""http://test/hats/1337"",
+    ""_type"": ""Hat"",
+    ""hatType"": ""fedora"",
+    ""style"": null,
+    ""id"": 1337
+  }
+}");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
+
+        [Test]
+        public void Serialize_AnonymousObject_with_resource_cast_to_object_is_successful()
+        {
+            var obj = new
+            {
+                Method = "POST",
+                Resource = (object)new Hat("fedora") { Id = 1337 }
+            };
+
+            var jobj = SerializeAndGetJsonObject(obj);
+            var expected = JObject.Parse(@"{
+  ""method"": ""POST"",
+  ""resource"": {
+    ""_ref"": ""http://test/hats/1337"",
+    ""_type"": ""Hat"",
+  }
+}");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
+
+        [Test]
+        public void Serialize_AnonymousObject_with_resource_is_successful()
+        {
+            var obj = new
+            {
+                Method = "POST",
+                Resource = new Hat("fedora") { Id = 1337 }
+            };
+
+            var jobj = SerializeAndGetJsonObject(obj);
+            var expected = JObject.Parse(@"{
+  ""method"": ""POST"",
+  ""resource"": {
+    ""_ref"": ""http://test/hats/1337""
+  }
+}");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
 
 
         [Test]
@@ -153,14 +222,17 @@ namespace Pomona.SystemTests.Serialization
         }
 
 
-        private JObject SerializeAndGetJsonObject<T>(T value)
+        private JObject SerializeAndGetJsonObject<T>(T value, string expandedPaths = null)
         {
             var serializer = GetSerializer();
             Console.WriteLine("Serialized object to json:");
             string jsonString;
             using (var stringWriter = new StringWriter())
             {
-                serializer.Serialize(stringWriter, value, null);
+                serializer.Serialize(stringWriter, value, new SerializeOptions
+                {
+                    ExpandedPaths = expandedPaths
+                });
                 jsonString = stringWriter.ToString();
                 Console.WriteLine(jsonString);
             }
