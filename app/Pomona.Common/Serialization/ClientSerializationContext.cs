@@ -79,9 +79,12 @@ namespace Pomona.Common.Serialization
 
         public void Serialize(ISerializerNode node, Action<ISerializerNode> serializeNodeAction)
         {
-            if (node.Value is IClientResource && !(node.Value is PostResourceBase) && !(node.Value is IDelta) &&
+            if (node.Value is IClientResource &&
+                !(node.Value is PostResourceBase) &&
+                !(node.Value is IDelta) &&
                 !node.IsRemoved)
                 node.SerializeAsReference = true;
+
             serializeNodeAction(node);
         }
 
