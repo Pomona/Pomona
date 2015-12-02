@@ -78,9 +78,15 @@ namespace Pomona.Common
         }
 
 
-        public void Delete(TResource resource)
+        public virtual void Delete(TResource resource)
         {
             this.client.Delete(resource, null);
+        }
+
+
+        public virtual Task DeleteAsync(TResource resource)
+        {
+            return this.client.DeleteAsync(resource, null);
         }
 
 

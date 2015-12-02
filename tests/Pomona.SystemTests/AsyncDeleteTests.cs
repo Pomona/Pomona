@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,15 +26,24 @@
 
 #endregion
 
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace Pomona.Common
-{
-    public interface IDeletableRepository<TResource>
-        where TResource : class, IClientResource
-    {
-        void Delete(TResource resource);
+using NUnit.Framework;
 
-        Task DeleteAsync(TResource resource);
+using Pomona.Example.Models;
+
+namespace Pomona.SystemTests
+{
+    [TestFixture]
+    public class AsyncDeleteTests : ClientTestsBase
+    {
+        [Test]
+        public async Task DeleteAsync_IsSuccessful()
+        {
+            var handledThingId = Save(new HandledThing()).Id;
+            await Client.HandledThings.DeleteAsync(Client.HandledThings.GetLazy(handledThingId));
+            Assert.That(Repository.Query<HandledThing>().Any(x => x.Id == handledThingId), Is.False);
+        }
     }
 }

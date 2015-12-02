@@ -103,6 +103,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public Task DeleteAsync(TResource resource)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public Type ElementType
         {
             get { return typeof(TResource); }

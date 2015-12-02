@@ -418,6 +418,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public Task DeleteAsync(object resource, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public ClientSettings Settings
         {
             get { return this.settings; }

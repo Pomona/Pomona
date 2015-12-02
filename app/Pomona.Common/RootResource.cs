@@ -184,6 +184,12 @@ namespace Pomona.Common
         }
 
 
+        public Task DeleteAsync(object resource, RequestOptions options)
+        {
+            return this.client.DeleteAsync(resource, options);
+        }
+
+
         public ClientSettings Settings
         {
             get { return this.client.Settings; }

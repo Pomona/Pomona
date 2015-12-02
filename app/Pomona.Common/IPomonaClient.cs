@@ -50,5 +50,6 @@ namespace Pomona.Common
         event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
         Task<object> PostAsync(string uri, IPostForm form, RequestOptions options);
         Task<object> PatchAsync(object form, RequestOptions options);
+        Task DeleteAsync(object resource, RequestOptions options);
     }
 }

@@ -229,6 +229,15 @@ namespace Pomona.Common
         }
 
 
+        public async Task DeleteAsync(object resource, RequestOptions options)
+        {
+            if (resource == null)
+                throw new ArgumentNullException("resource");
+            var uri = ((IHasResourceUri)resource).Uri;
+            await this.dispatcher.SendRequestAsync(uri, "DELETE", null, GetSerializationContextProvider(options), options);
+        }
+
+
         public virtual IQueryable<T> Query<T>(string uri)
         {
             if (uri == null)
