@@ -70,7 +70,7 @@ Thanks to
 
 * [JSON.NET](ttp://james.newtonking.com/projects/json-net.aspx) for serialization stuff. h
 * [Nancy](http://nancyfx.org/) for hosting the web service.
-  I really love Nancy! I can't overstate how good I think it is! <3 <3 <3
+  I really love Nancy! I can't overstate how good I think it is! &lt;3 &lt;3 &lt;3
   One day I hope Pōmōna will offer a Super-Duper-Happy path just like it.
 * [NUnit](http://www.nunit.org/) for testing.
 * [Cecil](http://www.mono-project.com/Cecil) for IL generation in client
