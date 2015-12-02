@@ -225,6 +225,9 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.LastOrDefault:
                     return GetFirst(uri, requestOptions, clientSideSelectPart);
                 case RestQueryableTreeParser.QueryProjection.Any:
+                    // TODO: Remove backwards compatibility at some point in the future.
+                    // HACK for backwards compatibility. Any is not supported by old versions of pomona server
+                    return this.Client.Get<int>(uri, requestOptions) > 0;
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
@@ -293,14 +296,17 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Min:
                     projection = "min";
                     break;
+                //case RestQueryableTreeParser.QueryProjection.Any:
+                // TODO: Remove backwards compatibility at some point in the future.
+                // HACK for backwards compatibility. Any is not supported by old versions of pomona server
+                //    projection = "any";
+                //    break;
+                case RestQueryableTreeParser.QueryProjection.Any:
                 case RestQueryableTreeParser.QueryProjection.Count:
                     projection = "count";
                     break;
                 case RestQueryableTreeParser.QueryProjection.Sum:
                     projection = "sum";
-                    break;
-                case RestQueryableTreeParser.QueryProjection.Any:
-                    projection = "any";
                     break;
             }
             if (projection != null)
