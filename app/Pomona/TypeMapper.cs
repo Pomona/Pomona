@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2015 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,6 @@ namespace Pomona
     public class TypeMapper : ExportedTypeResolverBase
     {
         private readonly PomonaConfigurationBase configuration;
-        private readonly ITypeMappingFilter filter;
         private readonly HashSet<Type> sourceTypes;
         private readonly Dictionary<string, TypeSpec> typeNameMap;
         // TODO: These will be removed along with tight bidirectional coupling between TypeMapper and PomonaSessionFactory, this will break API compability.
@@ -63,9 +62,9 @@ namespace Pomona
             if (sourceTypes == null)
                 throw new ArgumentNullException("sourceTypes");
 
-            this.filter = filter;
+            Filter = filter;
 
-            this.sourceTypes = new HashSet<Type>(sourceTypes.Where(this.filter.TypeIsMapped));
+            this.sourceTypes = new HashSet<Type>(sourceTypes.Where(Filter.TypeIsMapped));
 
             this.typeNameMap = this.sourceTypes.Select(FromType).ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
 
@@ -79,10 +78,7 @@ namespace Pomona
             get { return TypeMap.Values.OfType<EnumTypeSpec>(); }
         }
 
-        public ITypeMappingFilter Filter
-        {
-            get { return this.filter; }
-        }
+        public ITypeMappingFilter Filter { get; }
 
         public IEnumerable<TypeSpec> SourceTypes
         {
@@ -109,12 +105,12 @@ namespace Pomona
         {
             if (typeSpec is StructuredType)
             {
-                if (this.filter.IsIndependentTypeRoot(typeSpec))
+                if (Filter.IsIndependentTypeRoot(typeSpec))
                     return null;
 
                 var exposedBaseType = typeSpec.Type.BaseType;
 
-                while (exposedBaseType != null && !this.filter.TypeIsMapped(exposedBaseType))
+                while (exposedBaseType != null && !Filter.TypeIsMapped(exposedBaseType))
                     exposedBaseType = exposedBaseType.BaseType;
 
                 if (exposedBaseType != null)
@@ -129,7 +125,7 @@ namespace Pomona
         {
             // TODO: Maybe introduce a IMappedType/IExportedType for this purpose
             if (typeSpec is ResourceType || typeSpec is ComplexType)
-                return this.filter.GetTypeConstructor(typeSpec);
+                return Filter.GetTypeConstructor(typeSpec);
             return base.LoadConstructor(typeSpec);
         }
 
@@ -141,23 +137,23 @@ namespace Pomona
             var typeSpec = memberSpec as TypeSpec;
             if (typeSpec != null)
             {
-                var customClientLibraryType = this.filter.GetClientLibraryType(typeSpec.Type);
+                var customClientLibraryType = Filter.GetClientLibraryType(typeSpec.Type);
                 if (customClientLibraryType != null)
                     attrs = attrs.Append(new CustomClientLibraryTypeAttribute(customClientLibraryType));
-                var customJsonConverter = this.filter.GetJsonConverterForType(typeSpec.Type);
+                var customJsonConverter = Filter.GetJsonConverterForType(typeSpec.Type);
                 if (customJsonConverter != null)
                     attrs = attrs.Append(new CustomJsonConverterAttribute(customJsonConverter));
             }
             var propSpec = memberSpec as PropertySpec;
             if (propSpec != null)
             {
-                var formulaExpr = this.filter.GetPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo);
+                var formulaExpr = Filter.GetPropertyFormula(propSpec.ReflectedType, propSpec.PropertyInfo);
                 if (formulaExpr != null)
                     attrs = attrs.Append(new PropertyFormulaAttribute(formulaExpr));
 
                 attrs =
                     attrs.Concat(
-                        this.filter.GetPropertyAttributes(propSpec.ReflectedType, propSpec.PropertyInfo).EmptyIfNull());
+                        Filter.GetPropertyAttributes(propSpec.ReflectedType, propSpec.PropertyInfo).EmptyIfNull());
             }
             return attrs;
         }
@@ -173,7 +169,7 @@ namespace Pomona
 
         public override PropertyGetter LoadGetter(PropertySpec propertySpec)
         {
-            return this.filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
+            return Filter.GetPropertyGetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
                    ?? base.LoadGetter(propertySpec);
         }
 
@@ -181,7 +177,7 @@ namespace Pomona
         public override IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
         {
             if (typeSpec is StructuredType)
-                return base.LoadInterfaces(typeSpec).Where(x => this.filter.TypeIsMappedAsTransformedType(x));
+                return base.LoadInterfaces(typeSpec).Where(x => Filter.TypeIsMappedAsTransformedType(x));
 
             return base.LoadInterfaces(typeSpec);
         }
@@ -192,8 +188,8 @@ namespace Pomona
             return memberSpec
                 .Maybe()
                 .Switch()
-                .Case<PropertySpec>().Then(x => this.filter.GetPropertyMappedName(x.ReflectedType, x.PropertyInfo))
-                .Case<TypeSpec>().Then(x => this.filter.GetTypeMappedName(x.Type))
+                .Case<PropertySpec>().Then(x => Filter.GetPropertyMappedName(x.ReflectedType, x.PropertyInfo))
+                .Case<TypeSpec>().Then(x => Filter.GetTypeMappedName(x.Type))
                 .EndSwitch()
                 .OrDefault(() => base.LoadName(memberSpec));
         }
@@ -204,17 +200,17 @@ namespace Pomona
             if (typeSpec is ComplexType || typeSpec is ResourceType)
             {
                 var propertiesFromNonMappedInterfaces = typeSpec.Type.IsInterface
-                    ? typeSpec.Type.GetInterfaces().Where(x => !this.filter.TypeIsMapped(x)).SelectMany(
-                        x => this.filter.GetAllPropertiesOfType(x, BindingFlags.Instance | BindingFlags.Public))
+                    ? typeSpec.Type.GetInterfaces().Where(x => !Filter.TypeIsMapped(x)).SelectMany(
+                        x => Filter.GetAllPropertiesOfType(x, BindingFlags.Instance | BindingFlags.Public))
                     : Enumerable.Empty<PropertyInfo>();
 
-                return this.filter.GetAllPropertiesOfType(typeSpec,
-                                                          BindingFlags.Instance | BindingFlags.Static
-                                                          | BindingFlags.Public
-                                                          | BindingFlags.NonPublic)
-                           .Concat(propertiesFromNonMappedInterfaces)
-                           .Where(x => this.filter.PropertyIsIncluded(typeSpec.Type, x))
-                           .Select(x => WrapProperty(typeSpec, x));
+                return Filter.GetAllPropertiesOfType(typeSpec,
+                                                     BindingFlags.Instance | BindingFlags.Static
+                                                     | BindingFlags.Public
+                                                     | BindingFlags.NonPublic)
+                             .Concat(propertiesFromNonMappedInterfaces)
+                             .Where(x => Filter.PropertyIsIncluded(typeSpec.Type, x))
+                             .Select(x => WrapProperty(typeSpec, x));
             }
 
             return base.LoadProperties(typeSpec);
@@ -223,7 +219,7 @@ namespace Pomona
 
         public override PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
         {
-            return this.filter.GetPropertyFlags(propertySpec.PropertyInfo) ?? base.LoadPropertyFlags(propertySpec);
+            return Filter.GetPropertyFlags(propertySpec.PropertyInfo) ?? base.LoadPropertyFlags(propertySpec);
         }
 
 
@@ -231,7 +227,7 @@ namespace Pomona
         {
             var complexProperty = propertySpec as StructuredProperty;
             if (complexProperty != null)
-                return FromType(this.filter.GetPropertyType(complexProperty.ReflectedType, complexProperty.PropertyInfo));
+                return FromType(Filter.GetPropertyType(complexProperty.ReflectedType, complexProperty.PropertyInfo));
             return base.LoadPropertyType(propertySpec);
         }
 
@@ -239,36 +235,36 @@ namespace Pomona
         public override ResourcePropertyDetails LoadResourcePropertyDetails(ResourceProperty property)
         {
             var propInfo = property.PropertyInfo;
-            return new ResourcePropertyDetails(this.filter.ClientPropertyIsExposedAsRepository(propInfo),
-                                               NameUtils.ConvertCamelCaseToUri(this.filter.GetPropertyMappedName(property.ReflectedType,
-                                                                                                                 propInfo)));
+            return new ResourcePropertyDetails(Filter.ClientPropertyIsExposedAsRepository(propInfo),
+                                               NameUtils.ConvertCamelCaseToUri(Filter.GetPropertyMappedName(property.ReflectedType,
+                                                                                                            propInfo)));
         }
 
 
         public override ResourceTypeDetails LoadResourceTypeDetails(ResourceType resourceType)
         {
             var type = resourceType.Type;
-            var parentToChildProperty = this.filter.GetParentToChildProperty(type);
-            var childToParentProperty = this.filter.GetChildToParentProperty(type);
+            var parentToChildProperty = Filter.GetParentToChildProperty(type);
+            var childToParentProperty = Filter.GetChildToParentProperty(type);
             var isRootResource = parentToChildProperty == null;
 
-            var relativeResourcePath = isRootResource ? this.filter.GetUrlRelativePath(type).TrimStart('/') : null;
+            var relativeResourcePath = isRootResource ? Filter.GetUrlRelativePath(type).TrimStart('/') : null;
 
             return new ResourceTypeDetails(resourceType,
                                            relativeResourcePath,
-                                           this.filter.TypeIsExposedAsRepository(type),
-                                           this.filter.GetPostReturnType(type),
+                                           Filter.TypeIsExposedAsRepository(type),
+                                           Filter.GetPostReturnType(type),
                                            parentToChildProperty,
                                            childToParentProperty,
-                                           this.filter.TypeIsSingletonResource(type),
-                                           this.filter.GetResourceHandlers(type),
-                                           this.filter.GetPluralNameForType(type));
+                                           Filter.TypeIsSingletonResource(type),
+                                           Filter.GetResourceHandlers(type),
+                                           Filter.GetPluralNameForType(type));
         }
 
 
         public override PropertySetter LoadSetter(PropertySpec propertySpec)
         {
-            return this.filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
+            return Filter.GetPropertySetter(propertySpec.ReflectedType, propertySpec.PropertyInfo)
                    ?? base.LoadSetter(propertySpec);
         }
 
@@ -278,16 +274,16 @@ namespace Pomona
             var propInfo = property.PropertyInfo;
 
             var reflectedType = property.ReflectedType;
-            var expandMode = this.filter.GetPropertyExpandMode(reflectedType, propInfo);
-            var accessMode = this.filter.GetPropertyAccessMode(propInfo, property.DeclaringType.Constructor);
+            var expandMode = Filter.GetPropertyExpandMode(reflectedType, propInfo);
+            var accessMode = Filter.GetPropertyAccessMode(propInfo, property.DeclaringType.Constructor);
 
             var details = new StructuredPropertyDetails(
-                this.filter.PropertyIsAttributes(reflectedType, propInfo),
-                this.filter.PropertyIsEtag(reflectedType, propInfo),
-                this.filter.PropertyIsPrimaryId(reflectedType, propInfo),
+                Filter.PropertyIsAttributes(reflectedType, propInfo),
+                Filter.PropertyIsEtag(reflectedType, propInfo),
+                Filter.PropertyIsPrimaryId(reflectedType, propInfo),
                 accessMode.HasFlag(HttpMethod.Get),
                 accessMode,
-                this.filter.GetPropertyItemAccessMode(reflectedType, propInfo),
+                Filter.GetPropertyItemAccessMode(reflectedType, propInfo),
                 expandMode);
             return details;
         }
@@ -297,17 +293,17 @@ namespace Pomona
         {
             // TODO: Get allowed methods from filter
             var allowedMethods = HttpMethod.Get |
-                                 (this.filter.PatchOfTypeIsAllowed(structuredType) ? HttpMethod.Patch : 0) |
-                                 (this.filter.PostOfTypeIsAllowed(structuredType) ? HttpMethod.Post : 0) |
-                                 (this.filter.DeleteOfTypeIsAllowed(structuredType) ? HttpMethod.Delete : 0);
+                                 (Filter.PatchOfTypeIsAllowed(structuredType) ? HttpMethod.Patch : 0) |
+                                 (Filter.PostOfTypeIsAllowed(structuredType) ? HttpMethod.Post : 0) |
+                                 (Filter.DeleteOfTypeIsAllowed(structuredType) ? HttpMethod.Delete : 0);
 
             var type = structuredType.Type;
             var details = new StructuredTypeDetails(structuredType,
                                                     allowedMethods,
-                                                    this.filter.GetOnDeserializedHook(type),
-                                                    this.filter.TypeIsMappedAsValueObject(type),
-                                                    this.filter.TypeIsMappedAsValueObject(type),
-                                                    this.filter.GetTypeIsAbstract(type));
+                                                    Filter.GetOnDeserializedHook(type),
+                                                    Filter.TypeIsMappedAsValueObject(type),
+                                                    Filter.TypeIsMappedAsValueObject(type),
+                                                    Filter.GetTypeIsAbstract(type));
 
             return details;
         }
@@ -324,7 +320,7 @@ namespace Pomona
 
         public override ResourceType LoadUriBaseType(ResourceType resourceType)
         {
-            Type uriBaseType = this.filter.GetUriBaseType(resourceType.Type);
+            Type uriBaseType = Filter.GetUriBaseType(resourceType.Type);
             return uriBaseType != null ? (ResourceType)FromType(uriBaseType) : null;
         }
 
@@ -347,19 +343,23 @@ namespace Pomona
 
         protected override TypeSpec CreateType(Type type)
         {
-            if (!this.filter.TypeIsMappedAsSharedType(type) && this.filter.TypeIsMappedAsTransformedType(type))
-            {
-                if (this.filter.TypeIsMappedAsValueObject(type))
-                    return new ComplexType(this, type);
-                return new ResourceType(this, type);
-            }
-            return base.CreateType(type);
+            // TODO: This double negation makes my head hurt. Un-negate pl0x. @asbjornu
+            var typeIsNotMappedAsSharedTypeAndIsMappedAsTransformedType =
+                !Filter.TypeIsMappedAsSharedType(type) && Filter.TypeIsMappedAsTransformedType(type);
+
+            if (!typeIsNotMappedAsSharedTypeAndIsMappedAsTransformedType)
+                return base.CreateType(type);
+
+            if (Filter.TypeIsMappedAsValueObject(type))
+                return new ComplexType(this, type);
+
+            return new ResourceType(this, type);
         }
 
 
         protected override sealed Type MapExposedClrType(Type type)
         {
-            return this.filter.ResolveRealTypeForProxy(type);
+            return Filter.ResolveRealTypeForProxy(type);
         }
 
 
@@ -369,7 +369,7 @@ namespace Pomona
             return reflectedType.GetFullTypeHierarchy()
                                 .Where(x => propBaseDefinition.DeclaringType != null
                                             && propBaseDefinition.DeclaringType.IsAssignableFrom(x))
-                                .TakeUntil(x => this.filter.IsIndependentTypeRoot(x))
+                                .TakeUntil(x => Filter.IsIndependentTypeRoot(x))
                                 .LastOrDefault(x => this.sourceTypes.Contains(x))
                    ?? propBaseDefinition.DeclaringType;
         }

@@ -199,6 +199,50 @@ namespace Pomona.SystemTests.Serialization
             Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
         }
 
+
+        [Test(Description = "It might be useful to serialize unknown and anonymous classes the same way.")]
+        [Category("TODO")]
+        public void Serialize_Unkown_class_is_successful()
+        {
+            var obj = new SerializeMe
+            {
+                Name = "Chuck Norris"
+            };
+
+            var jobj = SerializeAndGetJsonObject(obj);
+            var expected = JObject.Parse(@"{
+  ""method"": ""POST"",
+  ""resource"": {
+    ""_ref"": ""http://test/hats/1337"",
+    ""_type"": ""Hat"",
+  }
+}");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
+
+        [Test(Description = "It might be useful to serialize unknown and anonymous classes the same way.")]
+        [Category("TODO")]
+        public void Serialize_Unkown_object_is_successful()
+        {
+            object obj = new SerializeMe
+            {
+                Name = "Chuck Norris"
+            };
+
+            var jobj = SerializeAndGetJsonObject(obj);
+            var expected = JObject.Parse(@"{
+  ""method"": ""POST"",
+  ""resource"": {
+    ""_ref"": ""http://test/hats/1337"",
+    ""_type"": ""Hat"",
+  }
+}");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
         #region Setup/Teardown
 
         [SetUp]
@@ -405,6 +449,11 @@ namespace Pomona.SystemTests.Serialization
                     return this.difference.ToString(format, formatProvider);
                 }
             }
+        }
+
+        private class SerializeMe
+        {
+            public string Name { get; set; }
         }
     }
 }
