@@ -38,9 +38,9 @@ namespace Pomona.CodeGen
     public struct StringEnumTemplate : IEquatable<StringEnumTemplate>, IStringEnum<StringEnumTemplate>
     {
         public static readonly StringEnumTemplate MemberTemplate = new StringEnumTemplate("MemberTemplate");
-        // ReSharper disable UnassignedReadonlyField.Compiler
+#pragma warning disable 649
         private static readonly StringEnumTemplate defaultValue;
-        // ReSharper restore UnassignedReadonlyField.Compiler
+#pragma warning restore 649
         private static ReadOnlyCollection<StringEnumTemplate> values;
         private static Dictionary<string, StringEnumTemplate> knownValuesMap;
         private readonly string value;

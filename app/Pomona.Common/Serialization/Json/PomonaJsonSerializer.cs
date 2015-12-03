@@ -67,6 +67,7 @@ namespace Pomona.Common.Serialization.Json
         {
             if (contextProvider == null)
                 throw new ArgumentNullException("contextProvider");
+
             this.contextProvider = contextProvider;
         }
 
@@ -75,10 +76,14 @@ namespace Pomona.Common.Serialization.Json
         {
             if (textWriter == null)
                 throw new ArgumentNullException("textWriter");
+
             options = options ?? new SerializeOptions();
             var serializationContext = this.contextProvider.GetSerializationContext(options);
-            Serialize(serializationContext, o, textWriter,
-                      options.ExpectedBaseType != null ? serializationContext.GetClassMapping(options.ExpectedBaseType) : null);
+            var expectedBaseType = options.ExpectedBaseType != null
+                ? serializationContext.GetClassMapping(options.ExpectedBaseType)
+                : null;
+
+            Serialize(serializationContext, o, textWriter, expectedBaseType);
         }
 
 
@@ -94,6 +99,7 @@ namespace Pomona.Common.Serialization.Json
             {
                 if (this.loopDetector.Value++ > 300)
                     throw new InvalidOperationException("Deep recursion detected, trying to avoid stack overflow.");
+
                 SerializeNodeInner(node, writer);
             }
             finally
@@ -107,6 +113,7 @@ namespace Pomona.Common.Serialization.Json
         {
             if (propName.Length > 0 && reservedFirstCharacters.Contains(propName[0]))
                 return "^" + propName;
+
             return propName;
         }
 
@@ -124,7 +131,9 @@ namespace Pomona.Common.Serialization.Json
             else
             {
                 jsonWriter.WriteStartArray();
-                var baseElementType = node.ExpectedBaseType.ElementType;
+                var baseElementType = node.ExpectedBaseType != null
+                    ? node.ExpectedBaseType.ElementType
+                    : null;
 
                 var delta = node.Value as ICollectionDelta;
                 if (delta != null)
@@ -190,10 +199,9 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        private void SerializeDictionaryGeneric<TValue>(
-            ISerializerNode node,
-            Writer writer,
-            DictionaryTypeSpec dictType)
+        private void SerializeDictionaryGeneric<TValue>(ISerializerNode node,
+                                                        Writer writer,
+                                                        DictionaryTypeSpec dictType)
         {
             var jsonWriter = writer.JsonWriter;
             var dict = (IDictionary<string, TValue>)node.Value;
@@ -277,8 +285,8 @@ namespace Pomona.Common.Serialization.Json
                 if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Structured &&
                     !(propNode.Value is IDelta))
                     jsonWriter.WritePropertyName("!" + prop.JsonName);
-                else if (propNode.ValueType.SerializationMode == TypeSerializationMode.Array
-                         && propNode.Value.Maybe().OfType<ICollectionDelta>().Select(x => x.Cleared).OrDefault())
+                else if (serializingDelta && propNode.ValueType.SerializationMode == TypeSerializationMode.Array
+                         && propNode.Value.Maybe().OfType<ICollectionDelta>().Select(x => x.Cleared).OrDefault(true))
                     jsonWriter.WritePropertyName("!" + prop.JsonName);
                 else
                     jsonWriter.WritePropertyName(prop.JsonName);
@@ -400,7 +408,11 @@ namespace Pomona.Common.Serialization.Json
             {
                 if (textWriter == null)
                     throw new ArgumentNullException("textWriter");
-                this.jsonWriter = new JsonTextWriter(textWriter) { Formatting = Formatting.Indented };
+
+                this.jsonWriter = new JsonTextWriter(textWriter)
+                {
+                    Formatting = Formatting.Indented
+                };
             }
 
 

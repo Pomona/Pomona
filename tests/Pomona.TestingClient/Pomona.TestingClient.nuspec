@@ -6,12 +6,12 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <licenseUrl>https://github.com/okb/Pomona</licenseUrl>
-    <projectUrl>https://github.com/okb/Pomona</projectUrl>
-    <!--<iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>-->
+    <licenseUrl>http://pomona.io/license.txt</licenseUrl>
+    <projectUrl>https://pomona.io/</projectUrl>
+    <iconUrl>http://pomona.io/images/pomona-icon-100.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>First development pre-release.</releaseNotes>
+    <releaseNotes></releaseNotes>
     <copyright>Copyright Karsten N. Strand 2013</copyright>
     <tags>REST linq mapping</tags>
   </metadata>

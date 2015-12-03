@@ -50,7 +50,14 @@ namespace Pomona.Common
         {
             if (client == null)
                 throw new ArgumentNullException("client");
-            return (T)client.Get(uri, typeof(T), requestOptions);
+
+            var type = typeof(T);
+            var resource = client.Get(uri, type, requestOptions);
+
+            if (resource == null && type.IsValueType && !type.IsNullable())
+                throw new InvalidCastException(String.Format("The response from {0} was null, which can't be cast to {1}.", uri, type));
+
+            return (T)resource;
         }
 
 

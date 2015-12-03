@@ -224,14 +224,15 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Last:
                 case RestQueryableTreeParser.QueryProjection.LastOrDefault:
                     return GetFirst(uri, requestOptions, clientSideSelectPart);
+                case RestQueryableTreeParser.QueryProjection.Any:
+                    // TODO: Remove backwards compatibility at some point in the future.
+                    // HACK for backwards compatibility. Any is not supported by old versions of pomona server
+                    return this.Client.Get<int>(uri, requestOptions) > 0;
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
                 case RestQueryableTreeParser.QueryProjection.Count:
                     return this.client.Get<T>(uri, requestOptions);
-                case RestQueryableTreeParser.QueryProjection.Any:
-                    // TODO: Implement count querying without returning any results..
-                    return this.client.Get<IList<T>>(uri, requestOptions).Count > 0;
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + queryProjection);
             }
@@ -295,6 +296,12 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Min:
                     projection = "min";
                     break;
+                //case RestQueryableTreeParser.QueryProjection.Any:
+                // TODO: Remove backwards compatibility at some point in the future.
+                // HACK for backwards compatibility. Any is not supported by old versions of pomona server
+                //    projection = "any";
+                //    break;
+                case RestQueryableTreeParser.QueryProjection.Any:
                 case RestQueryableTreeParser.QueryProjection.Count:
                     projection = "count";
                     break;

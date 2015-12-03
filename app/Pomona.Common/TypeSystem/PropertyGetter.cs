@@ -27,52 +27,52 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices.WindowsRuntime;
 
-using Pomona.Common.Proxies;
-
-namespace Pomona.Common
+namespace Pomona.Common.TypeSystem
 {
-    public static class ClientResourceExtensions
+    public class PropertyGetter
     {
-        public static T AddNew<T>(this ICollection<T> collection, Action<T> initAction)
-            where T : IClientResource
+        private readonly Func<object, IContainer, object> del;
+
+
+        public PropertyGetter(Func<object, IContainer, object> del)
         {
-            if (collection == null)
-                throw new ArgumentNullException(nameof(collection));
-            if (initAction == null)
-                throw new ArgumentNullException(nameof(initAction));
-            var form = ClientTypeMapper.CreatePostForm<T>();
-            initAction(form);
-            collection.Add(form);
-            return form;
+            if (del == null)
+                throw new ArgumentNullException(nameof(del));
+            this.del = del;
         }
 
 
-        public static bool IsLoaded<T>(this IEnumerable<T> collection)
-            where T : IClientResource
+        public object Invoke(object target, IContainer container)
         {
-            var lazyProxy = collection as ILazyProxy;
-            return lazyProxy == null || lazyProxy.IsLoaded;
+            container = container ?? new NoContainer();
+            return this.del(target, container);
         }
 
 
-        public static bool IsLoaded(this IClientResource resource)
+        public static implicit operator PropertyGetter(Func<object, IContainer, object> del)
         {
-            var lazyProxy = resource as ILazyProxy;
-            return lazyProxy == null || lazyProxy.IsLoaded;
+            if (del == null)
+                return null;
+            return new PropertyGetter(del);
         }
 
 
-        public static bool IsPersisted(this IClientResource resource)
+        public static implicit operator PropertyGetter(Expression<Func<object, IContainer, object>> expression)
         {
-            return !IsTransient(resource);
+            if (expression == null)
+                return null;
+            return new PropertyExpressionGetter(expression);
         }
 
 
-        public static bool IsTransient(this IClientResource resource)
+        public static explicit operator Func<object, IContainer, object>(PropertyGetter propertyGetter)
         {
-            return resource is IPostForm;
+            if (propertyGetter == null)
+                throw new ArgumentNullException(nameof(propertyGetter));
+            return propertyGetter.del;
         }
     }
 }

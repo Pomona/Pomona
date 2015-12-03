@@ -108,6 +108,24 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void Query_SelectEnumInAnonymousType_IsSuccessful()
+        {
+            Save(new HasCustomEnum() { TheEnumValue = CustomEnum.Tock });
+            var result = Client.HasCustomEnums.Select(x => new { val = x.TheEnumValue }).First();
+            Assert.That(result.val, Is.EqualTo(Critters.Client.CustomEnum.Tock));
+        }
+
+
+        [Test]
+        public void Query_SelectEnumInObjectArray_IsSuccessful()
+        {
+            Save(new HasCustomEnum() { TheEnumValue = CustomEnum.Tock });
+            var result = Client.HasCustomEnums.Select(x => new object[] { x.TheEnumValue }).First();
+            Assert.That(result[0], Is.EqualTo(Critters.Client.CustomEnum.Tock));
+        }
+
+
+        [Test]
         public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
         {
             var results = Client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();
@@ -538,10 +556,6 @@ namespace Pomona.SystemTests
 
         public class ClientSideClass : IEquatable<ClientSideClass>
         {
-            private readonly string bar;
-            private readonly int foo;
-
-
             public ClientSideClass()
             {
             }
@@ -549,22 +563,16 @@ namespace Pomona.SystemTests
 
             public ClientSideClass(int foo, string bar)
             {
-                this.foo = foo;
-                this.bar = bar;
+                this.Foo = foo;
+                this.Bar = bar;
             }
 
 
             public string AdditionalMember { get; set; }
 
-            public string Bar
-            {
-                get { return this.bar; }
-            }
+            public string Bar { get; }
 
-            public int Foo
-            {
-                get { return this.foo; }
-            }
+            public int Foo { get; }
 
 
             public override bool Equals(object obj)

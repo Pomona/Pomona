@@ -83,6 +83,8 @@ namespace Pomona.UnitTests.Client
             public int Id { get; set; }
             public string Jalla { get; set; }
             public float LessPrecise { get; set; }
+            public IList<DateTime> ListOfDateTimes { get; set; }
+            public IList<DateTime?> ListOfNullableDateTimes { get; set; }
             public IList<decimal> ListOfDecimals { get; set; }
             public IList<double> ListOfDoubles { get; set; }
             public IList<int> ListOfInts { get; set; }

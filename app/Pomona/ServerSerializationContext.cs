@@ -134,11 +134,12 @@ namespace Pomona
 
         public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
         {
-            var isExpanded = node.ExpectedBaseType.IsAlwaysExpanded
+            var isExpanded = (node.ExpectedBaseType != typeof(object) && node.ExpectedBaseType != null && node.ExpectedBaseType.IsAlwaysExpanded)
                              || PathToBeExpanded(node.ExpandPath)
-                             || (node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
-                             || (GetPropertyExpandMode(node) != ExpandMode.Default);
-
+                             || (node.ExpectedBaseType != null && node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
+                             || (GetPropertyExpandMode(node) != ExpandMode.Default)
+                             || (node.Value != null && node.ValueType != null && node.ValueType.IsAlwaysExpanded);
+            
             node.SerializeAsReference = !isExpanded;
 
             nodeSerializerAction(node);

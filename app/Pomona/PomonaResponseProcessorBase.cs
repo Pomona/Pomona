@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -151,20 +152,19 @@ namespace Pomona
             if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
                 return new Response { StatusCode = pomonaResponse.StatusCode };
 
-            string jsonString =
-                GetSerializer(context)
-                    .SerializeToString(pomonaResponse.Entity,
-                                       new SerializeOptions
-                                       {
-                                           ExpandedPaths = pomonaResponse.ExpandedPaths,
-                                           ExpectedBaseType = pomonaResponse.ResultType
-                                       });
+            var serializer = GetSerializer(context);
+            var serializeOptions = new SerializeOptions
+            {
+                ExpandedPaths = pomonaResponse.ExpandedPaths,
+                ExpectedBaseType = pomonaResponse.ResultType
+            };
 
             if (IsTextHtmlContentType(requestedMediaRange))
             {
                 // Wrap in html
                 var response = new Response();
                 var htmlLinks = GetHtmlLinks(context);
+                var jsonString = serializer.SerializeToString(pomonaResponse.Entity, serializeOptions);
 
                 HtmlJsonPrettifier.CreatePrettifiedHtmlJsonResponse(response,
                                                                     htmlLinks,
@@ -174,11 +174,16 @@ namespace Pomona
             }
             else
             {
-                var bytes = Encoding.UTF8.GetBytes(jsonString);
                 var response = new Response
                 {
                     //Headers = {{"Content-Length", bytes.Length.ToString()}},
-                    Contents = s => s.Write(bytes, 0, bytes.Length),
+                    Contents = stream =>
+                    {
+                        using (var streamWriter = new NonClosingStreamWriter(stream))
+                        {
+                            serializer.Serialize(streamWriter, pomonaResponse.Entity, serializeOptions);
+                        }
+                    },
                     ContentType = ContentType,
                     StatusCode = pomonaResponse.StatusCode
                 };

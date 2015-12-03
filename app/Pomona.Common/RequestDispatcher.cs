@@ -47,7 +47,6 @@ namespace Pomona.Common
         private readonly HttpHeaders defaultHeaders;
         private readonly ITextSerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
-        private readonly IWebClient webClient;
 
 
         public RequestDispatcher(ClientTypeMapper typeMapper,
@@ -59,7 +58,7 @@ namespace Pomona.Common
             if (typeMapper != null)
                 this.typeMapper = typeMapper;
             if (webClient != null)
-                this.webClient = webClient;
+                this.WebClient = webClient;
             if (serializerFactory != null)
                 this.serializerFactory = serializerFactory;
         }
@@ -124,7 +123,7 @@ namespace Pomona.Common
 
                 using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
-                    response = this.webClient.Send(request);
+                    response = this.WebClient.Send(request);
                 }
 
                 responseString = (response.Body != null && response.Body.Length > 0)
@@ -238,9 +237,6 @@ namespace Pomona.Common
         }
 
 
-        public IWebClient WebClient
-        {
-            get { return this.webClient; }
-        }
+        public IWebClient WebClient { get; }
     }
 }

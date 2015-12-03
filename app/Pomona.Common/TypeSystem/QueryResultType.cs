@@ -86,7 +86,7 @@ namespace Pomona.Common.TypeSystem
 
         protected internal override IEnumerable<PropertySpec> OnLoadProperties()
         {
-            var includedProps = new List<string>() { "TotalCount", "Items", "Skip", "Previous", "Next" };
+            var includedProps = new List<string>() { "TotalCount", "Items", "Skip", "Previous", "Next", "DebugInfo" };
             return
                 Type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                     .Where(x => includedProps.Contains(x.Name))

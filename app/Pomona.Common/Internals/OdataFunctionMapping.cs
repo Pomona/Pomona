@@ -196,6 +196,8 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<decimal?>>(x => x.Max(), "max({0})", MethodCallStyle.Chained);
             Add<IEnumerable<double?>>(x => x.Max(), "max({0})", MethodCallStyle.Chained);
             Add<IEnumerable<float?>>(x => x.Max(), "max({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<DateTime>>(x => x.Max(), "max({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<DateTime?>>(x => x.Max(), "max({0})", MethodCallStyle.Chained);
 
             Add<IEnumerable<WildcardType>>(x => x.Max(y => 10m), "max({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Max(y => 10), "max({0},{1})", MethodCallStyle.Chained);
@@ -205,6 +207,8 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Max(y => (int?)10), "max({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Max(y => (double?)10.0), "max({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Max(y => (float?)10f), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => (DateTime?)null), "max({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Max(y => default(DateTime)), "max({0},{1})", MethodCallStyle.Chained);
 
             Add<IEnumerable<int>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
             Add<IEnumerable<decimal>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
@@ -214,6 +218,8 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<decimal?>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
             Add<IEnumerable<double?>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
             Add<IEnumerable<float?>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<DateTime>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
+            Add<IEnumerable<DateTime?>>(x => x.Min(), "min({0})", MethodCallStyle.Chained);
 
             Add<IEnumerable<WildcardType>>(x => x.Min(y => 10m), "min({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Min(y => 10), "min({0},{1})", MethodCallStyle.Chained);
@@ -223,6 +229,8 @@ namespace Pomona.Common.Internals
             Add<IEnumerable<WildcardType>>(x => x.Min(y => (int?)10), "min({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Min(y => (double?)10.0), "min({0},{1})", MethodCallStyle.Chained);
             Add<IEnumerable<WildcardType>>(x => x.Min(y => (float?)10f), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => (DateTime?)null), "min({0},{1})", MethodCallStyle.Chained);
+            Add<IEnumerable<WildcardType>>(x => x.Min(y => default(DateTime)), "min({0},{1})", MethodCallStyle.Chained);
 
             Add<IDictionary<WildcardType, WildcardType>>(
                 x => x.Contains(null, null),

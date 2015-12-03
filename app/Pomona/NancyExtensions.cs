@@ -45,7 +45,7 @@ namespace Pomona
         {
             resp.Contents = stream =>
             {
-                using (var writer = new NoCloseStreamWriter(stream))
+                using (var writer = new NonClosingStreamWriter(stream))
                 {
                     writer.Write(text);
                     writer.Flush();

@@ -209,6 +209,20 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildDateTimeEnumerableMaxExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDateTimes.Max(), "listOfDateTimes.max()");
+        }
+
+
+        [Test]
+        public void BuildDateTimeEnumerableMinExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfDateTimes.Min(), "listOfDateTimes.min()");
+        }
+
+
+        [Test]
         public void BuildDateTimeUtc_ReturnsCorrectString()
         {
             var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Utc);
@@ -448,6 +462,20 @@ namespace Pomona.UnitTests.Client
         public void BuildNull_ReturnsCorrectString()
         {
             AssertBuild(x => x.Jalla == null, "jalla eq null");
+        }
+
+
+        [Test]
+        public void BuildNullableDateTimeEnumerableMaxExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfNullableDateTimes.Max(), "listOfNullableDateTimes.max()");
+        }
+
+
+        [Test]
+        public void BuildNullableDateTimeEnumerableMinExpression_ReturnsCorrectString()
+        {
+            AssertBuild(x => x.ListOfNullableDateTimes.Min(), "listOfNullableDateTimes.min()");
         }
 
 

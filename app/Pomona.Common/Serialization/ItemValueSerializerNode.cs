@@ -34,15 +34,13 @@ namespace Pomona.Common.Serialization
     {
         private readonly object value;
 
-        #region Implementation of ISerializerNode
 
-        public ItemValueSerializerNode(
-            object value,
-            TypeSpec expectedBaseType,
-            string expandPath,
-            ISerializationContext context,
-            ISerializerNode parentNode,
-            bool isRemoved = false)
+        public ItemValueSerializerNode(object value,
+                                       TypeSpec expectedBaseType,
+                                       string expandPath,
+                                       ISerializationContext context,
+                                       ISerializerNode parentNode,
+                                       bool isRemoved = false)
             : base(expectedBaseType, expandPath, context, parentNode, isRemoved)
         {
             this.value = value;
@@ -53,7 +51,5 @@ namespace Pomona.Common.Serialization
         {
             get { return this.value; }
         }
-
-        #endregion
     }
 }

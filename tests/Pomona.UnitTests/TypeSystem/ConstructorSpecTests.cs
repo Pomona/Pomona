@@ -97,9 +97,9 @@ namespace Pomona.UnitTests.TypeSystem
                 c => new NullableTestClass(c.Optional().Foo);
             var cspec = new ConstructorSpec(cspecExpr);
             var func = ((
-                Expression<Func<IConstructorPropertySource<NullableTestClass>, NullableTestClass>>)
+                Expression<Func<IConstructorPropertySource, NullableTestClass>>)
                 cspec.InjectingConstructorExpression).Compile();
-            var result = func(new MockedPropertySourceHavingZeroProperties<NullableTestClass>());
+            var result = func(new MockedPropertySourceHavingZeroProperties());
             Assert.That(result.Foo, Is.EqualTo(1337));
         }
 
@@ -110,7 +110,7 @@ namespace Pomona.UnitTests.TypeSystem
             var cspec = GetConstructorSpecWithFiveArguments();
             var source = new Inherited(1, 2, 3, "4", "5");
             var copied =
-                ((Expression<Func<IConstructorPropertySource<Inherited>, Inherited>>)
+                ((Expression<Func<IConstructorPropertySource, Inherited>>)
                     cspec.InjectingConstructorExpression).Compile()(new MockedPropertySource(source));
             Assert.That(copied.TheAbstract, Is.EqualTo(source.TheAbstract));
             Assert.That(copied.TheOptional, Is.EqualTo(source.TheOptional));
@@ -194,7 +194,7 @@ namespace Pomona.UnitTests.TypeSystem
             public string TheRequired { get; set; }
         }
 
-        public class MockedPropertySource : IConstructorPropertySource<Inherited>
+        public class MockedPropertySource : IConstructorPropertySource
         {
             private readonly Inherited source;
 
@@ -235,7 +235,7 @@ namespace Pomona.UnitTests.TypeSystem
             }
         }
 
-        public class MockedPropertySourceHavingZeroProperties<T> : IConstructorPropertySource<T>
+        public class MockedPropertySourceHavingZeroProperties : IConstructorPropertySource
         {
             public TContext Context<TContext>()
             {
@@ -251,19 +251,7 @@ namespace Pomona.UnitTests.TypeSystem
             }
 
 
-            public T Optional()
-            {
-                throw new NotImplementedException();
-            }
-
-
             public TParentType Parent<TParentType>()
-            {
-                throw new NotImplementedException();
-            }
-
-
-            public T Requires()
             {
                 throw new NotImplementedException();
             }

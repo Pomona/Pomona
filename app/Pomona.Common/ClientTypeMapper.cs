@@ -55,9 +55,7 @@ namespace Pomona.Common
         public ClientTypeMapper(Assembly scanAssembly)
             : this(
                 scanAssembly.GetTypes().Where(
-                    x =>
-                        x.IsInterface && typeof(IClientResource).IsAssignableFrom(x)
-                        && x.HasAttribute<ResourceInfoAttribute>(false)))
+                    x => IsResourceType(x) || (x.IsEnum && x.IsPublic)))
         {
         }
 
@@ -65,6 +63,7 @@ namespace Pomona.Common
         public ClientTypeMapper(IEnumerable<Type> clientResourceTypes)
         {
             this.resourceTypes = clientResourceTypes.ToList().AsReadOnly();
+
             this.typeNameMap =
                 this.resourceTypes
                     .Select(FromType)
@@ -77,6 +76,12 @@ namespace Pomona.Common
         public IEnumerable<Type> ResourceTypes
         {
             get { return this.resourceTypes; }
+        }
+
+
+        public static T CreatePostForm<T>()
+        {
+            return PostFormFactory<T>.Create();
         }
 
 
@@ -346,6 +351,13 @@ namespace Pomona.Common
         }
 
 
+        private static bool IsResourceType(Type x)
+        {
+            return x.IsInterface && typeof(IClientResource).IsAssignableFrom(x)
+                   && x.HasAttribute<ResourceInfoAttribute>(false);
+        }
+
+
         public object CreatePatchForm(Type resourceType, object original)
         {
             var extendedResourceProxy = original as ExtendedResourceBase;
@@ -399,6 +411,25 @@ namespace Pomona.Common
         public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
         {
             return ResourceInfoAttribute.TryGet(type, out resourceInfo);
+        }
+
+
+        private static class PostFormFactory<T>
+        {
+            private static Func<T> factory;
+
+
+            public static T Create()
+            {
+                if (factory == null)
+                {
+                    var type = typeof(T);
+                    var realInterface = ClientTypeResolver.Default.GetMostInheritedResourceInterface(type);
+                    var clientTypeMapper = GetTypeMapper(realInterface);
+                    factory = () => (T)clientTypeMapper.CreatePostForm(type);
+                }
+                return factory();
+            }
         }
     }
 }

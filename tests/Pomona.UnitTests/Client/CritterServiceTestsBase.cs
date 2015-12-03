@@ -88,8 +88,7 @@ namespace Pomona.UnitTests.Client
         {
             if (UseSelfHostedHttpServer)
             {
-                var rng = new Random();
-                this.BaseUri = "http://localhost:" + rng.Next(10000, 23000) + "/";
+                this.BaseUri = "http://localhost:15841" + "/" + Guid.NewGuid().ToString("N") + "/";
                 Console.WriteLine("Starting CritterHost on " + this.BaseUri);
                 this.critterHost = new CritterHost(new Uri(this.BaseUri));
                 this.critterHost.Start();

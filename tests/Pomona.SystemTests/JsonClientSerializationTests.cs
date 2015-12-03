@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.IO;
 
 using Critters.Client;
 
@@ -137,7 +138,12 @@ namespace Pomona.SystemTests
             var serializer = serializerFactory.GetSerializer(
                 new ClientSerializationContextProvider(this.typeMapper, pomonaClient, pomonaClient));
             Console.WriteLine("Serialized object to json:");
-            var jsonString = serializer.SerializeToString(value);
+            string jsonString;
+            using (var stringWriter = new StringWriter())
+            {
+                serializer.Serialize(stringWriter, value, null);
+                jsonString = stringWriter.ToString();
+            }
             Console.WriteLine(jsonString);
 
             return (JObject)JToken.Parse(jsonString);

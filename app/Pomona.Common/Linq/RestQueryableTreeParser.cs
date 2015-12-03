@@ -209,8 +209,8 @@ namespace Pomona.Common.Linq
 
         internal void QAny<TSource>()
         {
-            TakeCount = 1;
             Projection = QueryProjection.Any;
+            this.aggregateReturnType = typeof(bool);
         }
 
 

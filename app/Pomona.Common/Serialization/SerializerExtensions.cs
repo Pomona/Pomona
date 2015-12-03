@@ -39,8 +39,10 @@ namespace Pomona.Common.Serialization
                                        DeserializeOptions options = null)
         {
             options = options ?? new DeserializeOptions();
+            
             if (options.ExpectedBaseType == null)
                 options.ExpectedBaseType = typeof(T);
+            
             return (T)deserializer.Deserialize(textReader, options);
         }
 
@@ -51,8 +53,10 @@ namespace Pomona.Common.Serialization
         {
             if (deserializer == null)
                 throw new ArgumentNullException("deserializer");
+            
             if (serializedObj == null)
                 throw new ArgumentNullException("serializedObj");
+            
             using (var textReader = new StringReader(serializedObj))
             {
                 return deserializer.Deserialize<T>(textReader, options);
@@ -66,8 +70,10 @@ namespace Pomona.Common.Serialization
         {
             if (deserializer == null)
                 throw new ArgumentNullException("deserializer");
+            
             if (serializedObj == null)
                 throw new ArgumentNullException("serializedObj");
+            
             using (var textReader = new StringReader(serializedObj))
             {
                 return deserializer.Deserialize(textReader, options);
@@ -104,10 +110,10 @@ namespace Pomona.Common.Serialization
                                                object obj,
                                                SerializeOptions options = null)
         {
-            using (var sw = new StringWriter())
+            using (var stringWriter = new StringWriter())
             {
-                serializer.Serialize(sw, obj, options);
-                return sw.ToString();
+                serializer.Serialize(stringWriter, obj, options);
+                return stringWriter.ToString();
             }
         }
     }

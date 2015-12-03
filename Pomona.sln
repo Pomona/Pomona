@@ -1,7 +1,6 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona", "app\Pomona\Pomona.csproj", "{EE396A59-956E-4DEE-B222-991F2274ED67}"
 EndProject
@@ -42,7 +41,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{2D1608D0-94A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.TestingClient", "tests\Pomona.TestingClient\Pomona.TestingClient.csproj", "{1B2E04F3-434D-41D5-98F3-D4C8DD95AC12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.IndependentClientTests", "Tests\Pomona.IndependentClientTests\Pomona.IndependentClientTests.csproj", "{0201E62C-5A02-4A39-8850-7547732B1BB7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.IndependentClientTests", "tests\Pomona.IndependentClientTests\Pomona.IndependentClientTests.csproj", "{0201E62C-5A02-4A39-8850-7547732B1BB7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1} = {9D098F08-B3CA-4122-A7F6-3090F8A17CA1}
 	EndProjectSection
@@ -65,11 +64,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		build-packages.cmd = build-packages.cmd
 		global.json = global.json
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{41F4B7FC-9ECB-483D-91F7-C336CDC7F6A3}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
 Global
