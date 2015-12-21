@@ -26,6 +26,9 @@
 
 #endregion
 
+using System.Collections.Generic;
+using System.Linq;
+
 using Newtonsoft.Json;
 
 using NSubstitute;
@@ -47,11 +50,40 @@ namespace Pomona.UnitTests.Serialization.Json
 
 
         [Test]
+        public void Deserialize_empty_object_array_is_successful()
+        {
+            var array = this.deserializer.DeserializeString<object[]>("[]");
+            Assert.That(array.Length, Is.EqualTo(0));
+        }
+
+
+        [Test]
         public void Deserialize_null_to_non_nullable_value_throws_PomonaSerializationException()
         {
             var ex = Assert.Throws<PomonaSerializationException>(
                 () => this.deserializer.DeserializeString("null", options : new DeserializeOptions() { ExpectedBaseType = typeof(decimal) }));
             Assert.That(ex.Message, Is.EqualTo("Deserialized to null, which is not allowed value for casting to type System.Decimal"));
+        }
+
+
+        [Test]
+        public void Deserialize_object_array_in_object_array_is_successful()
+        {
+            var array = this.deserializer.DeserializeString<object[]>(@"[[{""_type"": ""Int32"",""value"":1},""bah""]]");
+            Assert.That(array.Length, Is.EqualTo(1));
+            Assert.That(array, Is.InstanceOf<object[]>());
+            var innerArray = (object[])array[0];
+            Assert.That(innerArray[0], Is.EqualTo(1));
+            Assert.That(innerArray[1], Is.EqualTo("bah"));
+        }
+
+
+        [Test]
+        public void Deserialize_object_array_with_integer_is_successful()
+        {
+            var array = this.deserializer.DeserializeString<object[]>(@"[{""_type"":""Int32"",""value"":1337}]");
+            Assert.That(array.Length, Is.EqualTo(1));
+            Assert.That(array[0], Is.EqualTo(1337));
         }
 
 
@@ -69,6 +101,16 @@ namespace Pomona.UnitTests.Serialization.Json
 
 
         [Test]
+        public void Deserialize_typed_enumerable_in_anonymous_object_successful()
+        {
+            var obj = DeserializeAnonymous(new { Items = (IEnumerable<string>)null }, @"{""items"":[""foo"",""bar""]}");
+            Assert.That(obj.Items.Count(), Is.EqualTo(2));
+            Assert.That(obj.Items.ElementAt(0), Is.EqualTo("foo"));
+            Assert.That(obj.Items.ElementAt(1), Is.EqualTo("bar"));
+        }
+
+
+        [Test]
         public void Deserialize_using_TypeMapper_QueryResult_when_specifying_expected_type_is_successful()
         {
             var qr =
@@ -76,6 +118,12 @@ namespace Pomona.UnitTests.Serialization.Json
                     @"{""_type"": ""__result__"",""totalCount"": 12,""count"": 7,""items"": [1,2,3,4,5,6,7]}");
             Assert.That(qr, Is.EquivalentTo(new int[] { 1, 2, 3, 4, 5, 6, 7 }));
             Assert.That(qr.TotalCount, Is.EqualTo(12));
+        }
+
+
+        public T DeserializeAnonymous<T>(T anonTemplate, string serialized)
+        {
+            return this.deserializer.DeserializeString<T>(serialized);
         }
 
 

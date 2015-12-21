@@ -97,7 +97,13 @@ namespace Pomona.Common.Serialization.Json
             if (TryDeserializeAsReference(node, reader))
                 return;
 
-            var elementType = node.ExpectedBaseType.ElementType;
+            TypeSpec elementType;
+            if (node.ExpectedBaseType != null && node.ExpectedBaseType.IsCollection)
+                elementType = node.ExpectedBaseType.ElementType;
+            else
+            {
+                elementType = node.Context.GetClassMapping(typeof(object));
+            }
 
             deserializeArrayNodeGenericMethod(elementType, this, node, reader);
         }
@@ -105,8 +111,6 @@ namespace Pomona.Common.Serialization.Json
 
         private void DeserializeArrayNodeGeneric<TElement>(IDeserializerNode node, Reader reader)
         {
-            // Return type should be void, but ReflectionHelper.GetMethodDefinition only works with methods with non-void return type.
-
             if (TryDeserializeAsReference(node, reader))
                 return;
 
@@ -114,13 +118,27 @@ namespace Pomona.Common.Serialization.Json
             if (jarr == null)
                 throw new PomonaSerializationException("Expected JSON token of type array, but was " + reader.Token.Type);
 
-            var elementType = node.ExpectedBaseType.ElementType;
+            var expectedBaseType = node.ExpectedBaseType;
+
+            // Deserialize as object array by default
+            bool asArray;
+            TypeSpec elementType;
+            if (expectedBaseType != null && expectedBaseType.IsCollection)
+            {
+                elementType = expectedBaseType.ElementType;
+                asArray = expectedBaseType.IsArray;
+            }
+            else
+            {
+                elementType = node.Context.GetClassMapping(typeof(object));
+                asArray = true;
+            }
 
             bool isPatching;
             ICollection<TElement> collection;
             if (node.Value == null)
             {
-                if (node.ExpectedBaseType != null && node.ExpectedBaseType == typeof(ISet<TElement>))
+                if (expectedBaseType != null && expectedBaseType == typeof(ISet<TElement>))
                     collection = new HashSet<TElement>();
                 else
                     collection = new List<TElement>();
@@ -200,10 +218,7 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.Value == null)
             {
-                if (node.ExpectedBaseType != null && node.ExpectedBaseType.IsArray)
-                    node.Value = collection.ToArray();
-                else
-                    node.Value = collection;
+                node.Value = asArray ? collection.ToArray() : collection;
             }
         }
 
@@ -451,20 +466,19 @@ namespace Pomona.Common.Serialization.Json
 
             if (node.ExpectedBaseType == null || node.ExpectedBaseType == typeof(object))
             {
-                var jval = jtoken as JValue;
-                if (jval != null)
+                switch (jtoken.Type)
                 {
-                    switch (jval.Type)
-                    {
-                        case JTokenType.String:
-                            node.SetValueType(typeof(string));
-                            return true;
-                        case JTokenType.Boolean:
-                            node.SetValueType(typeof(bool));
-                            return true;
-                        default:
-                            return false;
-                    }
+                    case JTokenType.String:
+                        node.SetValueType(typeof(string));
+                        return true;
+                    case JTokenType.Boolean:
+                        node.SetValueType(typeof(bool));
+                        return true;
+                    case JTokenType.Array:
+                        node.SetValueType(typeof(object[]));
+                        return true;
+                    default:
+                        return false;
                 }
             }
 
