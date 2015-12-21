@@ -79,6 +79,18 @@ namespace Pomona.UnitTests.Serialization.Json
 
 
         [Test]
+        public void Deserialize_object_array_with_dictionary_is_successful()
+        {
+            var array = this.deserializer.DeserializeString<object[]>(@"[{""foo"":""bar""}]");
+            Assert.That(array.Length, Is.EqualTo(1));
+            Assert.That(array[0], Is.InstanceOf<IDictionary<string, object>>());
+            var dict = (IDictionary<string, object>)array[0];
+            Assert.That(dict.Count, Is.EqualTo(1));
+            Assert.That(dict, Contains.Item(new KeyValuePair<string, object>("foo", "bar")));
+        }
+
+
+        [Test]
         public void Deserialize_object_array_with_integer_is_successful()
         {
             var array = this.deserializer.DeserializeString<object[]>(@"[{""_type"":""Int32"",""value"":1337}]");

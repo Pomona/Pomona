@@ -147,6 +147,17 @@ namespace Pomona.SystemTests.Serialization
 
 
         [Test]
+        public void Serialize_dictionary_in_object_array_is_successful()
+        {
+            var obj = new { items = new object[] { new Dictionary<string, string>() { { "foo", "bar" } } } };
+
+            var jobj = SerializeAndGetJsonObject(obj);
+            var expected = JObject.Parse(@"{""items"":[{""foo"":""bar""}]}");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
+        [Test]
         public void Serialize_object_array_in_object_array_is_successful()
         {
             var obj = new

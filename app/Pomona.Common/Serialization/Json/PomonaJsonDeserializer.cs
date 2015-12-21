@@ -249,7 +249,9 @@ namespace Pomona.Common.Serialization.Json
         {
             if (TryDeserializeAsReference(node, reader))
                 return;
-            var dictType = (DictionaryTypeSpec)node.ExpectedBaseType;
+            var dictType = node.ExpectedBaseType as DictionaryTypeSpec;
+            if (dictType == null)
+                dictType = (DictionaryTypeSpec)node.Context.GetClassMapping(typeof(Dictionary<string, object>));
 
             var keyType = dictType.KeyType.Type;
 
@@ -476,6 +478,9 @@ namespace Pomona.Common.Serialization.Json
                         return true;
                     case JTokenType.Array:
                         node.SetValueType(typeof(object[]));
+                        return true;
+                    case JTokenType.Object:
+                        node.SetValueType(typeof(Dictionary<string, object>));
                         return true;
                     default:
                         return false;
