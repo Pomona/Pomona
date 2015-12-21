@@ -131,9 +131,11 @@ namespace Pomona.Common.Serialization.Json
             else
             {
                 jsonWriter.WriteStartArray();
-                var baseElementType = node.ExpectedBaseType != null
-                    ? node.ExpectedBaseType.ElementType
-                    : null;
+                TypeSpec baseElementType;
+                if (node.ExpectedBaseType != null && node.ExpectedBaseType.IsCollection)
+                    baseElementType = node.ExpectedBaseType.ElementType;
+                else
+                    baseElementType = node.Context.GetClassMapping(typeof(object));
 
                 var delta = node.Value as ICollectionDelta;
                 if (delta != null)

@@ -147,6 +147,38 @@ namespace Pomona.SystemTests.Serialization
 
 
         [Test]
+        public void Serialize_object_array_in_object_array_is_successful()
+        {
+            var obj = new
+            {
+                nested = new object[]
+                {
+                    new object[] { 1, "foo", new object[] { "kra" } }
+                }
+            };
+
+            var jobj = SerializeAndGetJsonObject(obj);
+            var expected = JObject.Parse(@"{
+  ""nested"": [
+    [
+      {
+        ""_type"": ""Int32"",
+        ""value"": 1
+      },
+      ""foo"",
+      [
+        ""kra""
+      ]
+    ]
+  ]
+}
+");
+
+            Assert.That(jobj.ToString(), Is.EqualTo(expected.ToString()));
+        }
+
+
+        [Test]
         public void Serialize_QueryResult_of_resource_is_successful()
         {
             var qr = QueryResult.Create(new List<Hat>() { new Hat("fedora") { Id = 1337 } }, 0, 4,
