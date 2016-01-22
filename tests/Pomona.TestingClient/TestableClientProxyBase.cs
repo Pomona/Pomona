@@ -398,7 +398,9 @@ namespace Pomona.TestingClient
         }
 
 
+#pragma warning disable 67
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+#pragma warning restore 67
 
         public ClientSettings Settings
         {
