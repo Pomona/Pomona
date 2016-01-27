@@ -26,52 +26,61 @@
 
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Nancy;
-using Nancy.TinyIoc;
+using Nancy.Testing;
 
-using Pomona.Queries;
+using NUnit.Framework;
 
-namespace Pomona.Example
+using Pomona.FluentMapping;
+
+namespace Pomona.UnitTests
 {
-    public class CritterBootstrapper : DefaultNancyBootstrapper
+    [TestFixture]
+    public class PomonaModuleTests
     {
-        public CritterBootstrapper()
-            : this(null)
+        [Test]
+        public void Get_resource_using_handler_from_module_without_custom_data_source_is_successful()
         {
+            var browser = new Browser(with => with.Module<NoCustomDataSourceModule>(), bc => bc.Header("Accept", "application/json"));
+            Assert.That(browser.Get("/dummies").StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
 
 
-        public CritterBootstrapper(CritterRepository repository = null)
+        public class Dummy
         {
-            this.TypeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.Repository = repository ?? new CritterRepository(this.TypeMapper);
+            public int Id { get; set; }
         }
 
-
-        public CritterRepository Repository { get; }
-
-        public TypeMapper TypeMapper { get; }
-
-        protected override IRootPathProvider RootPathProvider
+        public class DummyHandler
         {
-            get { return new DefaultRootPathProvider(); }
+            public IQueryable<Dummy> QueryDummies()
+            {
+                return new Dummy[] { }.AsQueryable();
+            }
         }
 
-
-        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        public class NoCustomDataSourceConfiguration : PomonaConfigurationBase
         {
-            base.ConfigureApplicationContainer(container);
-            //container.Register(new CritterPomonaConfiguration().CreateSessionFactory());
-            container.Register(this.Repository);
-            //container.Register<CritterDataSource>();
-            //container.Register(this.typeMapper);
+            public override IEnumerable<object> FluentRuleObjects => new object[] { new NoCustomDataSourceFluentRules() };
+
+            public override IEnumerable<Type> SourceTypes => new[] { typeof(Dummy) };
         }
 
-
-        protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
+        public class NoCustomDataSourceFluentRules
         {
-            container.Register<IQueryExecutor, CritterDataSource>();
-            base.ConfigureRequestContainer(container, context);
+            public void Map(ITypeMappingConfigurator<Dummy> map)
+            {
+                map.HandledBy<DummyHandler>();
+            }
+        }
+
+        [PomonaConfiguration(typeof(NoCustomDataSourceConfiguration))]
+        private class NoCustomDataSourceModule : PomonaModule
+        {
         }
     }
 }

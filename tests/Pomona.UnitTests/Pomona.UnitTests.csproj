@@ -120,6 +120,7 @@
     <Compile Include="Expressions\RecursiveRewriteVisitorTests.cs" />
     <Compile Include="ExtendedResources\ExtendedResourceMapperTests.cs" />
     <Compile Include="IO\PathHelperTests.cs" />
+    <Compile Include="PomonaModuleTests.cs" />
     <Compile Include="SearchReplaceVisitorTests.cs" />
     <Compile Include="FluentMapping\FluentMappingTestsBase.cs" />
     <Compile Include="FluentMapping\FluentPropertyConfiguratorTests.cs" />
