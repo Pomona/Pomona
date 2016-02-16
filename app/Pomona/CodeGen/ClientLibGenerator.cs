@@ -1111,11 +1111,21 @@ namespace Pomona.CodeGen
         {
             reflectedInterface = reflectedInterface ?? propertyDefinition.DeclaringType;
 
-            return this.clientTypeInfoDict
-                       .Values
-                       .First(x => x.InterfaceType == reflectedInterface)
-                       .StructuredType.Properties.Cast<StructuredProperty>()
-                       .First(x => x.Name == propertyDefinition.Name);
+            if (reflectedInterface == null)
+                throw new NotImplementedException("reflectedInterface not expected to be null here");
+
+            var typeCodeGenInfo = this.clientTypeInfoDict
+                                      .Values
+                                      .FirstOrDefault(x => x.InterfaceType == reflectedInterface);
+            if (typeCodeGenInfo == null)
+                throw new InvalidOperationException($"Unable to find type info for {reflectedInterface.FullName}");
+
+            var structuredProperty = typeCodeGenInfo
+                .StructuredType.Properties
+                .FirstOrDefault(x => x.Name == propertyDefinition.Name);
+            if (structuredProperty == null)
+                throw new InvalidOperationException($"Unable to find property {propertyDefinition.Name} on {reflectedInterface.FullName}");
+            return structuredProperty;
         }
 
 
