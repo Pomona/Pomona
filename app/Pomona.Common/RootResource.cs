@@ -41,9 +41,8 @@ namespace Pomona.Common
 
 
         protected RootResource(string baseUri)
+            : this(baseUri, new HttpWebRequestClient())
         {
-            BaseUri = baseUri;
-            InstantiateClientRepositories();
         }
 
 

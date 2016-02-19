@@ -153,6 +153,13 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
+        public void Constructor_TakingBaseUri_DoesNotThrowException()
+        {
+            Assert.DoesNotThrow(() => new CritterClient("http://whatever"));
+        }
+
+
+        [Test]
         public void ConstructorOfInheritedClientDoesNotThrowException()
         {
             Assert.DoesNotThrow(() => new InheritedClient("http://test/", Substitute.For<IWebClient>()));
