@@ -251,7 +251,7 @@ namespace Pomona.SystemTests
             var critterEntity = Repository.CreateRandomCritter(rngSeed : 3473873, addToRandomFarm : false);
             var farmResource = Client.Farms.GetLazy(farmEntity.Id);
             Client.Farms.Patch(farmResource,
-                               f => ((IList<ICritter>)f.Critters).Add(Client.Critters.GetLazy(critterEntity.Id)));
+                               f => ((ICollection<ICritter>)f.Critters).Add(Client.Critters.GetLazy(critterEntity.Id)));
             Assert.That(farmEntity.Critters, Contains.Item(critterEntity));
         }
 

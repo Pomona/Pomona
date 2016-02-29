@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -62,6 +62,9 @@ namespace Pomona.Common.Serialization.Patch
             ReflectionHelper.GetMethodDefinition<CollectionDelta<object, IEnumerable>>(
                 x => x.RemoveOriginalItem<object>(null));
 
+        private static readonly MethodInfo createTypedCollectionDeltaMethod =
+            ReflectionHelper.GetMethodDefinition(() => CreateTypedCollectionDelta<object, object>(null, null, null, null, null));
+
         private readonly HashSet<object> added = new HashSet<object>();
         private readonly Dictionary<object, Delta> nestedDeltaMap = new Dictionary<object, Delta>();
         private readonly HashSet<object> removed = new HashSet<object>();
@@ -109,7 +112,7 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public void AddItem(object item)
+        public bool AddItem(object item)
         {
             // OK: Transient item added, has not been added before.
             // ??: Transient item added, has already been added
@@ -122,24 +125,27 @@ namespace Pomona.Common.Serialization.Patch
 
             // If item has previously been marked for removal it must be a new object, thus added.
 
+            bool added = false;
             if (IsPersistedItem(item))
             {
                 item = GetWrappedItem(item);
                 if (!this.removed.Remove(item))
-                    this.added.Add(item);
+                    added = this.added.Add(item);
                 SetDirty();
             }
             else
             {
-                this.added.Add(item);
-                SetDirty();
+                added = this.added.Add(item);
+                if (added)
+                    SetDirty();
             }
+            return added;
         }
 
 
         public void Clear()
         {
-            this.Cleared = true;
+            Cleared = true;
             SetDirty();
         }
 
@@ -155,7 +161,7 @@ namespace Pomona.Common.Serialization.Patch
             if (IsPersistedItem(item))
             {
                 item = GetWrappedItem(item);
-                if (this.Cleared || this.removed.Contains(item))
+                if (Cleared || this.removed.Contains(item))
                     return false;
                 if (!this.added.Remove(item))
                     this.removed.Add(item);
@@ -177,7 +183,7 @@ namespace Pomona.Common.Serialization.Patch
                 this.tracked.Clear();
                 this.removed.Clear();
                 this.nestedDeltaMap.Clear();
-                this.Cleared = false;
+                Cleared = false;
             }
             else
                 throw new NotImplementedException();
@@ -207,24 +213,8 @@ namespace Pomona.Common.Serialization.Patch
                                                           Delta parent,
                                                           Type propertyType)
         {
-            var collectionType = typeof(CollectionDelta<,>).MakeGenericType(type.ElementType.Type,
-                                                                            type.Type);
-            if (!propertyType.IsAssignableFrom(collectionType))
-            {
-#if DISABLE_PROXY_GENERATION
-            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
-#else
-                // Need to create a runtime proxy for custom collection (repository).
-                var repoProxyBaseType = typeof(RepositoryDeltaProxyBase<,>).MakeGenericType(type.ElementType, type.Type);
-                var proxy = (CollectionDelta)RuntimeProxyFactory.Create(repoProxyBaseType, type.Type);
-                proxy.Original = new object[] { }; // Don't want to track original items of child repositories.
-                proxy.Type = type;
-                proxy.TypeMapper = typeMapper;
-                proxy.Parent = parent;
-                return proxy;
-#endif
-            }
-            return Activator.CreateInstance(collectionType, original, type, typeMapper, parent);
+            return createTypedCollectionDeltaMethod.MakeGenericMethod(type.ElementType, type)
+                                                   .Invoke(null, new object[] { original, type, typeMapper, parent, propertyType });
         }
 
 
@@ -243,6 +233,34 @@ namespace Pomona.Common.Serialization.Patch
                 else
                     yield return GetWrappedItem(origItem);
             }
+        }
+
+
+        private static object CreateTypedCollectionDelta<TElement, TCollection>(object original,
+                                                                                TypeSpec type,
+                                                                                ITypeResolver typeMapper,
+                                                                                Delta parent,
+                                                                                Type propertyType)
+        {
+            if (propertyType.IsAssignableFrom(typeof(ICollection<TElement>)))
+                return new CollectionDelta<TElement, TCollection>(original, type, typeMapper, parent);
+            if (propertyType.IsAssignableFrom(typeof(IList<TElement>)))
+                return new ListDelta<TElement, TCollection>(original, type, typeMapper, parent);
+            if (propertyType.IsAssignableFrom(typeof(ISet<TElement>)))
+                return new SetDelta<TElement, TCollection>(original, type, typeMapper, parent);
+
+#if DISABLE_PROXY_GENERATION
+            throw new NotSupportedException("Proxy generation has been disabled compile-time using DISABLE_PROXY_GENERATION, which makes this method not supported.");
+#else
+            // Need to create a runtime proxy for custom collection (repository).
+            var repoProxyBaseType = typeof(RepositoryDeltaProxyBase<TElement, TCollection>);
+            var proxy = (CollectionDelta)RuntimeProxyFactory.Create(repoProxyBaseType, type.Type);
+            proxy.Original = new object[] { }; // Don't want to track original items of child repositories.
+            proxy.Type = type;
+            proxy.TypeMapper = typeMapper;
+            proxy.Parent = parent;
+            return proxy;
+#endif
         }
 
 
@@ -324,7 +342,7 @@ namespace Pomona.Common.Serialization.Patch
         }
     }
 
-    public class CollectionDelta<TElement> : CollectionDelta, IList<TElement>
+    public class CollectionDelta<TElement> : CollectionDelta, ICollection<TElement>
     {
         public CollectionDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
             : base(original, type, typeMapper, parent)
@@ -385,43 +403,15 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public int IndexOf(TElement item)
-        {
-            return
-                this.Select((x, i) => new { x, i }).Where(y => y.x.Equals(item)).Select(y => (int?)y.i).FirstOrDefault()
-                ?? -1;
-        }
-
-
-        public void Insert(int index, TElement item)
-        {
-            AddItem(item);
-        }
-
-
         public bool IsReadOnly
         {
             get { return false; }
-        }
-
-        public TElement this[int index]
-        {
-            get { return this.Skip(index).First(); }
-            set { throw new NotImplementedException(); }
         }
 
 
         public bool Remove(TElement item)
         {
             return RemoveItem(item);
-        }
-
-
-        public void RemoveAt(int index)
-        {
-            var item = this.Skip(index).FirstOrDefault();
-            if (item != null)
-                RemoveItem(item);
         }
 
 
