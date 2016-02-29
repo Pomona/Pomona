@@ -59,6 +59,16 @@ namespace Pomona.Common.Proxies
                     this.propMap[property.Name] = newDict;
                     return (TPropType)newDict;
                 }
+                if (propertyType.IsGenericInstanceOf(typeof(ISet<>)))
+                {
+                    var newSetType = typeof(PostResourceSet<>).MakeGenericType(propertyType.GetGenericArguments());
+                    var newSet = Activator.CreateInstance(newSetType,
+                                                           BindingFlags.Instance | BindingFlags.NonPublic |
+                                                           BindingFlags.CreateInstance, null,
+                                                           new object[] { this, property.Name }, null);
+                    this.propMap[property.Name] = newSet;
+                    return (TPropType)newSet;
+                }
                 if (propertyType.IsGenericInstanceOf(typeof(ICollection<>), typeof(IList<>)))
                 {
                     var newListType = typeof(PostResourceList<>).MakeGenericType(propertyType.GetGenericArguments());

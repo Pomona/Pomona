@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2016 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,30 +26,42 @@
 
 #endregion
 
-using System.Collections.Generic;
+using NUnit.Framework;
 
-using Pomona.Common;
+using Pomona.Common.Proxies;
+using Pomona.UnitTests.TestResources;
 
-namespace Pomona.UnitTests.TestResources
+namespace Pomona.UnitTests.Client
 {
-    [AllowedMethods(HttpMethod.Get)]
-    [ResourceInfo(InterfaceType = typeof(ITestResource), JsonTypeName = "TestResource",
-        PocoType = typeof(TestResource), PostFormType = typeof(TestResourcePostForm),
-        UriBaseType = typeof(ITestResource), UrlRelativePath = "test-resources")]
-    public interface ITestResource : IClientResource
+    [TestFixture]
+    public class PostResourceBaseTests
     {
-        [ResourceAttributesProperty]
-        IDictionary<string, object> Attributes { get; set; }
+        [Test]
+        public void Get_property_of_type_IList_returns_new_list_proxy()
+        {
+            var form = new TestResourcePostForm();
+            var list = form.Children;
+            Assert.That(list, Is.TypeOf<PostResourceList<ITestResource>>());
+        }
 
-        IList<ITestResource> Children { get; }
-        IDictionary<string, string> Dictionary { get; }
-        ITestResource Friend { get; set; }
 
-        [ResourceIdProperty]
-        int Id { get; set; }
+        [Test]
+        public void Get_property_of_type_ISet_returns_new_set_proxy()
+        {
+            var form = new TestResourcePostForm();
+            var set = form.Set;
+            Assert.That(set, Is.TypeOf<PostResourceSet<ITestResource>>());
+        }
 
-        string Info { get; set; }
-        ISet<ITestResource> Set { get; }
-        ITestResource Spouse { get; set; }
+
+        [Test]
+        public void Get_property_of_type_ISet_second_time_returns_same_set_as_first_time()
+        {
+            // Make sure caching of wrappers work
+            var form = new TestResourcePostForm();
+            var setFirstTime = form.Set;
+            var setSecondTime = form.Set;
+            Assert.That(setFirstTime, Is.EqualTo(setSecondTime));
+        }
     }
 }

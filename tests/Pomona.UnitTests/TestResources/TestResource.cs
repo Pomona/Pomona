@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -32,29 +32,16 @@ namespace Pomona.UnitTests.TestResources
 {
     public class TestResource : ITestResource
     {
-        private readonly List<ITestResource> children = new List<ITestResource>();
-        private readonly IDictionary<string, string> dictionary = new Dictionary<string, string>();
-        private IDictionary<string, object> attributes = new Dictionary<string, object>();
+        public IDictionary<string, object> Attributes { get; set; } = new Dictionary<string, object>();
 
-        public IDictionary<string, object> Attributes
-        {
-            get { return this.attributes; }
-            set { this.attributes = value; }
-        }
+        public IList<ITestResource> Children { get; } = new List<ITestResource>();
 
-        public IList<ITestResource> Children
-        {
-            get { return this.children; }
-        }
-
-        public IDictionary<string, string> Dictionary
-        {
-            get { return this.dictionary; }
-        }
+        public IDictionary<string, string> Dictionary { get; } = new Dictionary<string, string>();
 
         public ITestResource Friend { get; set; }
         public int Id { get; set; }
         public string Info { get; set; }
+        public ISet<ITestResource> Set { get; } = new HashSet<ITestResource>();
         public ITestResource Spouse { get; set; }
     }
 }

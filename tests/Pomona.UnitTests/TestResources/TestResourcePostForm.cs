@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -54,6 +54,15 @@ namespace Pomona.UnitTests.TestResources
 
         private static readonly PropertyWrapper<ITestResource, ITestResource> spousePropWrapper =
             new PropertyWrapper<ITestResource, ITestResource>("Spouse");
+
+        private static readonly PropertyWrapper<ITestResource, ISet<ITestResource>> setPropWrapper =
+            new PropertyWrapper<ITestResource, ISet<ITestResource>>("Set");
+
+        public ISet<ITestResource> Set
+        {
+            get { return OnGet(setPropWrapper); }
+            set { OnSet(setPropWrapper, value); }
+        }
 
         public IDictionary<string, object> Attributes
         {
