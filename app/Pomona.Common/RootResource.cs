@@ -42,7 +42,7 @@ namespace Pomona.Common
 
 
         protected RootResource(string baseUri)
-            : this(baseUri, new HttpWebRequestClient())
+            : this(baseUri, new HttpClient())
         {
         }
 
