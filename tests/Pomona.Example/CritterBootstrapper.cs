@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,14 +29,12 @@
 using Nancy;
 using Nancy.TinyIoc;
 
+using Pomona.Queries;
+
 namespace Pomona.Example
 {
     public class CritterBootstrapper : DefaultNancyBootstrapper
     {
-        private readonly CritterRepository repository;
-        private readonly TypeMapper typeMapper;
-
-
         public CritterBootstrapper()
             : this(null)
         {
@@ -45,20 +43,14 @@ namespace Pomona.Example
 
         public CritterBootstrapper(CritterRepository repository = null)
         {
-            this.typeMapper = new TypeMapper(new CritterPomonaConfiguration());
-            this.repository = repository ?? new CritterRepository(this.typeMapper);
+            this.TypeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            this.Repository = repository ?? new CritterRepository(this.TypeMapper);
         }
 
 
-        public CritterRepository Repository
-        {
-            get { return this.repository; }
-        }
+        public CritterRepository Repository { get; }
 
-        public TypeMapper TypeMapper
-        {
-            get { return this.typeMapper; }
-        }
+        public TypeMapper TypeMapper { get; }
 
         protected override IRootPathProvider RootPathProvider
         {
@@ -70,9 +62,16 @@ namespace Pomona.Example
         {
             base.ConfigureApplicationContainer(container);
             //container.Register(new CritterPomonaConfiguration().CreateSessionFactory());
-            container.Register(this.repository);
+            container.Register(this.Repository);
             //container.Register<CritterDataSource>();
             //container.Register(this.typeMapper);
+        }
+
+
+        protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
+        {
+            container.Register<IQueryExecutor, CritterDataSource>();
+            base.ConfigureRequestContainer(container, context);
         }
     }
 }

@@ -113,7 +113,7 @@ namespace Pomona
                 resultAsQueryable = queryableActionResult.WrappedQueryable;
             }
 
-            var queryExecutor = (GetInstance<IPomonaDataSource>() as IQueryExecutor) ?? new DefaultQueryExecutor();
+            var queryExecutor = GetInstance<IQueryExecutor>();
             var pomonaQuery = ParseQuery(context, resultAsQueryable.ElementType, defaultPageSize);
             return queryExecutor.ApplyAndExecute(resultAsQueryable, pomonaQuery);
         }

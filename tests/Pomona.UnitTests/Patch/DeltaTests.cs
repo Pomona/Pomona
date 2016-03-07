@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -59,6 +59,34 @@ namespace Pomona.UnitTests.Patch
             var proxy = GetObjectProxy();
             proxy.Children.Add(new TestResourcePostForm() { Info = "AddedChild" });
             var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
+            Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(1));
+            Assert.That(childCollectionDelta.AddedItems.Cast<ITestResource>().First().Info, Is.EqualTo("AddedChild"));
+            Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(0));
+            Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(0));
+            Assert.That(((Delta)proxy).IsDirty);
+        }
+
+
+        [Test]
+        public void AddItemToSet_IsInAddedItemsAndMarksParentAsDirty()
+        {
+            var proxy = GetObjectProxy();
+            proxy.Set.Add(new TestResourcePostForm() { Info = "AddedChild" });
+            var childCollectionDelta = (SetDelta<ITestResource>)proxy.Set;
+            Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(1));
+            Assert.That(childCollectionDelta.AddedItems.Cast<ITestResource>().First().Info, Is.EqualTo("AddedChild"));
+            Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(0));
+            Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(0));
+            Assert.That(((Delta)proxy).IsDirty);
+        }
+
+
+        [Test]
+        public void AddItemToSet_IsInAddedSet()
+        {
+            var proxy = GetObjectProxy();
+            proxy.Set.Add(new TestResourcePostForm() { Info = "AddedChild" });
+            var childCollectionDelta = (SetDelta<ITestResource>)proxy.Set;
             Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(1));
             Assert.That(childCollectionDelta.AddedItems.Cast<ITestResource>().First().Info, Is.EqualTo("AddedChild"));
             Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(0));
@@ -197,12 +225,41 @@ namespace Pomona.UnitTests.Patch
 
 
         [Test]
+        public void ModifySetItem_IsInModifiedItemsAndMarksParentAsDirty()
+        {
+            var proxy = GetObjectProxy();
+            proxy.Set.First().Info = "WASMODIFIED";
+            var childCollectionDelta = (SetDelta<ITestResource>)proxy.Set;
+            Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(0));
+            Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(0));
+            Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(1));
+            Assert.That(childCollectionDelta.ModifiedItems.First().Info, Is.EqualTo("WASMODIFIED"));
+            Assert.That(((Delta)proxy).IsDirty);
+        }
+
+
+        [Test]
         public void RemoveItemFromChildren_IsInRemovedItemsAndMarksParentAsDirty()
         {
             var proxy = GetObjectProxy();
             var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Children;
             var childToRemove = proxy.Children.First(x => x.Info == "ChildToRemove");
             proxy.Children.Remove(childToRemove);
+            Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(0));
+            Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(1));
+            Assert.That(childCollectionDelta.RemovedItems.First().Info, Is.EqualTo("ChildToRemove"));
+            Assert.That(childCollectionDelta.ModifiedItems.Count(), Is.EqualTo(0));
+            Assert.That(((Delta)proxy).IsDirty);
+        }
+
+
+        [Test]
+        public void RemoveItemFromSet_IsInRemovedItemsAndMarksParentAsDirty()
+        {
+            var proxy = GetObjectProxy();
+            var childCollectionDelta = (CollectionDelta<ITestResource>)proxy.Set;
+            var childToRemove = proxy.Set.First(x => x.Info == "ChildToRemove");
+            proxy.Set.Remove(childToRemove);
             Assert.That(childCollectionDelta.AddedItems.Count(), Is.EqualTo(0));
             Assert.That(childCollectionDelta.RemovedItems.Count(), Is.EqualTo(1));
             Assert.That(childCollectionDelta.RemovedItems.First().Info, Is.EqualTo("ChildToRemove"));
@@ -241,6 +298,11 @@ namespace Pomona.UnitTests.Patch
                 {
                     new TestResource { Info = "Childbar", Id = 1 },
                     new TestResource { Info = "ChildToRemove", Id = 2 }
+                },
+                Set =
+                {
+                    new TestResource { Info = "Childbar", Id = 10 },
+                    new TestResource { Info = "ChildToRemove", Id = 11 }
                 },
                 Spouse = new TestResource { Info = "Jalla", Id = 3 },
                 Friend = new TestResource { Info = "good friend", Id = 4 },
