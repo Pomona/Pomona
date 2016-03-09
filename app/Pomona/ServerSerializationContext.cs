@@ -44,7 +44,7 @@ namespace Pomona
 
 
         public ServerSerializationContext(
-            TypeMapper typeMapper,
+            ITypeResolver typeMapper,
             string expandedPaths,
             bool debugMode,
             IUriResolver uriResolver,
