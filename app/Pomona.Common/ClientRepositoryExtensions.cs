@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,15 +26,20 @@
 
 #endregion
 
+using System;
 using System.Threading.Tasks;
 
 namespace Pomona.Common
 {
-    public interface IDeletableRepository<TResource>
-        where TResource : class, IClientResource
+    public static class ClientRepositoryExtensions
     {
-        void Delete(TResource resource);
-
-        Task DeleteAsync(TResource resource);
+        public static Task<TPostResponseResource> PostAsync<TResource, TPostResponseResource>(
+            this IPostableRepository<TResource, TPostResponseResource> repository,
+            Action<TResource> action)
+            where TResource : class, IClientResource
+            where TPostResponseResource : IClientResource
+        {
+            return repository.PostAsync<TResource, TPostResponseResource>(action, null);
+        }
     }
 }

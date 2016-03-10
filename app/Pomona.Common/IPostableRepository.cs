@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.Common
 {
@@ -55,5 +56,11 @@ namespace Pomona.Common
 
 
         TPostResponseResource Post(Action<TResource> postAction);
+
+
+        Task<TSubResponseResource> PostAsync<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+                                                                                 Action<IRequestOptions<TSubResponseResource>> options)
+            where TSubResource : class, TResource
+            where TSubResponseResource : TPostResponseResource;
     }
 }

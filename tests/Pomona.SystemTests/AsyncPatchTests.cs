@@ -26,15 +26,24 @@
 
 #endregion
 
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace Pomona.Common
-{
-    public interface IDeletableRepository<TResource>
-        where TResource : class, IClientResource
-    {
-        void Delete(TResource resource);
+using NUnit.Framework;
 
-        Task DeleteAsync(TResource resource);
+using Pomona.Common;
+
+namespace Pomona.SystemTests
+{
+    [TestFixture]
+    public class AsyncPatchTests : ClientTestsBase
+    {
+        [Test]
+        public async Task Patch_IsSuccessful()
+        {
+            var critterEntity = Client.Critters.First();
+            var updatedCritter = await Client.PatchAsync(critterEntity, c => c.Name = "UPDATED!");
+            Assert.That(updatedCritter.Name, Is.EqualTo("UPDATED!"));
+        }
     }
 }

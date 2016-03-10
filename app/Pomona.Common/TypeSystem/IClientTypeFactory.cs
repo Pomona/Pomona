@@ -28,11 +28,13 @@
 
 using System;
 
+using Pomona.Common.Proxies;
+
 namespace Pomona.Common.TypeSystem
 {
     public interface IClientTypeFactory
     {
         object CreatePatchForm(Type resourceType, object original);
-        object CreatePostForm(Type resourceType);
+        IPostForm CreatePostForm(Type resourceType);
     }
 }

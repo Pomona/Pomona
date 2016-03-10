@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
@@ -77,9 +78,15 @@ namespace Pomona.Common
         }
 
 
-        public void Delete(TResource resource)
+        public virtual void Delete(TResource resource)
         {
             this.client.Delete(resource, null);
+        }
+
+
+        public virtual Task DeleteAsync(TResource resource)
+        {
+            return this.client.DeleteAsync(resource, null);
         }
 
 
@@ -127,6 +134,12 @@ namespace Pomona.Common
         }
 
 
+        public Task<TSubResource> PatchAsync<TSubResource>(TSubResource resource, Action<TSubResource> patchAction, Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
+        {
+            return this.client.PatchAsync(resource, patchAction, options);
+        }
+
+
         public virtual TPostResponseResource Post(IPostForm form)
         {
             return (TPostResponseResource)this.client.Post(Uri, (TResource)((object)form), null);
@@ -163,6 +176,12 @@ namespace Pomona.Common
         public virtual TPostResponseResource Post(Action<TResource> postAction)
         {
             return (TPostResponseResource)this.client.Post<TResource>(Uri, postAction, null);
+        }
+
+
+        public virtual async Task<TSubResponseResource> PostAsync<TSubResource, TSubResponseResource>(Action<TSubResource> postAction, Action<IRequestOptions<TSubResponseResource>> options) where TSubResource : class, TResource where TSubResponseResource : TPostResponseResource
+        {
+            return (TSubResponseResource)await this.client.PostAsync(Uri, postAction, RequestOptions.Create(options));
         }
 
 

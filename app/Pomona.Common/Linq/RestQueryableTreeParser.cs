@@ -55,7 +55,8 @@ namespace Pomona.Common.Linq
             Sum,
             Count,
             Last,
-            LastOrDefault
+            LastOrDefault,
+            ToQueryResult
         }
 
         #endregion
@@ -518,7 +519,7 @@ namespace Pomona.Common.Linq
 
         internal void QToQueryResult<TSource>()
         {
-            Projection = QueryProjection.Enumerable;
+            Projection = QueryProjection.ToQueryResult;
         }
 
 

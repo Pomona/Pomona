@@ -32,6 +32,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -374,6 +375,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public Task<object> GetAsync(string uri, Type type, RequestOptions requestOptions)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public object Patch(object form, RequestOptions options)
         {
             throw new NotImplementedException();
@@ -401,6 +408,23 @@ namespace Pomona.TestingClient
 #pragma warning disable 67
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 #pragma warning restore 67
+        public Task<object> PostAsync(string uri, IPostForm form, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Task<object> PatchAsync(object form, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Task DeleteAsync(object resource, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public ClientSettings Settings
         {

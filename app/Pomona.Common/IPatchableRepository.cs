@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.Common
 {
@@ -40,6 +41,12 @@ namespace Pomona.Common
 
 
         TSubResource Patch<TSubResource>(TSubResource resource, Action<TSubResource> patchAction)
+            where TSubResource : class, TResource;
+
+
+        Task<TSubResource> PatchAsync<TSubResource>(TSubResource resource,
+                                                    Action<TSubResource> patchAction,
+                                                    Action<IRequestOptions<TSubResource>> options = null)
             where TSubResource : class, TResource;
     }
 }

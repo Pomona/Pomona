@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
@@ -157,6 +158,18 @@ namespace Pomona.Common
         }
 
 
+        public virtual Task<object> GetAsync(string uri, Type type, RequestOptions requestOptions)
+        {
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            if (requestOptions == null)
+                requestOptions = new RequestOptions(type);
+            else if (type != null && requestOptions.ExpectedResponseType == null)
+                requestOptions.ExpectedResponseType = type;
+
+            return this.dispatcher.SendRequestAsync(uri, "GET", null, GetSerializationContextProvider(requestOptions), requestOptions);
+        }
+
         public virtual object Get(string uri, Type type, RequestOptions requestOptions)
         {
             if (uri == null)
@@ -190,6 +203,38 @@ namespace Pomona.Common
                 throw new ArgumentNullException("form");
 
             return this.dispatcher.SendRequest(uri, "POST", form, GetSerializationContextProvider(options), options);
+        }
+
+
+        public virtual Task<object> PostAsync(string uri, IPostForm form, RequestOptions options)
+        {
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            if (form == null)
+                throw new ArgumentNullException("form");
+
+            return this.dispatcher.SendRequestAsync(uri, "POST", form, GetSerializationContextProvider(options), options);
+        }
+
+
+        public virtual Task<object> PatchAsync(object form, RequestOptions options)
+        {
+            if (form == null)
+                throw new ArgumentNullException("form");
+
+            var uri = GetUriOfForm(form);
+
+            AddIfMatchToPatch(form, options);
+            return this.dispatcher.SendRequestAsync(uri, "PATCH", form, GetSerializationContextProvider(options), options);
+        }
+
+
+        public async Task DeleteAsync(object resource, RequestOptions options)
+        {
+            if (resource == null)
+                throw new ArgumentNullException("resource");
+            var uri = ((IHasResourceUri)resource).Uri;
+            await this.dispatcher.SendRequestAsync(uri, "DELETE", null, GetSerializationContextProvider(options), options);
         }
 
 

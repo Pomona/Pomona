@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,13 +28,30 @@
 
 using System.Threading.Tasks;
 
-namespace Pomona.Common
-{
-    public interface IDeletableRepository<TResource>
-        where TResource : class, IClientResource
-    {
-        void Delete(TResource resource);
+using Critters.Client;
 
-        Task DeleteAsync(TResource resource);
+using NUnit.Framework;
+
+using Pomona.Common;
+
+namespace Pomona.SystemTests
+{
+    [TestFixture]
+    public class AsyncPostTests : ClientTestsBase
+    {
+        [Test]
+        public async Task PostAsync_ExtensionMethod_UsingAction_WithNoOptionSpecified_IsSuccessful()
+        {
+            var critter = await Client.Critters.PostAsync(c => c.Name = "Blah");
+            Assert.That(critter.Name, Is.EqualTo("Blah"));
+        }
+
+
+        [Test]
+        public async Task PostAsync_UsingAction_IsSuccessful()
+        {
+            var result = await Client.Critters.PostAsync<ICritter, ICritter>(f => f.Name = "New critter on the block", null);
+            Assert.That(result.Name, Is.EqualTo("New critter on the block"));
+        }
     }
 }

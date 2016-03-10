@@ -98,6 +98,10 @@
     <Compile Include="..\..\app\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AsyncDeleteTests.cs" />
+    <Compile Include="AsyncPatchTests.cs" />
+    <Compile Include="AsyncPostTests.cs" />
+    <Compile Include="AsyncQueryTests.cs" />
     <Compile Include="ChildResourceTests.cs" />
     <Compile Include="CodeGen\ClientGeneratedTypeTests.cs" />
     <Compile Include="CodeGen\StringEnumTests.cs" />
