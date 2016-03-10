@@ -52,7 +52,7 @@ namespace Pomona.IndependentClientTests
         public override CritterClient CreateInMemoryTestingClient(string baseUri,
                                                                   CritterBootstrapper critterBootstrapper)
         {
-            return new CritterClient(baseUri, new HttpClient(new IndependentNancyTestingHttpMessageHandler(critterBootstrapper.GetEngine())));
+            return new CritterClient(baseUri, new HttpWebClient(new IndependentNancyTestingHttpMessageHandler(critterBootstrapper.GetEngine())));
         }
 
 

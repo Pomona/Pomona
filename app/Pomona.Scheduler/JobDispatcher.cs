@@ -36,7 +36,7 @@ namespace Pomona.Scheduler
     public class JobDispatcher : IJobDispatcher
     {
         private readonly IJobStore jobStore;
-        private readonly HttpClient webClient;
+        private readonly IWebClient webClient;
 
 
         public JobDispatcher(IJobStore jobStore)
@@ -44,7 +44,7 @@ namespace Pomona.Scheduler
             if (jobStore == null)
                 throw new ArgumentNullException("jobStore");
             this.jobStore = jobStore;
-            this.webClient = new HttpWebRequestClient();
+            this.webClient = new HttpWebClient();
         }
 
 

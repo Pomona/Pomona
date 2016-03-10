@@ -65,9 +65,11 @@ _ReSharper*/
 packages/
 *.nupkg
 
-#ncrunch
-*ncrunch*
-*crunch*.local.xml
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
 
 # visual studio database projects
 *.dbmdl

@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright � 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -29,32 +29,61 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
-using Pomona.Common.Internals;
+using Pomona.Common.TypeSystem;
 
-namespace Pomona.Common.Web
+namespace Pomona.Common.Serialization.Patch
 {
-    [Obsolete("Use System.Net.Http.HttpClient instead")]
-    public class HttpWebRequestClient : HttpClient
+    public class ListDelta<TElement, TList> : ListDelta<TElement>, IDelta<TList>
     {
-        public HttpWebRequestClient()
+        public ListDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
+            : base(original, type, typeMapper, parent)
         {
         }
 
 
-        public HttpWebRequestClient(HttpMessageHandler handler)
-            : base(handler)
+        public new TList Original => (TList)base.Original;
+    }
+
+    public class ListDelta<TElement> : CollectionDelta<TElement>, IList<TElement>
+    {
+        public ListDelta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
+            : base(original, type, typeMapper, parent)
         {
         }
 
 
-        public HttpWebRequestClient(HttpMessageHandler handler, bool disposeHandler)
-            : base(handler, disposeHandler)
+        protected ListDelta()
         {
+        }
+
+
+        public int IndexOf(TElement item)
+        {
+            return
+                this.Select((x, i) => new { x, i }).Where(y => y.x.Equals(item)).Select(y => (int?)y.i).FirstOrDefault()
+                ?? -1;
+        }
+
+
+        public void Insert(int index, TElement item)
+        {
+            AddItem(item);
+        }
+
+
+        public TElement this[int index]
+        {
+            get { return this.Skip(index).First(); }
+            set { throw new NotImplementedException(); }
+        }
+
+
+        public void RemoveAt(int index)
+        {
+            var item = this.Skip(index).FirstOrDefault();
+            if (item != null)
+                RemoveItem(item);
         }
     }
 }

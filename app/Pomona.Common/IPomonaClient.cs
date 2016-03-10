@@ -41,7 +41,7 @@ namespace Pomona.Common
     {
         ClientSettings Settings { get; }
         ClientTypeMapper TypeMapper { get; }
-        HttpClient WebClient { get; }
+        IWebClient WebClient { get; }
         void Delete(object resource, RequestOptions options);
         object Patch(object form, RequestOptions options);
         object Post(string uri, object form, RequestOptions options);

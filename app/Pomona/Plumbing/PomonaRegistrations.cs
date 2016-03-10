@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,12 +26,12 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 
 using Nancy.Bootstrapper;
 using Nancy.Routing;
 
+using Pomona.Queries;
 using Pomona.Routing;
 
 namespace Pomona.Plumbing
@@ -44,7 +44,7 @@ namespace Pomona.Plumbing
             {
                 yield return
                     new CollectionTypeRegistration(typeof(IRouteMetadataProvider),
-                                                   new Type[] { typeof(PomonaRouteMetadataProvider) });
+                                                   new[] { typeof(PomonaRouteMetadataProvider) });
             }
         }
 
@@ -60,7 +60,8 @@ namespace Pomona.Plumbing
                 return new[]
                 {
                     new TypeRegistration(typeof(IPomonaModuleConfigurationBinder),
-                                         typeof(PomonaModuleConfigurationBinder), Lifetime.Singleton)
+                                         typeof(PomonaModuleConfigurationBinder), Lifetime.Singleton),
+                    new TypeRegistration(typeof(IQueryExecutor), typeof(DefaultQueryExecutor), Lifetime.Transient)
                 };
             }
         }

@@ -405,7 +405,9 @@ namespace Pomona.TestingClient
         }
 
 
+#pragma warning disable 67
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+#pragma warning restore 67
         public Task<object> PostAsync(string uri, IPostForm form, RequestOptions options)
         {
             throw new NotImplementedException();
@@ -452,7 +454,7 @@ namespace Pomona.TestingClient
             get { return this.typeMapper; }
         }
 
-        public HttpClient WebClient
+        public IWebClient WebClient
         {
             get { throw new NotImplementedException(); }
         }

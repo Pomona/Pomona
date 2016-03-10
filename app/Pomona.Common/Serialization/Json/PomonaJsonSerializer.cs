@@ -131,9 +131,11 @@ namespace Pomona.Common.Serialization.Json
             else
             {
                 jsonWriter.WriteStartArray();
-                var baseElementType = node.ExpectedBaseType != null
-                    ? node.ExpectedBaseType.ElementType
-                    : null;
+                TypeSpec baseElementType;
+                if (node.ExpectedBaseType != null && node.ExpectedBaseType.IsCollection)
+                    baseElementType = node.ExpectedBaseType.ElementType;
+                else
+                    baseElementType = node.Context.GetClassMapping(typeof(object));
 
                 var delta = node.Value as ICollectionDelta;
                 if (delta != null)
@@ -175,13 +177,10 @@ namespace Pomona.Common.Serialization.Json
 
         private void SerializeDictionary(ISerializerNode node, Writer writer)
         {
-            var dictType = node.ExpectedBaseType as DictionaryTypeSpec;
+            var dictType = node.ExpectedBaseType as DictionaryTypeSpec ?? node.ValueType as DictionaryTypeSpec;
             if (dictType == null)
             {
-                throw new PomonaSerializationException("Unable to serialize dictionary of typespec "
-                                                       + (node.ExpectedBaseType != null
-                                                           ? node.ExpectedBaseType.GetType().ToString()
-                                                           : " (unknown)"));
+                throw new PomonaSerializationException("Unable to serialize dictionary of typespec " + node.ExpectedBaseType);
             }
 
             var keyMappedType = dictType.KeyType.Type;

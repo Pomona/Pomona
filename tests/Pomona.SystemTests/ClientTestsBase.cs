@@ -58,7 +58,7 @@ namespace Pomona.SystemTests
             get { return this.requestLog; }
         }
 
-        protected HttpClient WebClient
+        protected IWebClient WebClient
         {
             get { return Client.WebClient; }
         }
@@ -67,7 +67,7 @@ namespace Pomona.SystemTests
         public override CritterClient CreateHttpTestingClient(string baseUri)
         {
             return new CritterClient(baseUri,
-                                     new HttpClient() { DefaultRequestHeaders = { { "MongoHeader", "lalaal" } } });
+                                     new HttpWebClient(new HttpClient() { DefaultRequestHeaders = { { "MongoHeader", "lalaal" } } }));
         }
 
 
@@ -75,7 +75,7 @@ namespace Pomona.SystemTests
                                                                   CritterBootstrapper critterBootstrapper)
         {
             var nancyTestingWebClient = new NancyTestingHttpMessageHandler(critterBootstrapper.GetEngine());
-            return new CritterClient(baseUri,  new HttpClient(nancyTestingWebClient));
+            return new CritterClient(baseUri,  new HttpWebClient(nancyTestingWebClient));
         }
 
 

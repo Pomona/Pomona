@@ -46,7 +46,6 @@ namespace Pomona
     public abstract class TypeMappingFilterBase : ITypeMappingFilter, IWrappableTypeMappingFilter
     {
         private static readonly HashSet<Type> jsonSupportedNativeTypes;
-        private readonly HashSet<Type> sourceTypesCached;
 
 
         static TypeMappingFilterBase()
@@ -57,40 +56,47 @@ namespace Pomona
 
         protected TypeMappingFilterBase(IEnumerable<Type> sourceTypes)
         {
-            this.sourceTypesCached = new HashSet<Type>(sourceTypes);
+            SourceTypes = new HashSet<Type>(sourceTypes);
             BaseFilter = this;
         }
 
 
-        private HashSet<Type> SourceTypes
-        {
-            get { return this.sourceTypesCached; }
-        }
+        private HashSet<Type> SourceTypes { get; }
 
 
         private bool IsNativelySupportedType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
-            return jsonSupportedNativeTypes.Contains(type) || IsNullableAllowedNativeType(type);
+                throw new ArgumentNullException(nameof(type));
+
+            var isNativelySupportedType = jsonSupportedNativeTypes.Contains(type)
+                                          || IsNullableAllowedNativeType(type);
+
+            return isNativelySupportedType;
         }
 
 
         private bool IsNullableAllowedNativeType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
-            return IsNullableType(type) &&
-                   TypeIsMapped(type.GetGenericArguments()[0]);
+                throw new ArgumentNullException(nameof(type));
+
+            var isNullableAllowedNativeType = IsNullableType(type) &&
+                                              TypeIsMapped(type.GetGenericArguments()[0]);
+
+            return isNullableAllowedNativeType;
         }
 
 
         private static bool IsNullableType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
-            return type.IsGenericType &&
-                   type.GetGenericTypeDefinition() == typeof(Nullable<>);
+                throw new ArgumentNullException(nameof(type));
+
+            var isNullableType = type.IsGenericType &&
+                                 type.GetGenericTypeDefinition() == typeof(Nullable<>);
+
+            return isNullableType;
         }
 
 
@@ -316,6 +322,7 @@ namespace Pomona
         {
             if (type == null)
                 throw new ArgumentNullException("type");
+
             if (TypeIsMappedAsValueObject(type))
                 return null;
 
@@ -408,7 +415,8 @@ namespace Pomona
         public virtual bool TypeIsExposedAsRepository(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
+
             return GetUriBaseType(type) != null;
         }
 
@@ -416,11 +424,15 @@ namespace Pomona
         public virtual bool TypeIsMapped(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
-            return TypeIsMappedAsTransformedType(type) || TypeIsMappedAsSharedType(type) ||
-                   IsNativelySupportedType(type)
-                   || TypeIsMappedAsCollection(type)
-                   || TypeIsAnonymousOrGrouping(type);
+                throw new ArgumentNullException(nameof(type));
+
+            var typeIsMapped = TypeIsMappedAsTransformedType(type)
+                               || TypeIsMappedAsSharedType(type)
+                               || IsNativelySupportedType(type)
+                               || TypeIsMappedAsCollection(type)
+                               || TypeIsAnonymousOrGrouping(type);
+
+            return typeIsMapped;
         }
 
 
@@ -439,26 +451,38 @@ namespace Pomona
         public virtual bool TypeIsMappedAsSharedType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
-            return type.IsEnum || IsNativelySupportedType(type) || type == typeof(byte[])
-                   || TypeIsMappedAsCollection(type) || typeof(QueryResult).IsAssignableFrom(type);
+                throw new ArgumentNullException(nameof(type));
+
+            var typeIsMappedAsSharedType = type.IsEnum
+                                           || IsNativelySupportedType(type)
+                                           || type == typeof(byte[])
+                                           || TypeIsMappedAsCollection(type)
+                                           || typeof(QueryResult).IsAssignableFrom(type);
+
+            return typeIsMappedAsSharedType;
         }
 
 
         public virtual bool TypeIsMappedAsTransformedType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
+
             if (type.IsEnum)
                 return false;
-            return SourceTypes.Contains(type) || TypeIsAnonymousOrGrouping(type);
+
+            var typeIsMappedAsTransformedType = SourceTypes.Contains(type)
+                                                || TypeIsAnonymousOrGrouping(type);
+
+            return typeIsMappedAsTransformedType;
         }
 
 
         public virtual bool TypeIsMappedAsValueObject(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
+
             return TypeIsAnonymousOrGrouping(type);
         }
 
@@ -484,15 +508,21 @@ namespace Pomona
 
         private static bool TypeIsAnonymousOrGrouping(Type type)
         {
-            return type.IsAnonymous() || TypeIsIGrouping(type);
+            var typeIsAnonymousOrGrouping = type.IsAnonymous()
+                                            || TypeIsIGrouping(type);
+
+            return typeIsAnonymousOrGrouping;
         }
 
 
         private static bool TypeIsIGrouping(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
-            return type.UniqueToken() == typeof(IGrouping<,>).UniqueToken();
+                throw new ArgumentNullException(nameof(type));
+
+            var typeIsIGrouping = type.UniqueToken() == typeof(IGrouping<,>).UniqueToken();
+
+            return typeIsIGrouping;
         }
 
         #endregion

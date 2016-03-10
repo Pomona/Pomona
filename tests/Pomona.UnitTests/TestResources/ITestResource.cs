@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -49,6 +49,7 @@ namespace Pomona.UnitTests.TestResources
         int Id { get; set; }
 
         string Info { get; set; }
+        ISet<ITestResource> Set { get; }
         ITestResource Spouse { get; set; }
     }
 }

@@ -37,7 +37,7 @@ namespace Pomona.Common
 {
     public interface IRequestDispatcher
     {
-        HttpClient WebClient { get; }
+        IWebClient WebClient { get; }
         event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
         object SendRequest(string uri, string httpMethod, object body, ISerializationContextProvider provider, RequestOptions options = null);
         Task<object> SendRequestAsync(string uri, string httpMethod, object body, ISerializationContextProvider provider, RequestOptions options = null);

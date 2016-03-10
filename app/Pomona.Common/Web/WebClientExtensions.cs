@@ -27,14 +27,15 @@
 #endregion
 
 using System.Net.Http;
+using System.Threading;
 
 namespace Pomona.Common.Web
 {
     public static class WebClientExtensions
     {
-        public static HttpResponseMessage SendSync(this HttpClient client, HttpRequestMessage request)
+        public static HttpResponseMessage SendSync(this IWebClient client, HttpRequestMessage request)
         {
-            return client.SendAsync(request).ConfigureAwait(false).GetAwaiter().GetResult();
+            return client.SendAsync(request, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

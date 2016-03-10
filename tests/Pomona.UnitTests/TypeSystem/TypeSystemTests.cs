@@ -26,6 +26,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 
 using NUnit.Framework;
@@ -55,7 +56,6 @@ namespace Pomona.UnitTests.TypeSystem
             var type = mapper.FromType(typeof(Planet));
             var requiredProperties = type.RequiredProperties.ToList();
             Assert.That(requiredProperties.All(x => x.IsRequiredForConstructor), Is.True);
-            Assert.Inconclusive();
         }
     }
 }

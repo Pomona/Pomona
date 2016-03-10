@@ -49,6 +49,7 @@ namespace Pomona.UnitTests
         }
 
 
+        [Ignore("Does not support C# 6, must be reimplemented using roslyn")]
         [Test]
         public void AllClassesAreContainedInFilesWithCorrectName()
         {

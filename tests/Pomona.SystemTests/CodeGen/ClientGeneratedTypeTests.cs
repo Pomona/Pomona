@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,7 @@ using Mono.Cecil;
 using NUnit.Framework;
 
 using Pomona.Common;
+using Pomona.Common.Web;
 using Pomona.UnitTests;
 
 using HttpMethod = Pomona.Common.HttpMethod;
@@ -142,7 +143,7 @@ namespace Pomona.SystemTests.CodeGen
         {
             var foundError = false;
             var errors = new StringBuilder();
-            var client = new CritterClient("http://test", new HttpClient());
+            var client = new CritterClient("http://test", new HttpWebClient(new HttpClient()));
             foreach (
                 var prop in
                     typeof(CritterClient).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
@@ -169,9 +170,16 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
+        public void Constructor_TakingBaseUri_DoesNotThrowException()
+        {
+            Assert.DoesNotThrow(() => new CritterClient("http://whatever"));
+        }
+
+
+        [Test]
         public void ConstructorOfInheritedClientDoesNotThrowException()
         {
-            Assert.DoesNotThrow(() => new InheritedClient("http://test/", new HttpClient(new NoopHttpMessageHandler())));
+            Assert.DoesNotThrow(() => new InheritedClient("http://test/", new HttpWebClient(new NoopHttpMessageHandler())));
         }
 
 
@@ -427,7 +435,7 @@ namespace Pomona.SystemTests.CodeGen
 
         private class InheritedClient : CritterClient
         {
-            public InheritedClient(string baseUri, HttpClient webClient)
+            public InheritedClient(string baseUri, IWebClient webClient)
                 : base(baseUri, webClient)
             {
             }
