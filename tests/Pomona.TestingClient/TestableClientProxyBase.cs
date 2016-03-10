@@ -430,7 +430,7 @@ namespace Pomona.TestingClient
             get { return this.typeMapper; }
         }
 
-        public HttpClient WebClient
+        public IWebClient WebClient
         {
             get { throw new NotImplementedException(); }
         }

@@ -53,7 +53,7 @@ namespace Pomona.Common
         }
 
 
-        public PomonaClient(ClientTypeMapper typeMapper, HttpClient webClient)
+        public PomonaClient(ClientTypeMapper typeMapper, IWebClient webClient)
             : this(typeMapper, CreateDefaultRequestDispatcher(typeMapper, webClient))
         {
         }
@@ -112,11 +112,11 @@ namespace Pomona.Common
         }
 
 
-        private static IRequestDispatcher CreateDefaultRequestDispatcher(ClientTypeMapper typeMapper, HttpClient webClient = null)
+        private static IRequestDispatcher CreateDefaultRequestDispatcher(ClientTypeMapper typeMapper, IWebClient webClient = null)
         {
             return new RequestDispatcher(
                 typeMapper,
-                webClient ?? new HttpClient(),
+                webClient ?? new HttpWebClient(),
                 new PomonaJsonSerializerFactory());
         }
 
@@ -239,7 +239,7 @@ namespace Pomona.Common
             get { return this.typeMapper; }
         }
 
-        public virtual HttpClient WebClient
+        public virtual IWebClient WebClient
         {
             get { return this.dispatcher.WebClient; }
         }

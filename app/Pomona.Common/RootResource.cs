@@ -42,12 +42,12 @@ namespace Pomona.Common
 
 
         protected RootResource(string baseUri)
-            : this(baseUri, new HttpClient())
+            : this(baseUri, new HttpWebClient())
         {
         }
 
 
-        protected RootResource(string baseUri, HttpClient webClient)
+        protected RootResource(string baseUri, IWebClient webClient)
         {
             BaseUri = baseUri;
             this.client = new PomonaClient(ClientTypeMapper, webClient);
@@ -176,7 +176,7 @@ namespace Pomona.Common
             get { return this.client.TypeMapper; }
         }
 
-        public HttpClient WebClient
+        public IWebClient WebClient
         {
             get { return this.client.WebClient; }
         }

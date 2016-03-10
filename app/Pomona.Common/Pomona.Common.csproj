@@ -347,12 +347,13 @@
     <Compile Include="Web\HttpMessageExtensions.cs" />
     <Compile Include="Web\HttpRequestMessageConverter.cs" />
     <Compile Include="Web\HttpResponseMessageConverter.cs" />
+    <Compile Include="Web\HttpWebClient.cs" />
+    <Compile Include="Web\IWebClient.cs" />
     <Compile Include="Web\IWebClientException.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
     <Compile Include="Web\ResourceNotFoundException.cs" />
     <Compile Include="Web\HttpMessageConverterBase.cs" />
     <Compile Include="Web\WebClientException.cs" />
-    <Compile Include="Web\HttpWebRequestClient.cs" />
     <Compile Include="Web\WebClientExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

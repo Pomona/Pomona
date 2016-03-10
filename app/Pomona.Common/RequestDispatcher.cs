@@ -30,6 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
@@ -51,7 +52,7 @@ namespace Pomona.Common
 
 
         public RequestDispatcher(ClientTypeMapper typeMapper,
-                                 HttpClient webClient,
+                                 IWebClient webClient,
                                  ITextSerializerFactory serializerFactory,
                                  IEnumerable<KeyValuePair<string, IEnumerable<string>>> defaultHeaders = null)
         {
@@ -188,7 +189,7 @@ namespace Pomona.Common
 
                 using (Profiler.Step("client: " + request.Method + " " + request.RequestUri))
                 {
-                    response = await WebClient.SendAsync(request);
+                    response = await WebClient.SendAsync(request, CancellationToken.None);
                 }
 
                 if (response.Content != null)
@@ -270,6 +271,6 @@ namespace Pomona.Common
         }
 
 
-        public HttpClient WebClient { get; }
+        public IWebClient WebClient { get; }
     }
 }

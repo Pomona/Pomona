@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,16 +28,45 @@
 
 using System;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
-using Pomona.Common.Serialization;
-using Pomona.Common.Web;
-
-namespace Pomona.Common
+namespace Pomona.Common.Web
 {
-    public interface IRequestDispatcher
+    public class HttpWebClient : IWebClient, IDisposable
     {
-        IWebClient WebClient { get; }
-        event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
-        object SendRequest(string uri, string httpMethod, object body, ISerializationContextProvider provider, RequestOptions options = null);
+        public HttpWebClient(HttpMessageHandler messageHandler)
+            : this(new HttpClient(messageHandler))
+        {
+        }
+
+
+        public HttpWebClient()
+            : this(new HttpClient())
+        {
+        }
+
+
+        public HttpWebClient(HttpClient httpClient)
+        {
+            if (httpClient == null)
+                throw new ArgumentNullException(nameof(httpClient));
+            Client = httpClient;
+        }
+
+
+        public HttpClient Client { get; }
+
+
+        public void Dispose()
+        {
+            Client.Dispose();
+        }
+
+
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            return Client.SendAsync(request, cancellationToken);
+        }
     }
 }
