@@ -27,7 +27,9 @@
 #endregion
 
 using System.Linq;
-using System.Text;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -40,20 +42,19 @@ using Pomona.UnitTests.TestHelpers.Web;
 namespace Pomona.UnitTests.Web
 {
     [TestFixture]
-    public class HttpResponseConverterTests : JsonConverterTestsBase<HttpResponse>
+    public class HttpResponseMessageConverterTests : JsonConverterTestsBase<HttpResponseMessage>
     {
         [Test]
         public void CanConvert_returns_true_for_HttpResponse()
         {
-            Assert.IsTrue(Converter.CanConvert(typeof(HttpResponse)));
+            Assert.IsTrue(Converter.CanConvert(typeof(HttpResponseMessage)));
         }
 
 
         [Test]
         public void ReadJson_with_headers_deserializes_request()
         {
-            var expected = new HttpResponse(HttpStatusCode.Accepted,
-                                            null, new HttpHeaders { { "Accept", "boom" } });
+            var expected = new HttpResponseMessage(HttpStatusCode.Accepted) { Headers = { { "Accept", "boom" } } };
             var input = "{'statusCode':202,'format':'json','headers':{'Accept':['boom']}}";
             ReadJsonAssertEquals(input, expected);
         }
@@ -62,9 +63,14 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void ReadJson_with_json_body_deserializes_request()
         {
-            var expected = new HttpResponse(HttpStatusCode.Accepted,
-                                            Encoding.UTF8.GetBytes("{foo:'bar'}"), new HttpHeaders());
-            var input = "{'statusCode':202,'format':'json','body':{'foo':'bar'}}";
+            var expected = new HttpResponseMessage(HttpStatusCode.Accepted)
+            {
+                Content = new StringContent("{foo:'bar'}")
+                {
+                    Headers = { ContentType = MediaTypeHeaderValue.Parse("application/json; charset=utf-8") }
+                }
+            };
+            var input = "{'status':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}";
             var result = ReadJson(JToken.Parse(input));
             AssertObjectEquals(expected, result);
         }
@@ -73,9 +79,9 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void WriteJson_with_headers_serializes_request()
         {
-            var expected = JObject.Parse("{'statusCode':202,'headers':{'Boof':'lala'}}");
-            var response = new HttpResponse(HttpStatusCode.Accepted,
-                                            null, new HttpHeaders { { "Boof", "lala" } });
+            var expected = JObject.Parse("{'status':202,'headers':{'Boof':'lala'}}");
+            var response = new HttpResponseMessage(HttpStatusCode.Accepted)
+            { Headers = { { "Boof", "lala" } } };
             WriteJsonAssertEquals(response, expected);
         }
 
@@ -85,9 +91,16 @@ namespace Pomona.UnitTests.Web
         {
             var expected =
                 JObject.Parse(
-                    "{'statusCode':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}");
-            var response = new HttpResponse(HttpStatusCode.Accepted, Encoding.UTF8.GetBytes("{ foo: 'bar' }"),
-                                            new HttpHeaders() { ContentType = "application/json; charset=utf-8" });
+                    "{'status':202,'format':'json',headers:{'Content-Type':'application/json; charset=utf-8'},'body':{'foo':'bar'}}");
+            var response = new HttpResponseMessage(HttpStatusCode.Accepted)
+            {
+                Content =
+                    new StringContent("{ foo: 'bar' }")
+                    {
+                        Headers = { ContentType = MediaTypeHeaderValue.Parse("application/json; charset=utf-8") }
+                    }
+            };
+
             WriteJsonAssertEquals(response, expected);
         }
 
@@ -95,34 +108,24 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void WriteJson_with_no_body_serializes_request()
         {
-            var expected = JObject.Parse("{'statusCode':202}");
-            var response = new HttpResponse(HttpStatusCode.Accepted,
-                                            null, new HttpHeaders());
+            var expected = JObject.Parse("{'status':202}");
+            var response = new HttpResponseMessage(HttpStatusCode.Accepted);
             WriteJsonAssertEquals(response, expected);
         }
 
 
-        protected override void AssertObjectEquals(HttpResponse expected, HttpResponse actual)
+        protected override void AssertObjectEquals(HttpResponseMessage expected, HttpResponseMessage actual)
         {
             Assert.That(expected.StatusCode, Is.EqualTo(actual.StatusCode));
             foreach (var kvp in expected.Headers.Join(actual.Headers, x => x.Key, x => x.Key, (x, y) => new { x, y }))
                 Assert.That(kvp.x.Value, Is.EquivalentTo(kvp.y.Value));
-            if (expected.Body != null && actual.Body != null)
-            {
-                var expectedJson = JToken.Parse(Encoding.UTF8.GetString(expected.Body));
-                var actualJson = JToken.Parse(Encoding.UTF8.GetString(actual.Body));
-
-                Assert.That(JToken.DeepEquals(expectedJson, actualJson),
-                            string.Format("Expected:\r\n{0}\r\nActual:\r\n{1}\r\n", expectedJson, actualJson));
-            }
-            else
-                Assert.That(expected.Body, Is.EqualTo(actual.Body));
+            AssertHttpContentEquals(expected.Content, actual.Content);
         }
 
 
         protected override JsonConverter CreateConverter()
         {
-            return new HttpResponseConverter();
+            return new HttpResponseMessageConverter();
         }
     }
 }

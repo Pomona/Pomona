@@ -26,66 +26,57 @@
 
 #endregion
 
-using System.Text;
+using System;
+using System.Net.Http;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Pomona.Common.Web
 {
-    [JsonConverter(typeof(HttpRequestConverter))]
-    public class HttpRequest
+    public class HttpRequestMessageConverter : HttpMessageConverterBase
     {
-        private readonly byte[] body;
-        private readonly HttpHeaders headers;
-        private readonly string method;
-
-
-        public HttpRequest(string uri, byte[] body = null, string method = null, HttpHeaders headers = null)
+        public HttpRequestMessageConverter()
+            : this(null)
         {
-            Uri = uri;
-            this.body = body;
-            this.method = method;
-            this.headers = headers ?? new HttpHeaders();
         }
 
 
-        public byte[] Body
+        public HttpRequestMessageConverter(HttpMessageContentWriter contentWriter)
+            : base(contentWriter)
         {
-            get { return this.body; }
         }
 
-        public HttpHeaders Headers
+
+        public override bool CanConvert(Type objectType)
         {
-            get { return this.headers; }
+            return typeof(HttpRequestMessage).IsAssignableFrom(objectType);
         }
 
-        public string Method
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            get { return this.method; }
+            var jobj = JObject.Load(reader);
+            var url = (string)jobj["url"];
+            var method = new System.Net.Http.HttpMethod((string)jobj["method"]);
+            var request = new HttpRequestMessage(method, url);
+            request.Content = ReadBody(jobj);
+            ReadHeaders(jobj, serializer, request.Headers, request.Content);
+            return request;
         }
 
-        public string ProtocolVersion
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            get { return "1.1"; }
-        }
-
-        public string Uri { get; set; }
-
-
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1} HTTP/{2}\r\n", this.method, Uri, ProtocolVersion);
-            foreach (var h in this.headers)
-            {
-                foreach (var v in h.Value)
-                    sb.AppendFormat("{0}: {1}\r\n", h.Key, v);
-            }
-            sb.AppendLine();
-            if (this.body != null)
-                sb.Append(Encoding.UTF8.GetString(this.body));
-            sb.AppendLine();
-            return sb.ToString();
+            var req = (HttpRequestMessage)value;
+            writer.WriteStartObject();
+            writer.WritePropertyName("method");
+            writer.WriteValue(req.Method.Method);
+            writer.WritePropertyName("url");
+            writer.WriteValue(req.RequestUri.ToString());
+            WriteHeaders(writer, serializer, req.Headers, req.Content);
+            WriteBody(writer, req.Content);
+            writer.WriteEndObject();
         }
     }
 }

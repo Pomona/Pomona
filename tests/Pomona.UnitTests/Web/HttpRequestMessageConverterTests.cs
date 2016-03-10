@@ -28,7 +28,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -41,20 +42,27 @@ using Pomona.UnitTests.TestHelpers.Web;
 namespace Pomona.UnitTests.Web
 {
     [TestFixture]
-    public class HttpRequestJsonConverterTests : JsonConverterTestsBase<HttpRequest>
+    public class HttpRequestMessageConverterTests : JsonConverterTestsBase<HttpRequestMessage>
     {
         [Test]
         public void CanConvert_returns_true_for_request()
         {
-            Assert.IsTrue(Converter.CanConvert(typeof(HttpRequest)));
+            Assert.IsTrue(Converter.CanConvert(typeof(HttpRequestMessage)));
         }
 
 
         [Test]
         public void ReadJson_with_binary_body_deserializes_request()
         {
-            var expected = new HttpRequest("http://test/lupus", new byte[] { 0xde, 0xad, 0xbe, 0xef }, "GET");
-            var input = "{'method':'GET','url':'http://test/lupus','format':'binary','body':'3q2+7w=='}";
+            var expected = new HttpRequestMessage(HttpMethod.Get, "http://test/lupus")
+            {
+                Content = new ByteArrayContent(new byte[] { 0xde, 0xad, 0xbe, 0xef })
+                {
+                    Headers = { { "Content-Type", "image/png" } }
+                }
+            };
+            var input =
+                "{'method':'GET','url':'http://test/lupus','headers':{'Content-Type':'image/png'},'format':'binary','body':'3q2+7w=='}";
             var result = ReadJson(JToken.Parse(input));
             AssertObjectEquals(expected, result);
         }
@@ -63,12 +71,15 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void ReadJson_with_headers_deserializes_request()
         {
-            var expected = new HttpRequest("http://test/lupus", null, "GET", new HttpHeaders
+            var expected = new HttpRequestMessage(HttpMethod.Get, "http://test/lupus")
             {
-                { "Accept", "boom" },
-                { "Baha", new List<string>() { "ha", "hi" } }
-            });
-            var input = "{'method':'GET','url':'http://test/lupus','format':'json','headers':{'Accept':'boom','Baha':['ha', 'hi']}}";
+                Headers =
+                {
+                    { "Nonono", "boom" },
+                    { "Baha", new List<string>() { "ha", "hi" } }
+                }
+            };
+            var input = "{'method':'GET','url':'http://test/lupus','format':'json','headers':{'Nonono':'boom','Baha':['ha', 'hi']}}";
             ReadJsonAssertEquals(input, expected);
         }
 
@@ -76,8 +87,15 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void ReadJson_with_json_body_deserializes_request()
         {
-            var expected = new HttpRequest("http://test/lupus", Encoding.UTF8.GetBytes("{foo:'bar'}"), "GET",
-                                           new HttpHeaders() { ContentType = "application/json; charset=utf-8" });
+            var expected = new HttpRequestMessage(HttpMethod.Get,
+                                                  "http://test/lupus")
+            {
+                Content =
+                    new StringContent("{foo:'bar'}")
+                    {
+                        Headers = { ContentType = MediaTypeHeaderValue.Parse("application/json; charset=utf-8") }
+                    }
+            };
             var input =
                 "{'method':'GET','url':'http://test/lupus',headers:{'Content-Type':'application/json; charset=utf-8'},'format':'json','body':{'foo':'bar'}}";
             var result = ReadJson(JToken.Parse(input));
@@ -88,7 +106,7 @@ namespace Pomona.UnitTests.Web
         [Test]
         public void ReadJson_with_text_body_deserializes_request()
         {
-            var expected = new HttpRequest("http://test/lupus", Encoding.UTF8.GetBytes("Broken science"), "GET");
+            var expected = new HttpRequestMessage(HttpMethod.Get, "http://test/lupus") { Content = new StringContent("Broken science") };
             var input = "{'method':'GET','url':'http://test/lupus','format':'text','body': 'Broken science'}";
             var result = ReadJson(JToken.Parse(input));
             AssertObjectEquals(expected, result);
@@ -101,8 +119,15 @@ namespace Pomona.UnitTests.Web
             var expected =
                 JObject.Parse(
                     "{'method':'GET','url':'http://test/lupus','headers':{'Content-Type':'image/png'},'format':'binary','body':'3q2+7w=='}");
-            var request = new HttpRequest("http://test/lupus", new byte[] { 0xde, 0xad, 0xbe, 0xef }, "GET",
-                                          new HttpHeaders() { { "Content-Type", "image/png" } });
+            var request = new HttpRequestMessage(HttpMethod.Get,
+                                                 "http://test/lupus")
+            {
+                Content =
+                    new ByteArrayContent(new byte[] { 0xde, 0xad, 0xbe, 0xef })
+                    {
+                        Headers = { { "Content-Type", "image/png" } }
+                    }
+            };
             WriteJsonAssertEquals(request, expected);
         }
 
@@ -112,13 +137,15 @@ namespace Pomona.UnitTests.Web
         {
             var expected =
                 JObject.Parse(
-                    "{method: 'GET', url: 'http://test/lupus', headers: { 'Content-Type': 'application/json', 'Baha' : ['ha','hi'] } }");
-            var request = new HttpRequest("http://test/lupus", null, "GET",
-                                          new HttpHeaders
-                                          {
-                                              { "Content-Type", "application/json" },
-                                              { "Baha", new List<string>() { "ha", "hi" } }
-                                          });
+                    "{method: 'GET', url: 'http://test/lupus', headers: { 'Nonono': 'lalala', 'Baha' : ['ha','hi'] } }");
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://test/lupus")
+            {
+                Headers =
+                {
+                    { "Nonono", "lalala" },
+                    { "Baha", new List<string>() { "ha", "hi" } }
+                }
+            };
             WriteJsonAssertEquals(request, expected);
         }
 
@@ -129,14 +156,16 @@ namespace Pomona.UnitTests.Web
             var expected =
                 JObject.Parse(
                     "{method: 'GET', url: 'http://test/lupus', headers: { 'Content-Type': 'application/json; charset=utf-8' }, format: 'json', body: { foo: 'bar' } }");
-            var request = new HttpRequest("http://test/lupus", Encoding.UTF8.GetBytes("{ foo: 'bar' }"), "GET",
-                                          new HttpHeaders()
-                                          {
-                                              {
-                                                  "Content-Type",
-                                                  "application/json; charset=utf-8"
-                                              }
-                                          });
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://test/lupus")
+            {
+                Content = new StringContent("{ foo: 'bar' }")
+                {
+                    Headers =
+                    {
+                        ContentType = MediaTypeHeaderValue.Parse("application/json; charset=utf-8")
+                    }
+                }
+            };
             WriteJsonAssertEquals(request, expected);
         }
 
@@ -145,34 +174,26 @@ namespace Pomona.UnitTests.Web
         public void WriteJson_with_no_body_serializes_request()
         {
             var expected = JObject.Parse("{method: 'GET', url: 'http://test/lupus'}");
-            var request = new HttpRequest("http://test/lupus", null, "GET");
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://test/lupus");
             WriteJsonAssertEquals(request, expected);
         }
 
 
-        protected override void AssertObjectEquals(HttpRequest expected, HttpRequest actual)
+        protected override void AssertObjectEquals(HttpRequestMessage expected, HttpRequestMessage actual)
         {
-            Assert.That(expected.Uri, Is.EqualTo(actual.Uri));
+            Assert.That(expected.RequestUri, Is.EqualTo(actual.RequestUri));
             Assert.That(expected.Method, Is.EqualTo(actual.Method));
             foreach (var kvp in expected.Headers.Join(actual.Headers, x => x.Key, x => x.Key, (x, y) => new { x, y }))
                 Assert.That(kvp.x.Value, Is.EquivalentTo(kvp.y.Value));
-            if (expected.Headers.MediaType == "application/json" && expected.Body != null && actual.Headers.MediaType == "application/json"
-                && actual.Body != null)
-            {
-                var expectedJson = JToken.Parse(Encoding.UTF8.GetString(expected.Body));
-                var actualJson = JToken.Parse(Encoding.UTF8.GetString(actual.Body));
-
-                Assert.That(JToken.DeepEquals(expectedJson, actualJson),
-                            string.Format("Expected:\r\n{0}\r\nActual:\r\n{1}\r\n", expectedJson, actualJson));
-            }
-            else
-                Assert.That(expected.Body, Is.EqualTo(actual.Body));
+            var expectedContent = expected.Content;
+            var actualContent = actual.Content;
+            AssertHttpContentEquals(expectedContent, actualContent);
         }
 
 
         protected override JsonConverter CreateConverter()
         {
-            return new HttpRequestConverter();
+            return new HttpRequestMessageConverter();
         }
     }
 }

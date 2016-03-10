@@ -63,7 +63,7 @@ namespace Pomona.Common
             if (urlRewriter == null)
                 throw new ArgumentNullException("urlRewriter");
 
-            return (TRequestOptions)requestOptions.ModifyRequest(x => x.Uri = urlRewriter(x.Uri));
+            return (TRequestOptions)requestOptions.ModifyRequest(x => x.RequestUri = new Uri(urlRewriter(x.RequestUri.ToString())));
         }
     }
 }

@@ -30,14 +30,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Critters.Client;
 
 using Mono.Cecil;
-
-using NSubstitute;
 
 using NUnit.Framework;
 
@@ -45,12 +46,28 @@ using Pomona.Common;
 using Pomona.Common.Web;
 using Pomona.UnitTests;
 
+using HttpMethod = Pomona.Common.HttpMethod;
+
 namespace Pomona.SystemTests.CodeGen
 {
     [TestFixture]
     public class ClientGeneratedTypeTests
     {
-        private static Assembly ClientAssembly => typeof(CritterClient).Assembly;
+        private static readonly HashSet<Assembly> allowedAssemblies =
+            new HashSet<Assembly>(new[]
+            {
+                typeof(object),
+                typeof(ICritter),
+                typeof(PomonaClient),
+                typeof(IQueryProvider),
+                typeof(Uri),
+                typeof(HttpClient)
+            }.Select(x => x.Assembly));
+
+        private static Assembly ClientAssembly
+        {
+            get { return typeof(CritterClient).Assembly; }
+        }
 
 
         [Test]
@@ -126,7 +143,7 @@ namespace Pomona.SystemTests.CodeGen
         {
             var foundError = false;
             var errors = new StringBuilder();
-            var client = new CritterClient("http://test", Substitute.For<IWebClient>());
+            var client = new CritterClient("http://test", new HttpWebClient(new HttpClient()));
             foreach (
                 var prop in
                     typeof(CritterClient).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
@@ -162,7 +179,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void ConstructorOfInheritedClientDoesNotThrowException()
         {
-            Assert.DoesNotThrow(() => new InheritedClient("http://test/", Substitute.For<IWebClient>()));
+            Assert.DoesNotThrow(() => new InheritedClient("http://test/", new HttpWebClient(new NoopHttpMessageHandler())));
         }
 
 
@@ -406,11 +423,7 @@ namespace Pomona.SystemTests.CodeGen
 
         private bool IsAllowedClientReferencedAssembly(Assembly assembly)
         {
-            return assembly == typeof(object).Assembly ||
-                   assembly == typeof(ICritter).Assembly ||
-                   assembly == typeof(PomonaClient).Assembly ||
-                   assembly == typeof(IQueryProvider).Assembly ||
-                   assembly == typeof(Uri).Assembly;
+            return allowedAssemblies.Contains(assembly);
         }
 
 
@@ -425,6 +438,14 @@ namespace Pomona.SystemTests.CodeGen
             public InheritedClient(string baseUri, IWebClient webClient)
                 : base(baseUri, webClient)
             {
+            }
+        }
+
+        private class NoopHttpMessageHandler : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
             }
         }
     }

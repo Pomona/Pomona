@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -28,10 +28,9 @@
 
 using Extra.Client;
 
-using Nancy.Testing;
-
 using NUnit.Framework;
 
+using Pomona.Common.Web;
 using Pomona.Example;
 using Pomona.TestHelpers;
 using Pomona.UnitTests.Client;
@@ -49,8 +48,7 @@ namespace Pomona.SystemTests
 
         public override ExtraClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper)
         {
-            var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
-            return new ExtraClient(baseUri + "Extra/", nancyTestingWebClient);
+            return new ExtraClient(baseUri + "Extra/", new HttpWebClient(new NancyTestingWebClient(critterBootstrapper)));
         }
 
 

@@ -28,6 +28,7 @@
 
 using System;
 using System.Linq.Expressions;
+using System.Net.Http;
 
 using Pomona.Common.Web;
 
@@ -35,12 +36,12 @@ namespace Pomona.Common
 {
     public interface IRequestOptions
     {
-        IRequestOptions ModifyRequest(Action<HttpRequest> action);
+        IRequestOptions ModifyRequest(Action<HttpRequestMessage> action);
     }
 
     public interface IRequestOptions<T> : IRequestOptions
     {
         IRequestOptions<T> Expand<TRetValue>(Expression<Func<T, TRetValue>> expression);
-        new IRequestOptions<T> ModifyRequest(Action<HttpRequest> action);
+        new IRequestOptions<T> ModifyRequest(Action<HttpRequestMessage> action);
     }
 }

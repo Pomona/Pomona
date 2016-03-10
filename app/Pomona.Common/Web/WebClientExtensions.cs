@@ -1,9 +1,9 @@
-#region License
+﻿#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright � 2015 Karsten Nikolai Strand
+// Copyright © 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,24 +26,16 @@
 
 #endregion
 
-using System;
-using System.ComponentModel;
+using System.Net.Http;
+using System.Threading;
 
 namespace Pomona.Common.Web
 {
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("Use HttpResponse instead.")]
-    public class WebClientResponseMessage : HttpResponse
+    public static class WebClientExtensions
     {
-        public WebClientResponseMessage(HttpStatusCode statusCode)
-            : base(statusCode)
+        public static HttpResponseMessage SendSync(this IWebClient client, HttpRequestMessage request)
         {
-        }
-
-
-        public WebClientResponseMessage(byte[] body, HttpStatusCode statusCode, HttpHeaders headers, string protocolVersion = "1.1")
-            : base(statusCode, body, headers, protocolVersion)
-        {
+            return client.SendAsync(request, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

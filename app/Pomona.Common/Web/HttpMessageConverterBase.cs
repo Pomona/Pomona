@@ -27,9 +27,10 @@
 #endregion
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mime;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 
 using Newtonsoft.Json;
@@ -37,9 +38,36 @@ using Newtonsoft.Json.Linq;
 
 namespace Pomona.Common.Web
 {
-    internal abstract class HttpMessageConverterBase : JsonConverter
+    public abstract class HttpMessageConverterBase : JsonConverter
     {
-        protected static byte[] ReadBody(JObject jobj)
+        private static readonly HashSet<string> contentHeaderKeys = new HashSet<string>(new string[]
+        {
+            "Allow",
+            "Content-Disposition",
+            "Content-Encoding",
+            "Content-Language",
+            "Content-Length",
+            "Content-Location",
+            "Content-MD5",
+            "Content-Range",
+            "Content-Type",
+            "Expires",
+            "Last-Modified"
+        }, StringComparer.OrdinalIgnoreCase);
+
+        private static readonly HashSet<string> ignoredHeaders =
+            new HashSet<string>(new[] { "Content-Length", "Expect", "Accept-Encoding", "Cache-Control" });
+
+        private readonly HttpMessageContentWriter contentWriter;
+
+
+        protected HttpMessageConverterBase(HttpMessageContentWriter contentWriter)
+        {
+            this.contentWriter = contentWriter ?? new HttpMessageContentWriter();
+        }
+
+
+        protected static HttpContent ReadBody(JObject jobj)
         {
             byte[] body;
             var bodyToken = jobj["body"];
@@ -55,84 +83,113 @@ namespace Pomona.Common.Web
                     body = Convert.FromBase64String((string)bodyToken);
                     break;
                 case "text":
-                    body = Encoding.UTF8.GetBytes((string)bodyToken);
+                    // When format is text and body is a JSON array containing only strings,
+                    // the strings will be joined together to form the body.
+                    var bodyAsArray = bodyToken as JArray;
+                    if (bodyAsArray != null)
+                    {
+                        var sb = new StringBuilder();
+                        foreach (var jstr in bodyAsArray)
+                            sb.Append((string)jstr);
+                        body = Encoding.UTF8.GetBytes(sb.ToString());
+                    }
+                    else
+                        body = Encoding.UTF8.GetBytes((string)bodyToken);
                     break;
                 default:
                     throw new JsonSerializationException("Format of request body " + format + " not recognized");
             }
-            return body;
+            return new ByteArrayContent(body);
         }
 
 
-        protected static HttpHeaders ReadHeaders(JObject jobj, JsonSerializer serializer)
+        protected static void ReadHeaders(JObject jobj,
+                                          JsonSerializer serializer,
+                                          HttpHeaders headers,
+                                          HttpContent content)
         {
             JToken headersToken;
-            HttpHeaders headers = null;
             if (jobj.TryGetValue("headers", out headersToken))
-                headers = serializer.Deserialize<HttpHeaders>(jobj["headers"].CreateReader());
-            return headers ?? new HttpHeaders();
-        }
-
-
-        protected static void WriteBody(JsonWriter writer, byte[] data, string contentTypeHeaderValue)
-        {
-            if (data == null)
-                return;
-
-            if (contentTypeHeaderValue == null)
-                contentTypeHeaderValue = "text/html; charset=utf-8";
-
-            writer.WritePropertyName("format");
-
-            var contentType = new ContentType(contentTypeHeaderValue);
-            bool formatAsBinary = false;
-            var encoding = Encoding.ASCII;
-            if (contentType.CharSet != null)
-                encoding = Encoding.GetEncoding(contentType.CharSet);
-            else
-                formatAsBinary = data.Any(c => c == 0 || c > 127);
-            if (formatAsBinary)
             {
-                writer.WriteValue("binary");
-                writer.WritePropertyName("body");
-                writer.WriteValue(Convert.ToBase64String(data));
-            }
-            else
-            {
-                // Need to use memory stream to avoid UTF-8 BOM weirdness
-                string str;
-                using (var ms = new MemoryStream(data))
+                var headersJobj = headersToken as JObject;
+                if (headersJobj == null)
+                    throw new JsonSerializationException("\"headers\" property must be a JSON object token.");
+                foreach (var prop in headersJobj)
                 {
-                    using (var sr = new StreamReader(ms, encoding))
+                    var key = prop.Key;
+                    if (IsIgnoredHeader(key))
+                        continue;
+
+                    var jValues = prop.Value;
+                    List<string> values = new List<string>();
+                    if (jValues.Type == JTokenType.Array)
                     {
-                        str = sr.ReadToEnd();
+                        foreach (var item in (JArray)jValues)
+                        {
+                            if (item.Type != JTokenType.String)
+                                throw new JsonSerializationException("Header value must be a string.");
+                            values.Add(item.Value<string>());
+                        }
                     }
-                }
-
-                if (contentType.MediaType == "application/json" || contentType.MediaType.EndsWith("+json"))
-                {
-                    var jtoken = JToken.Parse(str);
-                    writer.WriteValue("json");
-                    writer.WritePropertyName("body");
-                    jtoken.WriteTo(writer);
-                }
-                else
-                {
-                    writer.WriteValue("text");
-                    writer.WritePropertyName("body");
-                    writer.WriteValue(str);
+                    else
+                    {
+                        if (jValues.Type != JTokenType.String)
+                            throw new JsonSerializationException("Header value must be a string.");
+                        values.Add(jValues.Value<string>());
+                    }
+                    if (contentHeaderKeys.Contains(key))
+                    {
+                        if (content == null)
+                            throw new JsonSerializationException("There is no content, unable to add content header " + key);
+                        content.Headers.Add(key, values);
+                    }
+                    else
+                        headers.Add(key, values);
                 }
             }
         }
 
 
-        protected static void WriteHeaders(JsonWriter writer, JsonSerializer serializer, HttpHeaders headers)
+        protected void WriteBody(JsonWriter writer, HttpContent content)
         {
-            if (headers.Any())
+            this.contentWriter.Write(writer, content);
+        }
+
+
+        protected static void WriteHeaders(JsonWriter writer,
+                                           JsonSerializer serializer,
+                                           HttpHeaders headers,
+                                           HttpContent content)
+        {
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>> allHeaders = headers;
+            if (content != null)
+                allHeaders = allHeaders.Concat(content.Headers);
+            if (allHeaders.Any())
             {
                 writer.WritePropertyName("headers");
-                serializer.Serialize(writer, headers);
+                writer.WriteStartObject();
+                foreach (var header in allHeaders)
+                {
+                    var key = header.Key;
+                    if (IsIgnoredHeader(key))
+                        continue;
+
+                    var values = header.Value;
+                    writer.WritePropertyName(key);
+                    if (values.Count() == 1)
+                        writer.WriteValue(values.First());
+                    else
+                        serializer.Serialize(writer, values, typeof(IEnumerable<KeyValuePair<string, IEnumerable<string>>>));
+                }
+                writer.WriteEndObject();
             }
+        }
+
+
+        private static bool IsIgnoredHeader(string key)
+        {
+            // Content-Length will be implicit by body.
+            return ignoredHeaders.Contains(key);
         }
     }
 }

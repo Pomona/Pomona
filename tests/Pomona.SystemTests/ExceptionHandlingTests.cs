@@ -26,6 +26,8 @@
 
 #endregion
 
+using System.Net;
+
 using Critters.Client;
 
 using NUnit.Framework;

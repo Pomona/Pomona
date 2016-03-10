@@ -1,9 +1,9 @@
-﻿#region License
+#region License
 
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright � 2015 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -27,41 +27,56 @@
 #endregion
 
 using System;
+using System.Net;
+using System.Net.Http;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Pomona.Common.Web
 {
-    internal class HttpRequestConverter : HttpMessageConverterBase
+    public class HttpResponseMessageConverter : HttpMessageConverterBase
     {
+        public HttpResponseMessageConverter()
+            : this(null)
+        {
+        }
+
+
+        public HttpResponseMessageConverter(HttpMessageContentWriter contentWriter)
+            : base(contentWriter)
+        {
+        }
+
+
         public override bool CanConvert(Type objectType)
         {
-            return typeof(HttpRequest).IsAssignableFrom(objectType);
+            return typeof(HttpResponseMessage).IsAssignableFrom(objectType);
         }
 
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             var jobj = JObject.Load(reader);
-            var url = (string)jobj["url"];
-            var method = (string)jobj["method"];
-            var body = ReadBody(jobj);
-            var headers = ReadHeaders(jobj, serializer);
-            return new HttpRequest(url, body, method, headers);
+            var statusCodeToken = jobj["status"] ?? jobj["statusCode"];
+            var statusCode = statusCodeToken != null
+                ? serializer.Deserialize<HttpStatusCode>(statusCodeToken.CreateReader())
+                : HttpStatusCode.OK;
+            var response = new HttpResponseMessage(statusCode);
+            response.Content = ReadBody(jobj);
+            ReadHeaders(jobj, serializer, response.Headers, response.Content);
+            return response;
         }
 
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var req = (HttpRequest)value;
+            var resp = (HttpResponseMessage)value;
             writer.WriteStartObject();
-            writer.WritePropertyName("method");
-            writer.WriteValue(req.Method);
-            writer.WritePropertyName("url");
-            writer.WriteValue(req.Uri);
-            WriteHeaders(writer, serializer, req.Headers);
-            WriteBody(writer, req.Body, req.Headers.ContentType);
+            writer.WritePropertyName("status");
+            writer.WriteValue(resp.StatusCode);
+            WriteHeaders(writer, serializer, resp.Headers, resp.Content);
+            WriteBody(writer, resp.Content);
             writer.WriteEndObject();
         }
     }

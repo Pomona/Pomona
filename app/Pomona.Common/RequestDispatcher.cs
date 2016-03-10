@@ -27,13 +27,15 @@
 #endregion
 
 using System;
-using System.Linq;
-using System.Text;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
 
 using Pomona.Common.ExtendedResources;
-using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -44,7 +46,7 @@ namespace Pomona.Common
 {
     public class RequestDispatcher : IRequestDispatcher
     {
-        private readonly HttpHeaders defaultHeaders;
+        private readonly IEnumerable<KeyValuePair<string, IEnumerable<string>>> defaultHeaders;
         private readonly ITextSerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
 
@@ -52,142 +54,23 @@ namespace Pomona.Common
         public RequestDispatcher(ClientTypeMapper typeMapper,
                                  IWebClient webClient,
                                  ITextSerializerFactory serializerFactory,
-                                 HttpHeaders defaultHeaders = null)
+                                 IEnumerable<KeyValuePair<string, IEnumerable<string>>> defaultHeaders = null)
         {
             this.defaultHeaders = defaultHeaders;
             if (typeMapper != null)
                 this.typeMapper = typeMapper;
             if (webClient != null)
-                this.WebClient = webClient;
+                WebClient = webClient;
             if (serializerFactory != null)
                 this.serializerFactory = serializerFactory;
         }
 
 
-        private void AddDefaultHeaders(HttpRequest request)
-        {
-            if (this.defaultHeaders != null)
-                this.defaultHeaders.Where(x => !request.Headers.ContainsKey(x.Key)).ToList().AddTo(request.Headers);
-        }
-
-
-        private object Deserialize(string jsonString,
-                                   Type expectedType,
-                                   ISerializationContextProvider serializationContextProvider)
-        {
-            if (expectedType == typeof(JToken))
-                return JToken.Parse(jsonString);
-
-            return this.serializerFactory
-                       .GetDeserializer(serializationContextProvider)
-                       .DeserializeString(jsonString, new DeserializeOptions
-                       {
-                           ExpectedBaseType = expectedType
-                       });
-        }
-
-
-        private string SendHttpRequest(ISerializationContextProvider serializationContextProvider,
-                                       string uri,
-                                       string httpMethod,
-                                       object requestBodyEntity,
-                                       TypeSpec requestBodyBaseType,
-                                       RequestOptions options)
-        {
-            byte[] requestBytes = null;
-            HttpResponse response = null;
-            if (requestBodyEntity != null)
-            {
-                requestBytes = this.serializerFactory
-                                   .GetSerializer(serializationContextProvider)
-                                   .SerializeToBytes(requestBodyEntity, new SerializeOptions
-                                   {
-                                       ExpectedBaseType = requestBodyBaseType
-                                   });
-            }
-            var request = new HttpRequest(uri, requestBytes, httpMethod);
-
-            string responseString = null;
-            Exception thrownException = null;
-            try
-            {
-                if (options != null)
-                    options.ApplyRequestModifications(request);
-
-                AddDefaultHeaders(request);
-
-                const string jsonContentType = "application/json; charset=utf-8";
-                request.Headers.Add("Accept", jsonContentType);
-                if (requestBytes != null)
-                    request.Headers.ContentType = jsonContentType;
-
-                using (Profiler.Step("client: " + request.Method + " " + request.Uri))
-                {
-                    response = this.WebClient.Send(request);
-                }
-
-                responseString = (response.Body != null && response.Body.Length > 0)
-                    ? Encoding.UTF8.GetString(response.Body)
-                    : null;
-
-                if ((int)response.StatusCode >= 400)
-                {
-                    var gotJsonResponseBody = responseString != null && response.Headers.MediaType == "application/json";
-
-                    var responseObject = gotJsonResponseBody
-                        ? Deserialize(responseString, null, serializationContextProvider)
-                        : null;
-
-                    throw WebClientException.Create(this.typeMapper, request, response, responseObject, null);
-                }
-            }
-            catch (Exception ex)
-            {
-                thrownException = ex;
-                throw;
-            }
-            finally
-            {
-                var eh = RequestCompleted;
-                if (eh != null)
-                    eh(this, new ClientRequestLogEventArgs(request, response, thrownException));
-            }
-
-            return responseString;
-        }
-
-
-        private object SendRequestInner(string uri,
-                                        string httpMethod,
-                                        object body,
-                                        ISerializationContextProvider provider,
-                                        RequestOptions options)
-        {
-            if (provider == null)
-                throw new ArgumentNullException("provider");
-            if (uri == null)
-                throw new ArgumentNullException("uri");
-            if (httpMethod == null)
-                throw new ArgumentNullException("httpMethod");
-            if (options == null)
-                options = new RequestOptions();
-
-            if (body is IExtendedResourceProxy)
-                throw new ArgumentException("SendRequestInner should never get a body of type IExtendedResourceProxy");
-
-            var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
-            return response != null ? Deserialize(response, options.ExpectedResponseType, provider) : null;
-        }
-
-
-        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
-
-
-        public object SendRequest(string uri,
-                                  string httpMethod,
-                                  object body,
-                                  ISerializationContextProvider provider,
-                                  RequestOptions options = null)
+        public async Task<object> SendRequestAsync(string uri,
+                                                   string httpMethod,
+                                                   object body,
+                                                   ISerializationContextProvider provider,
+                                                   RequestOptions options = null)
         {
             if (provider == null)
                 throw new ArgumentNullException("provider");
@@ -217,7 +100,7 @@ namespace Pomona.Common
                 }
             }
 
-            var innerResult = SendRequestInner(uri, httpMethod, innerBody, provider, innerOptions);
+            var innerResult = await SendRequestInnerAsync(uri, httpMethod, innerBody, provider, innerOptions);
             if (innerResponseType == null && proxyBody != null && innerResult != null)
             {
                 // Special case: No response type specified, but response has same type as posted body,
@@ -234,6 +117,157 @@ namespace Pomona.Common
             if (responseType != innerResponseType)
                 return this.typeMapper.WrapResource(innerResult, innerResponseType, responseType);
             return innerResult;
+        }
+
+
+        private void AddDefaultHeaders(HttpRequestMessage request)
+        {
+            if (this.defaultHeaders != null)
+            {
+                foreach (var header in this.defaultHeaders)
+                {
+                    if (!request.Headers.Contains(header.Key))
+                        request.Headers.Add(header.Key, header.Value);
+                }
+            }
+        }
+
+
+        private object Deserialize(string jsonString,
+                                   Type expectedType,
+                                   ISerializationContextProvider serializationContextProvider)
+        {
+            if (expectedType == typeof(JToken))
+                return JToken.Parse(jsonString);
+
+            return this.serializerFactory
+                       .GetDeserializer(serializationContextProvider)
+                       .DeserializeString(jsonString, new DeserializeOptions
+                       {
+                           ExpectedBaseType = expectedType
+                       });
+        }
+
+
+        private async Task<string> SendHttpRequestAsync(ISerializationContextProvider serializationContextProvider,
+                                                        string uri,
+                                                        string httpMethod,
+                                                        object requestBodyEntity,
+                                                        TypeSpec requestBodyBaseType,
+                                                        RequestOptions options)
+        {
+            byte[] requestBytes = null;
+            HttpResponseMessage response = null;
+            if (requestBodyEntity != null)
+            {
+                requestBytes = this.serializerFactory
+                                   .GetSerializer(serializationContextProvider)
+                                   .SerializeToBytes(requestBodyEntity, new SerializeOptions
+                                   {
+                                       ExpectedBaseType = requestBodyBaseType
+                                   });
+            }
+            var request = new HttpRequestMessage(new System.Net.Http.HttpMethod(httpMethod), uri);
+
+            string responseString = null;
+            Exception thrownException = null;
+            try
+            {
+                if (options != null)
+                    options.ApplyRequestModifications(request);
+
+                AddDefaultHeaders(request);
+
+                const string jsonContentType = "application/json; charset=utf-8";
+                request.Headers.Add("Accept", jsonContentType);
+                if (requestBytes != null)
+                {
+                    var requestContent = new ByteArrayContent(requestBytes);
+                    requestContent.Headers.ContentType = MediaTypeHeaderValue.Parse(jsonContentType);
+                    request.Content = requestContent;
+                }
+
+                using (Profiler.Step("client: " + request.Method + " " + request.RequestUri))
+                {
+                    response = await WebClient.SendAsync(request, CancellationToken.None);
+                }
+
+                if (response.Content != null)
+                {
+                    responseString = await response.Content.ReadAsStringAsync();
+                    if (responseString.Length == 0)
+                        responseString = null;
+                }
+
+                if ((int)response.StatusCode >= 400)
+                {
+                    var gotJsonResponseBody = responseString != null && response.Content.Headers.ContentType.MediaType == "application/json";
+
+                    var responseObject = gotJsonResponseBody
+                        ? Deserialize(responseString, null, serializationContextProvider)
+                        : null;
+
+                    throw WebClientException.Create(this.typeMapper, request, response, responseObject, null);
+                }
+            }
+            catch (Exception ex)
+            {
+                thrownException = ex;
+                throw;
+            }
+            finally
+            {
+                var eh = RequestCompleted;
+                if (eh != null)
+                {
+                    // Since request content has been disposed at this point we recreate it..
+                    if (request.Content != null)
+                    {
+                        var nonDisposedContent = new ByteArrayContent(requestBytes);
+                        nonDisposedContent.Headers.CopyHeadersFrom(request.Content.Headers);
+                        request.Content = nonDisposedContent;
+                    }
+                    eh(this, new ClientRequestLogEventArgs(request, response, thrownException));
+                }
+            }
+
+            return responseString;
+        }
+
+
+        private async Task<object> SendRequestInnerAsync(string uri,
+                                                         string httpMethod,
+                                                         object body,
+                                                         ISerializationContextProvider provider,
+                                                         RequestOptions options)
+        {
+            if (provider == null)
+                throw new ArgumentNullException("provider");
+            if (uri == null)
+                throw new ArgumentNullException("uri");
+            if (httpMethod == null)
+                throw new ArgumentNullException("httpMethod");
+            if (options == null)
+                options = new RequestOptions();
+
+            if (body is IExtendedResourceProxy)
+                throw new ArgumentException("SendRequestInner should never get a body of type IExtendedResourceProxy");
+
+            var response = await SendHttpRequestAsync(provider, uri, httpMethod, body, null, options);
+            return response != null ? Deserialize(response, options.ExpectedResponseType, provider) : null;
+        }
+
+
+        public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
+
+
+        public object SendRequest(string uri,
+                                  string httpMethod,
+                                  object body,
+                                  ISerializationContextProvider provider,
+                                  RequestOptions options = null)
+        {
+            return SendRequestAsync(uri, httpMethod, body, provider, options).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
 

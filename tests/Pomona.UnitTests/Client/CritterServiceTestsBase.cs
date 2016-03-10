@@ -103,6 +103,7 @@ namespace Pomona.UnitTests.Client
                 if (cachedNancyTestingClient == null)
                 {
                     var critterBootstrapper = new CritterBootstrapper();
+                    critterBootstrapper.Initialise();
                     cachedNancyTestingClientRepository = critterBootstrapper.Repository;
                     cachedNancyTestingClient = CreateInMemoryTestingClient(this.BaseUri, critterBootstrapper);
                 }

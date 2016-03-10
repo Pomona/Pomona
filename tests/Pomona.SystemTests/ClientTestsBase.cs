@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Reflection;
 
 using Critters.Client;
@@ -66,15 +67,15 @@ namespace Pomona.SystemTests
         public override CritterClient CreateHttpTestingClient(string baseUri)
         {
             return new CritterClient(baseUri,
-                                     new HttpWebRequestClient(new HttpHeaders() { { "MongoHeader", "lalaal" } }));
+                                     new HttpWebClient(new HttpClient() { DefaultRequestHeaders = { { "MongoHeader", "lalaal" } } }));
         }
 
 
         public override CritterClient CreateInMemoryTestingClient(string baseUri,
                                                                   CritterBootstrapper critterBootstrapper)
         {
-            var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
-            return new CritterClient(baseUri, nancyTestingWebClient);
+            var nancyTestingWebClient = new NancyTestingHttpMessageHandler(critterBootstrapper.GetEngine());
+            return new CritterClient(baseUri,  new HttpWebClient(nancyTestingWebClient));
         }
 
 
@@ -143,8 +144,8 @@ namespace Pomona.SystemTests
             if (RequestTraceEnabled)
             {
                 Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                                  e.Request,
-                                  (object)e.Response ?? "(nothing received)");
+                                  e.Request.ToStringWithContent(),
+                                  e.Response?.ToStringWithContent() ?? "(nothing received)");
             }
         }
 

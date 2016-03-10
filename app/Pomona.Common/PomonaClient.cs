@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Linq;
@@ -86,8 +87,8 @@ namespace Pomona.Common
         }
 
 
-        protected void RaiseRequestCompleted(HttpRequest request,
-                                             HttpResponse response,
+        protected void RaiseRequestCompleted(HttpRequestMessage request,
+                                             HttpResponseMessage response,
                                              Exception thrownException = null)
         {
             var eh = RequestCompleted;
@@ -115,7 +116,7 @@ namespace Pomona.Common
         {
             return new RequestDispatcher(
                 typeMapper,
-                webClient ?? new HttpWebRequestClient(),
+                webClient ?? new HttpWebClient(),
                 new PomonaJsonSerializerFactory());
         }
 

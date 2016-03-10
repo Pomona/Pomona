@@ -27,11 +27,13 @@
 #endregion
 
 using System;
+using System.Net.Http;
 
 using NUnit.Framework;
 
 using Pomona.Common;
-using Pomona.Common.Web;
+
+using HttpMethod = System.Net.Http.HttpMethod;
 
 namespace Pomona.UnitTests
 {
@@ -42,8 +44,8 @@ namespace Pomona.UnitTests
         public void AppendQueryParameter_ToUrlWithExistingQueryString_ResultsInCorrectUrl()
         {
             AssertRequestOptionCall(x => x.AppendQueryParameter("foo", "bar mann"),
-                                    rm => Assert.That(rm.Uri, Is.EqualTo("http://whatever?blob=knabb&foo=bar+mann")),
-                                    "http://whatever?blob=knabb");
+                                    rm => Assert.That(rm.RequestUri.ToString(), Is.EqualTo("http://whatever/?blob=knabb&foo=bar+mann")),
+                                    "http://whatever/?blob=knabb");
         }
 
 
@@ -51,17 +53,15 @@ namespace Pomona.UnitTests
         public void AppendQueryParameter_ToUrlWithNoQueryString_ResultsInCorrectUrl()
         {
             AssertRequestOptionCall(x => x.AppendQueryParameter("foo", "bar mann"),
-                                    rm => Assert.That(rm.Uri, Is.EqualTo("http://whatever?foo=bar+mann")));
+                                    rm => Assert.That(rm.RequestUri.ToString(), Is.EqualTo("http://whatever/?foo=bar+mann")));
         }
 
 
         private void AssertRequestOptionCall(Action<IRequestOptions> options,
-                                             Action<HttpRequest> assertions,
+                                             Action<HttpRequestMessage> assertions,
                                              string uri = "http://whatever")
         {
-            var requestMessage = new HttpRequest(uri,
-                                                 null,
-                                                 "GET");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
             var requestOptions = new RequestOptions();
             options(requestOptions);
             requestOptions.ApplyRequestModifications(requestMessage);

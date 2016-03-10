@@ -28,6 +28,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -45,8 +47,8 @@ namespace Pomona.Common.Web
         }
 
 
-        internal WebClientException(HttpRequest request,
-                                    HttpResponse response,
+        internal WebClientException(HttpRequestMessage request,
+                                    HttpResponseMessage response,
                                     TBody body = default(TBody),
                                     Exception innerException = null)
             : base(request, response, body, innerException)
@@ -76,8 +78,8 @@ namespace Pomona.Common.Web
         }
 
 
-        protected WebClientException(HttpRequest request,
-                                     HttpResponse response,
+        protected WebClientException(HttpRequestMessage request,
+                                     HttpResponseMessage response,
                                      object body = null,
                                      Exception innerException = null)
             : base(CreateMessage(request, response, body), innerException)
@@ -85,8 +87,8 @@ namespace Pomona.Common.Web
             this.body = body;
             this.statusCode = response != null
                 ? response.StatusCode
-                : HttpStatusCode.EmptyResponse;
-            this.uri = GetUri(request, response);
+                : HttpStatusCode.NoContent;
+            this.uri = GetUri(request);
         }
 
 
@@ -118,8 +120,8 @@ namespace Pomona.Common.Web
 
 
         public static WebClientException Create(IClientTypeResolver client,
-                                                HttpRequest request,
-                                                HttpResponse response,
+                                                HttpRequestMessage request,
+                                                HttpResponseMessage response,
                                                 object bodyObject,
                                                 Exception innerException)
         {
@@ -139,7 +141,7 @@ namespace Pomona.Common.Web
                     .Invoke(null, new[] { request, response, bodyObject, innerException });
             }
 
-            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            var statusCode = response != null ? response.StatusCode : HttpStatusCode.NoContent;
             switch (statusCode)
             {
                 case HttpStatusCode.BadRequest:
@@ -154,12 +156,12 @@ namespace Pomona.Common.Web
         }
 
 
-        private static WebClientException CreateGeneric<TBody>(HttpRequest request,
-                                                               HttpResponse response,
+        private static WebClientException CreateGeneric<TBody>(HttpRequestMessage request,
+                                                               HttpResponseMessage response,
                                                                TBody bodyObject,
                                                                Exception innerException)
         {
-            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            var statusCode = response != null ? response.StatusCode : HttpStatusCode.NoContent;
             switch (statusCode)
             {
                 case HttpStatusCode.BadRequest:
@@ -174,18 +176,18 @@ namespace Pomona.Common.Web
         }
 
 
-        private static string CreateMessage(HttpRequest request,
-                                            HttpResponse response,
+        private static string CreateMessage(HttpRequestMessage request,
+                                            HttpResponseMessage response,
                                             object body)
         {
             StringBuilder message = new StringBuilder("The ");
 
-            if (request != null && !String.IsNullOrWhiteSpace(request.Method))
+            if (request != null)
                 message.AppendFormat("{0} ", request.Method);
 
             message.Append("request ");
 
-            string uri = GetUri(request, response);
+            string uri = GetUri(request);
 
             if (!String.IsNullOrWhiteSpace(uri))
                 message.AppendFormat("to <{0}> ", uri);
@@ -221,17 +223,17 @@ namespace Pomona.Common.Web
         }
 
 
-        private static object GetBody(object body, HttpResponse response)
+        private static object GetBody(object body, HttpResponseMessage response)
         {
             if (body != null)
                 return body;
 
-            if (response == null || response.Body == null || response.Body.Length == 0)
+            if (response == null || response.Content == null)
                 return null;
 
             try
             {
-                return Encoding.UTF8.GetString(response.Body);
+                return response.Content.ReadAsStringAsync();
             }
             catch (Exception exception)
             {
@@ -241,9 +243,9 @@ namespace Pomona.Common.Web
         }
 
 
-        private static string GetUri(HttpRequest request, HttpResponse response)
+        private static string GetUri(HttpRequestMessage request)
         {
-            return (request != null ? request.Uri : null);
+            return (request != null ? (request.RequestUri != null ? request.RequestUri.ToString() : null) : null);
         }
     }
 }

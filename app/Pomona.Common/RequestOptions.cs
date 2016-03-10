@@ -29,6 +29,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Text;
 
 using Pomona.Common.Internals;
@@ -40,13 +41,13 @@ namespace Pomona.Common
     public class RequestOptions : IRequestOptions
     {
         private readonly StringBuilder expandedPaths;
-        private readonly List<Action<HttpRequest>> requestModifyActions;
+        private readonly List<Action<HttpRequestMessage>> requestModifyActions;
 
 
         public RequestOptions()
         {
             this.expandedPaths = new StringBuilder();
-            this.requestModifyActions = new List<Action<HttpRequest>>();
+            this.requestModifyActions = new List<Action<HttpRequestMessage>>();
         }
 
 
@@ -56,7 +57,7 @@ namespace Pomona.Common
                 throw new ArgumentNullException("clonedOptions");
             ExpectedResponseType = clonedOptions.ExpectedResponseType;
             this.expandedPaths = new StringBuilder(clonedOptions.expandedPaths.ToString());
-            this.requestModifyActions = new List<Action<HttpRequest>>(clonedOptions.requestModifyActions);
+            this.requestModifyActions = new List<Action<HttpRequestMessage>>(clonedOptions.requestModifyActions);
             ResourceLoader = clonedOptions.ResourceLoader;
         }
 
@@ -77,7 +78,7 @@ namespace Pomona.Common
         internal IResourceLoader ResourceLoader { get; set; }
 
 
-        public void ApplyRequestModifications(HttpRequest request)
+        public void ApplyRequestModifications(HttpRequestMessage request)
         {
             foreach (var action in this.requestModifyActions)
                 action(request);
@@ -121,7 +122,7 @@ namespace Pomona.Common
         }
 
 
-        public IRequestOptions ModifyRequest(Action<HttpRequest> action)
+        public IRequestOptions ModifyRequest(Action<HttpRequestMessage> action)
         {
             this.requestModifyActions.Add(action);
             return this;
@@ -143,7 +144,7 @@ namespace Pomona.Common
         }
 
 
-        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<HttpRequest> action)
+        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<HttpRequestMessage> action)
         {
             ModifyRequest(action);
             return this;

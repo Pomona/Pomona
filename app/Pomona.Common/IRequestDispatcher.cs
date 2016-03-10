@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 
 using Pomona.Common.Serialization;
 using Pomona.Common.Web;

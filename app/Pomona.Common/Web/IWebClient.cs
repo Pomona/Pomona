@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // Pomona source code
 // 
-// Copyright © 2015 Karsten Nikolai Strand
+// Copyright © 2016 Karsten Nikolai Strand
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a 
 // copy of this software and associated documentation files (the "Software"),
@@ -26,16 +26,17 @@
 
 #endregion
 
-using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Pomona.Common.Web
 {
     /// <summary>
-    /// Wrapper for webclient, to make testing easier.
+    /// A simple wrapper for HttpClient
     /// </summary>
     public interface IWebClient
     {
-        NetworkCredential Credentials { get; set; }
-        HttpResponse Send(HttpRequest request);
+        Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken);
     }
 }

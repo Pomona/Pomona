@@ -27,6 +27,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 
 using Pomona.Common.Web;
 
@@ -34,13 +35,13 @@ namespace Pomona.Common
 {
     public class ClientRequestLogEventArgs : EventArgs
     {
-        private readonly HttpRequest request;
-        private readonly HttpResponse response;
+        private readonly HttpRequestMessage request;
+        private readonly HttpResponseMessage response;
         private readonly Exception thrownException;
 
 
-        public ClientRequestLogEventArgs(HttpRequest request,
-                                         HttpResponse response,
+        public ClientRequestLogEventArgs(HttpRequestMessage request,
+                                         HttpResponseMessage response,
                                          Exception thrownException)
         {
             if (request == null)
@@ -53,15 +54,15 @@ namespace Pomona.Common
 
         public string Method
         {
-            get { return this.request.Method; }
+            get { return this.request.Method.ToString(); }
         }
 
-        public HttpRequest Request
+        public HttpRequestMessage Request
         {
             get { return this.request; }
         }
 
-        public HttpResponse Response
+        public HttpResponseMessage Response
         {
             get { return this.response; }
         }
@@ -73,7 +74,7 @@ namespace Pomona.Common
 
         public string Uri
         {
-            get { return this.request.Uri; }
+            get { return this.request.RequestUri.ToString(); }
         }
 
 
