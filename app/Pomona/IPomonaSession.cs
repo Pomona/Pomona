@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 
+using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Routing;
 
@@ -14,10 +15,15 @@ namespace Pomona
 {
     public interface IPomonaSession : IContainer
     {
-        PomonaContext CurrentContext { get; }
-        IPomonaSessionFactory Factory { get; }
+        /// <summary>
+        /// This should be removed at a later point.
+        /// </summary>
+        ITextDeserializer Deserializer { get; }
+
         Route Routes { get; }
-        TypeMapper TypeMapper { get; }
+        ISerializationContextProvider SerializationContextProvider { get; }
+        TypeMapper TypeResolver { get; }
+        IUriResolver UriResolver { get; }
         PomonaResponse Dispatch(PomonaContext context);
         PomonaResponse Dispatch(PomonaRequest request);
         IEnumerable<RouteAction> GetRouteActions(PomonaContext context);

@@ -60,7 +60,7 @@ namespace Pomona.Routing
             return pr =>
             {
                 var request = pr;
-                var uriResolver = request.Session.GetInstance<IUriResolver>();
+                var uriResolver = request.Session.UriResolver;
                 var repos =
                     new SortedDictionary<string, string>(route.Children.OfType<ILiteralRoute>().ToDictionary(
                         x => x.MatchValue,

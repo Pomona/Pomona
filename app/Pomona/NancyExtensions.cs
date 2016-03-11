@@ -6,11 +6,13 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
 using Nancy;
 
+using Pomona.Common;
 using Pomona.Ioc;
 
 namespace Pomona
@@ -56,13 +58,13 @@ namespace Pomona
 
         internal static IPomonaSession GetPomonaSession(this NancyContext nancyContext)
         {
-            return (IPomonaSession)nancyContext.Items[typeof(IPomonaSession).FullName];
-        }
-
-
-        internal static IUriResolver GetUriResolver(this NancyContext nancyContext)
-        {
-            return (IUriResolver)nancyContext.Items[typeof(IUriResolver).FullName];
+            if (nancyContext == null)
+                throw new ArgumentNullException(nameof(nancyContext));
+            IPomonaSession instance;
+            var key = typeof(IPomonaSession).FullName;
+            if (!nancyContext.Items.TryGetValueAsType(key, out instance))
+                throw new KeyNotFoundException($"Unable to locate item {key} in {nameof(NancyContext)} items");
+            return instance;
         }
 
 
@@ -72,10 +74,15 @@ namespace Pomona
                 throw new ArgumentNullException(nameof(context));
             if (type == typeof(NancyContext))
                 return context;
-            if (type == typeof(IUriResolver))
-                return context.GetUriResolver();
-
             return context.GetIocContainerWrapper().GetInstance(type);
+        }
+
+
+        internal static void SetPomonaSession(this NancyContext nancyContext, IPomonaSession pomonaSession)
+        {
+            if (nancyContext == null)
+                throw new ArgumentNullException(nameof(nancyContext));
+            nancyContext.Items[typeof(IPomonaSession).FullName] = pomonaSession;
         }
     }
 }

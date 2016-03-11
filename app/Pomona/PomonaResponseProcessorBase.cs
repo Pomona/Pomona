@@ -95,7 +95,7 @@ namespace Pomona
         private ITextSerializer GetSerializer(NancyContext context)
         {
             return GetSerializerFactory(context)
-                .GetSerializer(context.GetPomonaSession().GetInstance<ISerializationContextProvider>());
+                .GetSerializer(context.GetPomonaSession().SerializationContextProvider);
         }
 
 

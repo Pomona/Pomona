@@ -82,7 +82,7 @@ namespace Pomona
 
         public TypeMapper TypeMapper
         {
-            get { return Node.Session.TypeMapper; }
+            get { return Node.Session.TypeResolver; }
         }
 
         public string Url
@@ -141,7 +141,8 @@ namespace Pomona
 
             using (var textReader = new StreamReader(Request.Body))
             {
-                return Session.GetInstance<ITextDeserializer>().Deserialize(textReader,
+                ITextDeserializer deserializer = Session.Deserializer;
+                return deserializer.Deserialize(textReader,
                                                                             new DeserializeOptions()
                                                                             {
                                                                                 Target = patchedObject,

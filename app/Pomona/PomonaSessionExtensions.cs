@@ -30,7 +30,7 @@ namespace Pomona
                 query = url.Substring(queryStart + 1).AsQueryDictionary();
             }
 
-            var relativePath = session.GetInstance<IUriResolver>().ToRelativePath(urlWithoutQueryPart);
+            var relativePath = session.UriResolver.ToRelativePath(urlWithoutQueryPart);
             var req = new PomonaRequest(url, relativePath, query : query);
             return session.Dispatch(req);
         }

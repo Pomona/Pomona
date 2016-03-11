@@ -166,7 +166,6 @@
     <Compile Include="NonClosingStreamWriter.cs" />
     <Compile Include="PathNodeType.cs" />
     <Compile Include="Plumbing\PomonaRegistrations.cs" />
-    <Compile Include="Plumbing\PomonaStartup.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="DefaultErrorHandler.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />

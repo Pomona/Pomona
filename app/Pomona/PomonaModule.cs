@@ -96,8 +96,8 @@ namespace Pomona
 
         protected virtual PomonaResponse ProcessRequest()
         {
-            var pomonaSession = this.sessionFactory.CreateSession(Container);
-            Context.Items[typeof(IPomonaSession).FullName] = pomonaSession;
+            var pomonaSession = this.sessionFactory.CreateSession(Container, new UriResolver(TypeMapper, new BaseUriProvider(Context, ModulePath)));
+            Context.SetPomonaSession(pomonaSession);
             var pomonaEngine =
                 new PomonaEngine(pomonaSession);
             return pomonaEngine.Handle(Context, ModulePath);
@@ -198,8 +198,6 @@ namespace Pomona
             Get[PomonaRouteMetadataProvider.ClientAssembly, clientAssemblyFileName] = x => GetClientLibrary();
 
             RegisterClientNugetPackageRoute();
-
-            RegisterSerializationProvider(TypeMapper);
         }
 
 
@@ -253,18 +251,6 @@ namespace Pomona
             Register(Patch, path + "/{remaining*}", x => ProcessRequest());
             Register(Post, path + "/{remaining*}", x => ProcessRequest());
             Register(Delete, path + "/{remaining*}", x => ProcessRequest());
-        }
-
-
-        private void RegisterSerializationProvider(ITypeResolver typeMapper)
-        {
-            Before += context =>
-            {
-                var uriResolver = new UriResolver(typeMapper, new BaseUriProvider(context, ModulePath));
-
-                context.Items[typeof(IUriResolver).FullName] = uriResolver;
-                return null;
-            };
         }
 
 

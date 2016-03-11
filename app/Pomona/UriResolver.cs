@@ -15,16 +15,16 @@ namespace Pomona
     public class UriResolver : IUriResolver
     {
         private readonly IBaseUriProvider baseUriProvider;
-        private readonly ITypeResolver typeMapper;
+        private readonly ITypeResolver typeResolver;
 
 
-        public UriResolver(ITypeResolver typeMapper, IBaseUriProvider baseUriProvider)
+        public UriResolver(ITypeResolver typeResolver, IBaseUriProvider baseUriProvider)
         {
-            if (typeMapper == null)
-                throw new ArgumentNullException(nameof(typeMapper));
+            if (typeResolver == null)
+                throw new ArgumentNullException(nameof(typeResolver));
             if (baseUriProvider == null)
                 throw new ArgumentNullException(nameof(baseUriProvider));
-            this.typeMapper = typeMapper;
+            this.typeResolver = typeResolver;
             this.baseUriProvider = baseUriProvider;
         }
 
@@ -40,7 +40,7 @@ namespace Pomona
         private void BuildRelativeUri(object entity, PropertySpec property, StringBuilder sb)
         {
             var entityType = entity.GetType();
-            var type = this.typeMapper.FromType(entityType) as ResourceType;
+            var type = this.typeResolver.FromType(entityType) as ResourceType;
             if (type == null)
                 throw new InvalidOperationException($"Can't get URI for {entityType}; can only get Uri for a ResourceType.");
 

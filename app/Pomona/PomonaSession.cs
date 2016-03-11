@@ -24,13 +24,17 @@ namespace Pomona
         private readonly IContainer container;
 
 
-        public PomonaSession(IPomonaSessionFactory factory,
-                             IContainer container = null)
+        public PomonaSession(IPomonaSessionFactory factory, IContainer container, IUriResolver uriResolver)
         {
             if (factory == null)
                 throw new ArgumentNullException(nameof(factory));
+            if (container == null)
+                throw new ArgumentNullException(nameof(container));
+            if (uriResolver == null)
+                throw new ArgumentNullException(nameof(uriResolver));
             Factory = factory;
             this.container = container;
+            UriResolver = uriResolver;
         }
 
 
@@ -129,10 +133,10 @@ namespace Pomona
 
         private PomonaQuery ParseQuery(PomonaContext context, Type rootType, int? defaultPageSize = null)
         {
-            return new PomonaHttpQueryTransformer(TypeMapper,
+            return new PomonaHttpQueryTransformer(TypeResolver,
                                                   new QueryExpressionParser(
-                                                      new QueryTypeResolver(TypeMapper)))
-                .TransformRequest(context, (ResourceType)TypeMapper.FromType(rootType), defaultPageSize);
+                                                      new QueryTypeResolver(TypeResolver)))
+                .TransformRequest(context, (ResourceType)TypeResolver.FromType(rootType), defaultPageSize);
         }
 
 
@@ -173,31 +177,6 @@ namespace Pomona
 
         public T GetInstance<T>()
         {
-            // TODO: This should instead be injected to IOC container:
-            if (typeof(T) == typeof(ISerializationContextProvider))
-            {
-                return
-                    (T)(object)new ServerSerializationContextProvider(TypeMapper,
-                                                                      GetInstance<IUriResolver>(),
-                                                                      GetInstance<IResourceResolver>(),
-                                                                      this);
-            }
-
-            if (typeof(T) == typeof(ITextDeserializer))
-            {
-                return
-                    (T)
-                        Factory.SerializerFactory.GetDeserializer(
-                            GetInstance<ISerializationContextProvider>());
-            }
-            if (typeof(T) == typeof(ITextSerializer))
-            {
-                return
-                    (T)
-                        Factory.SerializerFactory.GetSerializer(
-                            GetInstance<ISerializationContextProvider>());
-            }
-
             if (typeof(T).IsAssignableFrom(GetType()))
                 return (T)((object)this);
             return this.container.GetInstance<T>();
@@ -227,9 +206,16 @@ namespace Pomona
             get { return Factory.Routes; }
         }
 
-        public TypeMapper TypeMapper
+        public ISerializationContextProvider SerializationContextProvider
+            => new ServerSerializationContextProvider(TypeResolver, UriResolver, this,
+                                                      this.container);
+
+        public TypeMapper TypeResolver
         {
             get { return Factory.TypeMapper; }
         }
+
+        public IUriResolver UriResolver { get; }
+        ITextDeserializer IPomonaSession.Deserializer => Factory.SerializerFactory.GetDeserializer(SerializationContextProvider);
     }
 }
