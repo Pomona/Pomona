@@ -72,11 +72,32 @@ namespace Pomona.UnitTests
         }
 
 
+        /// <summary>
+        /// Make sure all files in solution got UTF-8 encoding
+        /// </summary>
+        [Test]
+        [Explicit("Run manually to fix UTF-8 encoding of source code files.")]
+        public void FixSourceCodeUtf8Encoding()
+        {
+            SolutionTestsHelper.FixSourceCodeUtf8Encoding(SolutionDirectory);
+        }
+
+
         [Test]
         public void NoSourceCodeContainsNoCommit()
         {
             const string commitBlockString = "NO" + "COMMIT";
             NoSourceCodeContains(commitBlockString);
+        }
+
+
+        /// <summary>
+        /// Validate that all files in solution got UTF-8 encoding
+        /// </summary>
+        [Test]
+        public void ValidateSourceCodeUtf8Encoding()
+        {
+            SolutionTestsHelper.ValidateSourceCodeUtf8Encoding(SolutionDirectory);
         }
 
 

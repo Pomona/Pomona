@@ -20,6 +20,8 @@ using NUnit.Framework;
 
 using Pomona.Common.Internals;
 
+using Ude;
+
 namespace Pomona.TestHelpers
 {
     /// <summary>
@@ -183,6 +185,62 @@ namespace Pomona.TestHelpers
 
 
         /// <summary>
+        /// Fix UTF-8 encoding in all source code files found that does not got ASCII or UTF-8 encoding.
+        /// </summary>
+        /// <param name="solutionDirectory">The directory to scan.</param>
+        /// <param name="excludeFilter">Exclude filter, by default this excludes files in **\obj\ and **\bin\ directory.</param>
+        /// <param name="fileSearchPatterns">File patterns to search. By default we search *.cs, *.csproj, *.config and *.xml</param>
+        public static void FixSourceCodeUtf8Encoding(string solutionDirectory,
+                                                     Func<string, bool> excludeFilter = null,
+                                                     string[] fileSearchPatterns = null)
+        {
+            StringBuilder fixLog = new StringBuilder();
+            foreach (var filePath in GetSourceCodeFilesThatShouldHaveUtf8Encoding(solutionDirectory, excludeFilter, fileSearchPatterns))
+            {
+                string charset;
+                var isValidUtf8 = FileIsValidUtf8(out charset, filePath);
+                if (isValidUtf8)
+                    continue;
+                var currentEncoding = Encoding.GetEncoding(charset);
+                var text = File.ReadAllText(filePath, currentEncoding);
+                File.WriteAllText(filePath, text, Encoding.UTF8);
+                fixLog.AppendFormat("File \"{0}\" converted from {1}, to UTF-8\r\n", filePath, charset);
+            }
+            if (fixLog.Length > 0)
+                Console.WriteLine(fixLog);
+        }
+
+
+        /// <summary>
+        /// Check that all source code files has UTF-8 encoding
+        /// </summary>
+        /// <param name="solutionDirectory">The directory to scan.</param>
+        /// <param name="excludeFilter">Exclude filter, by default this excludes files in **\obj\ and **\bin\ directory.</param>
+        /// <param name="fileSearchPatterns">File patterns to search. By default we search *.cs, *.csproj, *.config and *.xml</param>
+        public static void ValidateSourceCodeUtf8Encoding(string solutionDirectory,
+                                                          Func<string, bool> excludeFilter = null,
+                                                          string[] fileSearchPatterns = null)
+        {
+            StringBuilder errorLog = new StringBuilder();
+            var wrongEncodings = new HashSet<string>();
+            foreach (var filePath in GetSourceCodeFilesThatShouldHaveUtf8Encoding(solutionDirectory, excludeFilter, fileSearchPatterns))
+            {
+                string charset;
+                var isValidUtf8 = FileIsValidUtf8(out charset, filePath);
+                if (isValidUtf8)
+                    continue;
+                errorLog.AppendFormat("Charset of \"{0}\" is {1}, not UTF-8\r\n", filePath, charset);
+                wrongEncodings.Add(charset);
+            }
+            if (errorLog.Length > 0)
+            {
+                Console.WriteLine(errorLog);
+                Assert.Fail("One or more files in source code is not encoded as UTF-8 (" + string.Join(", ", wrongEncodings) + ")");
+            }
+        }
+
+
+        /// <summary>
         /// Check all projects in solution at path for consistent nuget package references.
         /// </summary>
         /// <param name="solutionPath">Path to .sln file.</param>
@@ -260,6 +318,49 @@ namespace Pomona.TestHelpers
 
             if (errorLog.Length > 0)
                 Assert.Fail(errorLog.ToString());
+        }
+
+
+        private static string DetectFileCharset(string filePath)
+        {
+            string charset;
+            using (var fs = File.OpenRead(filePath))
+            {
+                var charsetDetector = new CharsetDetector();
+                charsetDetector.Feed(fs);
+                charsetDetector.DataEnd();
+                charset = charsetDetector.Charset;
+            }
+            return charset;
+        }
+
+
+        private static bool FileIsValidUtf8(out string charset, string filePath)
+        {
+            charset = DetectFileCharset(filePath);
+            var isValidUtf8 = charset == "UTF-8" || charset == "ASCII" || charset == null;
+            return isValidUtf8;
+        }
+
+
+        private static IEnumerable<string> GetSourceCodeFiles(string solutionDirectory,
+                                                              Func<string, bool> excludeFilter = null,
+                                                              string[] fileSearchPatterns = null)
+        {
+            fileSearchPatterns = fileSearchPatterns ?? new[] { "*.cs", "*.csproj", "*.config", "*.xml" };
+            excludeFilter = excludeFilter ?? IsIgnoredPath;
+            return
+                fileSearchPatterns.SelectMany(x => Directory.EnumerateFiles(solutionDirectory, x, SearchOption.AllDirectories)).Where(
+                    x => !excludeFilter(x));
+        }
+
+
+        private static IEnumerable<string> GetSourceCodeFilesThatShouldHaveUtf8Encoding(string solutionDirectory,
+                                                                                        Func<string, bool> excludeFilter = null,
+                                                                                        string[] fileSearchPatterns = null)
+        {
+            // Keeping this method in case we don't want certain files to be UTF-8
+            return GetSourceCodeFiles(solutionDirectory, excludeFilter, fileSearchPatterns);
         }
 
 
