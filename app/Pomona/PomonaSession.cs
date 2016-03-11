@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Pomona.Common.Internals;
 using Pomona.Common.Linq.NonGeneric;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -36,6 +35,11 @@ namespace Pomona
             this.container = container;
             UriResolver = uriResolver;
         }
+
+
+        public PomonaContext CurrentContext { get; private set; }
+
+        public IPomonaSessionFactory Factory { get; }
 
 
         private PomonaResponse DispatchInternal(PomonaContext context)
@@ -101,36 +105,6 @@ namespace Pomona
         }
 
 
-        private UrlSegment MatchUrlSegment(PomonaRequest request)
-        {
-            var match = new PomonaRouteResolver(Routes).Resolve(this, request.RelativePath);
-
-            if (match == null)
-                throw new ResourceNotFoundException("Resource not found.");
-
-            var finalSegmentMatch = match.Root.SelectedFinalMatch;
-            if (finalSegmentMatch == null)
-            {
-                // Route conflict resolution:
-                var node = match.Root.NextConflict;
-                while (node != null)
-                {
-                    var actualResultType = node.ActualResultType;
-                    // Reduce using input type difference
-                    var validSelection =
-                        node.Children.Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
-                            .SingleOrDefaultIfMultiple();
-                    if (validSelection == null)
-                        throw new ResourceNotFoundException("No route alternative found due to conflict.");
-                    node.SelectedChild = validSelection;
-                    node = node.NextConflict;
-                }
-                finalSegmentMatch = match.Root.SelectedFinalMatch;
-            }
-            return finalSegmentMatch;
-        }
-
-
         private PomonaQuery ParseQuery(PomonaContext context, Type rootType, int? defaultPageSize = null)
         {
             return new PomonaHttpQueryTransformer(TypeResolver,
@@ -140,12 +114,9 @@ namespace Pomona
         }
 
 
-        public PomonaContext CurrentContext { get; private set; }
-
-
         public virtual PomonaResponse Dispatch(PomonaRequest request)
         {
-            var finalSegmentMatch = MatchUrlSegment(request);
+            var finalSegmentMatch = new PomonaRouteResolver(Factory.Routes).Resolve(this, request);
             return Dispatch(new PomonaContext(finalSegmentMatch, request, executeQueryable : true));
         }
 
@@ -170,9 +141,6 @@ namespace Pomona
                                           responseHeaders : error.ResponseHeaders);
             }
         }
-
-
-        public IPomonaSessionFactory Factory { get; }
 
 
         public T GetInstance<T>()
@@ -201,11 +169,6 @@ namespace Pomona
         }
 
 
-        public Route Routes
-        {
-            get { return Factory.Routes; }
-        }
-
         public ISerializationContextProvider SerializationContextProvider
             => new ServerSerializationContextProvider(TypeResolver, UriResolver, this,
                                                       this.container);
@@ -217,5 +180,10 @@ namespace Pomona
 
         public IUriResolver UriResolver { get; }
         ITextDeserializer IPomonaSession.Deserializer => Factory.SerializerFactory.GetDeserializer(SerializationContextProvider);
+
+        Route IPomonaSession.Routes
+        {
+            get { return Factory.Routes; }
+        }
     }
 }
