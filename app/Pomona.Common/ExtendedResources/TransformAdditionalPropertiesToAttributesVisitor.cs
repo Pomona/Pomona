@@ -56,7 +56,7 @@ namespace Pomona.Common.ExtendedResources
         public TransformAdditionalPropertiesToAttributesVisitor(ExtendedResourceMapper mapper)
         {
             if (mapper == null)
-                throw new ArgumentNullException("mapper");
+                throw new ArgumentNullException(nameof(mapper));
             this.mapper = mapper;
         }
 

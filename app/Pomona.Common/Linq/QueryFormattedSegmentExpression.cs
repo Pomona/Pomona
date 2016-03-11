@@ -43,9 +43,9 @@ namespace Pomona.Common.Linq
             : base(type, localExecutionPreferred)
         {
             if (format == null)
-                throw new ArgumentNullException("format");
+                throw new ArgumentNullException(nameof(format));
             if (args == null)
-                throw new ArgumentNullException("args");
+                throw new ArgumentNullException(nameof(args));
             this.format = format;
             this.children = (object[])args.Clone();
         }

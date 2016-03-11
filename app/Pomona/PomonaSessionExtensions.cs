@@ -61,9 +61,9 @@ namespace Pomona
                                    UrlSegment urlSegment)
         {
             if (session == null)
-                throw new ArgumentNullException("session");
+                throw new ArgumentNullException(nameof(session));
             if (urlSegment == null)
-                throw new ArgumentNullException("urlSegment");
+                throw new ArgumentNullException(nameof(urlSegment));
 
             var request = new PomonaContext(urlSegment, executeQueryable : true, handleException : false);
             return session.Dispatch(request).Entity;
@@ -74,9 +74,9 @@ namespace Pomona
                                          UrlSegment urlSegment)
         {
             if (session == null)
-                throw new ArgumentNullException("session");
+                throw new ArgumentNullException(nameof(session));
             if (urlSegment == null)
-                throw new ArgumentNullException("urlSegment");
+                throw new ArgumentNullException(nameof(urlSegment));
 
             var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable), handleException : false);
             return (IQueryable)session.Dispatch(request).Entity;

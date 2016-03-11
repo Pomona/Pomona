@@ -60,7 +60,7 @@ namespace Pomona.Common.Linq.Queries.Interception
         public InterceptedQueryProvider(IEnumerable<ExpressionVisitor> visitors)
         {
             if (visitors == null)
-                throw new ArgumentNullException("visitors");
+                throw new ArgumentNullException(nameof(visitors));
             this.visitors = visitors.ToList();
         }
 
@@ -68,7 +68,7 @@ namespace Pomona.Common.Linq.Queries.Interception
         public IQueryable CreateLazySource(Type elementType, Func<Type, IQueryable> factory)
         {
             if (elementType == null)
-                throw new ArgumentNullException("elementType");
+                throw new ArgumentNullException(nameof(elementType));
             return createLazySource(elementType, this, factory);
         }
 
@@ -76,7 +76,7 @@ namespace Pomona.Common.Linq.Queries.Interception
         public IQueryable<TElement> CreateLazySource<TElement>(Func<Type, IQueryable> factory)
         {
             if (factory == null)
-                throw new ArgumentNullException("factory");
+                throw new ArgumentNullException(nameof(factory));
             return new LazyInterceptedQueryableSource<TElement>(this, factory);
         }
 

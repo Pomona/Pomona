@@ -40,7 +40,7 @@ namespace Pomona.Scheduler
         public JobDetails(string url, DateTime scheduledOn, string method = null)
         {
             if (url == null)
-                throw new ArgumentNullException("url");
+                throw new ArgumentNullException(nameof(url));
             this.url = url;
             this.method = method ?? "GET";
             this.scheduledOn = scheduledOn;

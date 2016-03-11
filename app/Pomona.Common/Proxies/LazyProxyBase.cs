@@ -81,13 +81,13 @@ namespace Pomona.Common.Proxies
                                  string expandPath = null)
         {
             if (String.IsNullOrWhiteSpace(uri))
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
 
             if (resourceLoader == null)
-                throw new ArgumentNullException("resourceLoader");
+                throw new ArgumentNullException(nameof(resourceLoader));
 
             if (proxyTargetType == null)
-                throw new ArgumentNullException("proxyTargetType");
+                throw new ArgumentNullException(nameof(proxyTargetType));
 
             Uri = uri;
             Client = resourceLoader;

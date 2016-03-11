@@ -52,10 +52,10 @@ namespace Pomona.Common.Serialization
                                              DeserializeOptions options = null)
         {
             if (deserializer == null)
-                throw new ArgumentNullException("deserializer");
+                throw new ArgumentNullException(nameof(deserializer));
             
             if (serializedObj == null)
-                throw new ArgumentNullException("serializedObj");
+                throw new ArgumentNullException(nameof(serializedObj));
             
             using (var textReader = new StringReader(serializedObj))
             {
@@ -69,10 +69,10 @@ namespace Pomona.Common.Serialization
                                                DeserializeOptions options = null)
         {
             if (deserializer == null)
-                throw new ArgumentNullException("deserializer");
+                throw new ArgumentNullException(nameof(deserializer));
             
             if (serializedObj == null)
-                throw new ArgumentNullException("serializedObj");
+                throw new ArgumentNullException(nameof(serializedObj));
             
             using (var textReader = new StringReader(serializedObj))
             {

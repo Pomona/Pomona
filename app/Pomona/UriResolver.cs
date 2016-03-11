@@ -42,9 +42,9 @@ namespace Pomona
         public UriResolver(ITypeResolver typeMapper, IBaseUriProvider baseUriProvider)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             if (baseUriProvider == null)
-                throw new ArgumentNullException("baseUriProvider");
+                throw new ArgumentNullException(nameof(baseUriProvider));
             this.typeMapper = typeMapper;
             this.baseUriProvider = baseUriProvider;
         }
@@ -101,7 +101,7 @@ namespace Pomona
             if (
                 !(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase)
                   && (baseUrl.Length == url.Length || url[baseUrl.Length] == '/')))
-                throw new ArgumentException("Url does not have the correct base url.", "url");
+                throw new ArgumentException("Url does not have the correct base url.", nameof(url));
             return url.Substring(baseUrl.Length);
         }
     }

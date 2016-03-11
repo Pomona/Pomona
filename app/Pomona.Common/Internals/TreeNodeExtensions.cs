@@ -38,7 +38,7 @@ namespace Pomona.Common.Internals
             where T : class, ITreeNode<T>
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             return node.Parent != null ? node.Parent.WalkTree(x => x.Parent) : Enumerable.Empty<T>();
         }
 
@@ -47,7 +47,7 @@ namespace Pomona.Common.Internals
             where T : class, ITreeNode<T>
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             return node.WalkTree(x => x.Parent);
         }
 
@@ -56,7 +56,7 @@ namespace Pomona.Common.Internals
             where T : class, ITreeNode<T>
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             return node.Children.SelectMany(x => x.WrapAsArray().Concat(x.Descendants()));
         }
 
@@ -65,7 +65,7 @@ namespace Pomona.Common.Internals
             where T : class, ITreeNode<T>
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             return node.WrapAsArray().Concat(node.Descendants());
         }
 
@@ -74,7 +74,7 @@ namespace Pomona.Common.Internals
             where T : class, ITreeNode<T>
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             return node.WalkTree(x => x.Children.SingleOrDefaultIfMultiple()).LastOrDefault(x => x.Children.Any());
         }
 
@@ -83,7 +83,7 @@ namespace Pomona.Common.Internals
             where T : class, ITreeNode<T>
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             var nodeWithRoot = node as ITreeNodeWithRoot<T>;
             if (nodeWithRoot != null)
                 return nodeWithRoot.Root;

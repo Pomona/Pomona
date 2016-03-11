@@ -46,7 +46,7 @@ namespace Pomona.Common.TypeSystem
         protected MemberSpec(ITypeResolver typeResolver, MemberInfo member)
         {
             if (typeResolver == null)
-                throw new ArgumentNullException("typeResolver");
+                throw new ArgumentNullException(nameof(typeResolver));
             this.typeResolver = typeResolver;
             this.member = member;
             this.declaredAttributes = CreateLazy(() => typeResolver.LoadDeclaredAttributes(this).ToList().AsReadOnly());

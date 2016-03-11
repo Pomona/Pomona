@@ -104,11 +104,11 @@ namespace Pomona.Common.Linq.Queries
             public ZipExpression Create(QueryExpression source, QueryExpression source2, LambdaExpression resultSelector)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 if (source2 == null)
-                    throw new ArgumentNullException("source2");
+                    throw new ArgumentNullException(nameof(source2));
                 if (resultSelector == null)
-                    throw new ArgumentNullException("resultSelector");
+                    throw new ArgumentNullException(nameof(resultSelector));
                 return
                     new ZipExpression(
                         Call(

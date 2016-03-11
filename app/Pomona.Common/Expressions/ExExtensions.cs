@@ -46,14 +46,14 @@ namespace Pomona.Common.Expressions
         public static IQueryable SelectManyEx(this IQueryable source, Func<Ex, Ex> selector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (selector == null)
-                throw new ArgumentNullException("selector");
+                throw new ArgumentNullException(nameof(selector));
             var param = Expression.Parameter(source.ElementType);
             Expression body = selector(param);
             Type elementType;
             if (!body.Type.TryGetEnumerableElementType(out elementType))
-                throw new ArgumentException("selector must return an IEnumerable<T>", "selector");
+                throw new ArgumentException("selector must return an IEnumerable<T>", nameof(selector));
 
             var delType = Expression.GetFuncType(source.ElementType, typeof(IEnumerable<>).MakeGenericType(elementType));
             return source.SelectMany(Expression.Lambda(delType, body, param));
@@ -63,9 +63,9 @@ namespace Pomona.Common.Expressions
         public static IQueryable<T> WhereEx<T>(this IQueryable<T> source, Func<Ex, Ex> func)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (func == null)
-                throw new ArgumentNullException("func");
+                throw new ArgumentNullException(nameof(func));
             return (IQueryable<T>)source.Where(Ex.Lambda(typeof(T), func));
         }
 
@@ -73,9 +73,9 @@ namespace Pomona.Common.Expressions
         public static IQueryable WhereEx(this IQueryable source, Func<Ex, Ex> func)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (func == null)
-                throw new ArgumentNullException("func");
+                throw new ArgumentNullException(nameof(func));
             return source.Where(Ex.Lambda(source.ElementType, func));
         }
     }

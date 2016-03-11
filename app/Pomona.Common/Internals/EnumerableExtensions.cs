@@ -158,7 +158,7 @@ namespace Pomona.Common.Internals
         public static IEnumerable ToListDetectType(this IEnumerable source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             Type elementType;
             if (!source.GetType().TryGetEnumerableElementType(out elementType))
                 return source.Cast<object>().ToList();

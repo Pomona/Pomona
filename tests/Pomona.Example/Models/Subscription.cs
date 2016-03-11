@@ -35,7 +35,7 @@ namespace Pomona.Example.Models
         public Subscription(WeaponModel model)
         {
             if (model == null)
-                throw new ArgumentNullException("model");
+                throw new ArgumentNullException(nameof(model));
             Model = model;
         }
 

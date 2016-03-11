@@ -80,7 +80,7 @@ namespace Pomona.Common.Linq.Queries
             if (origParam.Type != elementType)
             {
                 if (!origParam.Type.IsAssignableFrom(elementType))
-                    throw new ArgumentException("Incompatible lambda expr, cannot rewrite", "origExpr");
+                    throw new ArgumentException("Incompatible lambda expr, cannot rewrite", nameof(origExpr));
                 var newParam = Parameter(elementType, origParam.Name);
                 var newBody = origExpr.Body.Replace(origParam, newParam);
                 if (!origExpr.ReturnType.IsAssignableFrom(newBody.Type))

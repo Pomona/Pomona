@@ -52,13 +52,13 @@ namespace Pomona
             )
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             if (expandedPaths == null)
-                throw new ArgumentNullException("expandedPaths");
+                throw new ArgumentNullException(nameof(expandedPaths));
             if (uriResolver == null)
-                throw new ArgumentNullException("uriResolver");
+                throw new ArgumentNullException(nameof(uriResolver));
             if (container == null)
-                throw new ArgumentNullException("container");
+                throw new ArgumentNullException(nameof(container));
             this.typeMapper = typeMapper;
             this.debugMode = debugMode;
             this.uriResolver = uriResolver;

@@ -41,7 +41,7 @@ namespace Pomona.Common.TypeSystem
         public static object GetInstance(this IContainer container, Type type)
         {
             if (container == null)
-                throw new ArgumentNullException("container");
+                throw new ArgumentNullException(nameof(container));
             return getInstanceMethod(type, container);
         }
     }

@@ -53,7 +53,7 @@ namespace Pomona.Common.TypeSystem
             : base(typeResolver, propertyInfo)
         {
             if (reflectedType == null)
-                throw new ArgumentNullException("reflectedType");
+                throw new ArgumentNullException(nameof(reflectedType));
             this.reflectedType = reflectedType;
             this.declaringType = CreateLazy(() => typeResolver.LoadDeclaringType(this));
             this.propertyType = CreateLazy(() => typeResolver.LoadPropertyType(this));

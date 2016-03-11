@@ -38,7 +38,7 @@ namespace Pomona.Common.Linq.NonGeneric
         public override Expression Apply(IQueryable queryable)
         {
             if (queryable == null)
-                throw new ArgumentNullException("queryable");
+                throw new ArgumentNullException(nameof(queryable));
             var method = GetMethod(queryable.ElementType);
             return Expression.Call(method, queryable.Expression);
         }

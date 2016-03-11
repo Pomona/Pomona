@@ -50,7 +50,7 @@ namespace Pomona.Routing
         public InternalRouteActionResolver(IEnumerable<IRouteActionResolver> nestedActionResolvers)
         {
             if (nestedActionResolvers == null)
-                throw new ArgumentNullException("nestedActionResolvers");
+                throw new ArgumentNullException(nameof(nestedActionResolvers));
             this.nestedActionResolvers = nestedActionResolvers.ToList();
             this.routeActionCache =
                 new ReadOnlyDictionary<HttpMethod, ConcurrentDictionary<Route, IEnumerable<RouteAction>>>(

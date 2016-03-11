@@ -53,7 +53,7 @@ namespace Pomona.Common.TypeSystem
         private static Func<IEnumerable<TypeSpec>> GetGenericArguments(ITypeResolver typeResolver)
         {
             if (typeResolver == null)
-                throw new ArgumentNullException("typeResolver");
+                throw new ArgumentNullException(nameof(typeResolver));
             return () => new[] { typeResolver.FromType(typeof(T)) };
         }
     }

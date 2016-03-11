@@ -41,7 +41,7 @@ namespace Pomona
         public BaseUriProvider(NancyContext context, string pomonaRoot)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             this.context = context;
             this.pomonaroot = pomonaRoot;
         }

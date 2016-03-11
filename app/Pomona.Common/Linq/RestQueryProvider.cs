@@ -73,7 +73,7 @@ namespace Pomona.Common.Linq
         internal RestQueryProvider(IPomonaClient client)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
 
             this.client = client;
         }

@@ -39,7 +39,7 @@ namespace Pomona.Routing
         public DelegateRouteAction(Func<PomonaContext, PomonaResponse> func, Func<PomonaContext, bool> condition = null)
         {
             if (func == null)
-                throw new ArgumentNullException("func");
+                throw new ArgumentNullException(nameof(func));
             this.func = func;
             this.condition = condition;
         }

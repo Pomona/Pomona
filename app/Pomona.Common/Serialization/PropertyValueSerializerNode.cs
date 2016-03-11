@@ -53,9 +53,9 @@ namespace Pomona.Common.Serialization
                 parentNode != null ? parentNode.Context : null, parentNode)
         {
             if (parentNode == null)
-                throw new ArgumentNullException("parentNode");
+                throw new ArgumentNullException(nameof(parentNode));
             if (property == null)
-                throw new ArgumentNullException("property");
+                throw new ArgumentNullException(nameof(property));
             this.property = property;
         }
 

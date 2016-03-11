@@ -196,9 +196,9 @@ namespace Pomona.FluentMapping
                                                                         IPropertyOptionsBuilder<TDeclaring, TItem>> propertyOptions = null)
         {
             if (childProperty == null)
-                throw new ArgumentNullException("childProperty");
+                throw new ArgumentNullException(nameof(childProperty));
             if (parentProperty == null)
-                throw new ArgumentNullException("parentProperty");
+                throw new ArgumentNullException(nameof(parentProperty));
             return OnHasChild(childProperty, parentProperty, typeOptions ?? (x => x), propertyOptions ?? (x => x));
         }
 
@@ -212,9 +212,9 @@ namespace Pomona.FluentMapping
                 IPropertyOptionsBuilder<TDeclaring, IEnumerable<TItem>>> propertyOptions)
         {
             if (collectionProperty == null)
-                throw new ArgumentNullException("collectionProperty");
+                throw new ArgumentNullException(nameof(collectionProperty));
             if (parentProperty == null)
-                throw new ArgumentNullException("parentProperty");
+                throw new ArgumentNullException(nameof(parentProperty));
             return OnHasChildren(collectionProperty, parentProperty, typeOptions ?? (x => x), propertyOptions ?? (x => x));
         }
 

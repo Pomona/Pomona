@@ -48,11 +48,11 @@ namespace Pomona
         public static object Patch(this IPomonaDataSource dataSource, Type type, object patchedObject)
         {
             if (dataSource == null)
-                throw new ArgumentNullException("dataSource");
+                throw new ArgumentNullException(nameof(dataSource));
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             if (patchedObject == null)
-                throw new ArgumentNullException("patchedObject");
+                throw new ArgumentNullException(nameof(patchedObject));
 
             return patchMethodInvoker(type, dataSource, patchedObject);
         }
@@ -61,11 +61,11 @@ namespace Pomona
         public static object Post(this IPomonaDataSource dataSource, Type type, object form)
         {
             if (dataSource == null)
-                throw new ArgumentNullException("dataSource");
+                throw new ArgumentNullException(nameof(dataSource));
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
 
             return postMethodInvoker(type, dataSource, form);
         }
@@ -74,9 +74,9 @@ namespace Pomona
         public static IQueryable Query(this IPomonaDataSource dataSource, Type type)
         {
             if (dataSource == null)
-                throw new ArgumentNullException("dataSource");
+                throw new ArgumentNullException(nameof(dataSource));
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             return queryMethodInvoker(type, dataSource);
         }
     }

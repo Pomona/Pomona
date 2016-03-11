@@ -39,10 +39,10 @@ namespace Pomona.Common.ExtendedResources
         {
             var er = wrapped as IExtendedResourceProxy;
             if (er == null)
-                throw new ArgumentException("Can only unwrap a wrapped resource.", "wrapped");
+                throw new ArgumentException("Can only unwrap a wrapped resource.", nameof(wrapped));
             var unwrapped = er.WrappedResource as TOriginal;
             if (unwrapped == null)
-                throw new ArgumentException("Unable to unwrap to type " + typeof(TOriginal), "wrapped");
+                throw new ArgumentException("Unable to unwrap to type " + typeof(TOriginal), nameof(wrapped));
             return unwrapped;
         }
 

@@ -80,7 +80,7 @@ namespace Pomona.Common.Linq.Queries
         public override sealed bool TryWrapNode(Expression node, out QueryExpression wrapper)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             wrapper = null;
             var methodCallExpr = node as MethodCallExpression;
             if (methodCallExpr == null || !this.mappedMethods.Any(x => methodCallExpr.Method.IsGenericInstanceOf(x)))

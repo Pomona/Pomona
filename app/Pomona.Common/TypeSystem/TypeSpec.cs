@@ -43,7 +43,7 @@ namespace Pomona.Common.TypeSystem
             : base(typeResolver, type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             this.@namespace = CreateLazy(() => typeResolver.LoadNamespace(this));
             this.baseType = CreateLazy(() => typeResolver.LoadBaseType(this));
         }

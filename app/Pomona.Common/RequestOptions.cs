@@ -54,7 +54,7 @@ namespace Pomona.Common
         public RequestOptions(RequestOptions clonedOptions)
         {
             if (clonedOptions == null)
-                throw new ArgumentNullException("clonedOptions");
+                throw new ArgumentNullException(nameof(clonedOptions));
             ExpectedResponseType = clonedOptions.ExpectedResponseType;
             this.expandedPaths = new StringBuilder(clonedOptions.expandedPaths.ToString());
             this.requestModifyActions = new List<Action<HttpRequestMessage>>(clonedOptions.requestModifyActions);

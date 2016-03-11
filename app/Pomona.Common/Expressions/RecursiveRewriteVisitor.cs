@@ -54,7 +54,7 @@ namespace Pomona.Common.Expressions
         public RecursiveRewriteVisitor(ReadOnlyCollection<IExpressionRewriter> rewriters)
         {
             if (rewriters == null)
-                throw new ArgumentNullException("rewriters");
+                throw new ArgumentNullException(nameof(rewriters));
             this.rewriters = rewriters;
         }
 

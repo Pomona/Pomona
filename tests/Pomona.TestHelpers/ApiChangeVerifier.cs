@@ -43,7 +43,7 @@ namespace Pomona.TestHelpers
         public ApiChangeVerifier(string schemaDirectory)
         {
             if (schemaDirectory == null)
-                throw new ArgumentNullException("schemaDirectory");
+                throw new ArgumentNullException(nameof(schemaDirectory));
             this.schemaDirectory = schemaDirectory;
         }
 

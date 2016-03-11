@@ -44,7 +44,7 @@ namespace Pomona.NHibernate4
         public NhQueryProviderCapabilityResolver(ISessionFactory factory)
         {
             if (factory == null)
-                throw new ArgumentNullException("factory");
+                throw new ArgumentNullException(nameof(factory));
             this.factory = factory;
         }
 

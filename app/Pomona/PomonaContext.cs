@@ -56,7 +56,7 @@ namespace Pomona
                              Type acceptType = null)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             Node = node;
             Request = request ?? new PomonaRequest(node.RelativePath, node.RelativePath);
             this.expandedPaths = expandedPaths ?? GetExpandedPathsFromRequest(Request.Headers, Query);

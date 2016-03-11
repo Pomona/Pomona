@@ -43,7 +43,7 @@ namespace Pomona.Common.Expressions
         private Ex(Expression expression)
         {
             if (expression == null)
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             this.expression = expression;
         }
 
@@ -51,7 +51,7 @@ namespace Pomona.Common.Expressions
         public Ex Apply(Func<Expression, Expression> func)
         {
             if (func == null)
-                throw new ArgumentNullException("func");
+                throw new ArgumentNullException(nameof(func));
             return func(this.expression);
         }
 
@@ -87,9 +87,9 @@ namespace Pomona.Common.Expressions
         public static LambdaExpression Lambda(Type paramType, Func<Ex, Ex> bodyFunc)
         {
             if (paramType == null)
-                throw new ArgumentNullException("paramType");
+                throw new ArgumentNullException(nameof(paramType));
             if (bodyFunc == null)
-                throw new ArgumentNullException("bodyFunc");
+                throw new ArgumentNullException(nameof(bodyFunc));
             var param = Expression.Parameter(paramType);
             var body = bodyFunc(param);
             return Expression.Lambda(body, param);

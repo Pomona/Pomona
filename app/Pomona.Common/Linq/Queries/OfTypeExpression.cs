@@ -78,9 +78,9 @@ namespace Pomona.Common.Linq.Queries
             public OfTypeExpression Create(QueryExpression source, Type type)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 if (type == null)
-                    throw new ArgumentNullException("type");
+                    throw new ArgumentNullException(nameof(type));
                 return new OfTypeExpression(Call(Method.MakeGenericMethod(type), source.Node), source);
             }
         }

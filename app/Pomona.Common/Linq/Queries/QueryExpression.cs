@@ -51,7 +51,7 @@ namespace Pomona.Common.Linq.Queries
         public QueryExpression(Expression node)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             this.node = node;
         }
 
@@ -130,7 +130,7 @@ namespace Pomona.Common.Linq.Queries
         {
             var qn = WrapOrNull(expression);
             if (qn == null)
-                throw new ArgumentException("Expression not recognized as queryable extension method", "expression");
+                throw new ArgumentException("Expression not recognized as queryable extension method", nameof(expression));
             return qn;
         }
 

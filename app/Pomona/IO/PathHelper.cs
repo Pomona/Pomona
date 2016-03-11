@@ -59,9 +59,9 @@ namespace Pomona.IO
         public static bool MatchUrlPathSpec(string input, string pattern)
         {
             if (pattern == null)
-                throw new ArgumentNullException("pattern");
+                throw new ArgumentNullException(nameof(pattern));
             if (input == null)
-                throw new ArgumentNullException("input");
+                throw new ArgumentNullException(nameof(input));
 
             return Regex.IsMatch(input, SpecToRegex(pattern));
         }

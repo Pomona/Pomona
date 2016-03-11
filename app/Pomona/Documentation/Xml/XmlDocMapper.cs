@@ -53,7 +53,7 @@ namespace Pomona.Documentation.Xml
         public IDocNode Map(XDocContentNode node)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             var textNode = node as XDocText;
             if (textNode != null)
                 return new TextNode(textNode.Value);
@@ -73,7 +73,7 @@ namespace Pomona.Documentation.Xml
         private MemberSpec ResolveMember(string cref)
         {
             if (cref == null)
-                throw new ArgumentNullException("cref");
+                throw new ArgumentNullException(nameof(cref));
             if (cref.Length < 3 || cref[1] != ':')
                 throw new ArgumentException("cref not valid.");
             var memberName = cref.Substring(2);

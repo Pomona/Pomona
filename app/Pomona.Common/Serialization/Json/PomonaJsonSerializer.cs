@@ -66,7 +66,7 @@ namespace Pomona.Common.Serialization.Json
         public PomonaJsonSerializer(ISerializationContextProvider contextProvider)
         {
             if (contextProvider == null)
-                throw new ArgumentNullException("contextProvider");
+                throw new ArgumentNullException(nameof(contextProvider));
 
             this.contextProvider = contextProvider;
         }
@@ -75,7 +75,7 @@ namespace Pomona.Common.Serialization.Json
         public override void Serialize(TextWriter textWriter, object o, SerializeOptions options)
         {
             if (textWriter == null)
-                throw new ArgumentNullException("textWriter");
+                throw new ArgumentNullException(nameof(textWriter));
 
             options = options ?? new SerializeOptions();
             var serializationContext = this.contextProvider.GetSerializationContext(options);
@@ -406,7 +406,7 @@ namespace Pomona.Common.Serialization.Json
             public Writer(TextWriter textWriter)
             {
                 if (textWriter == null)
-                    throw new ArgumentNullException("textWriter");
+                    throw new ArgumentNullException(nameof(textWriter));
 
                 this.jsonWriter = new JsonTextWriter(textWriter)
                 {

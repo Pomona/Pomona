@@ -62,7 +62,7 @@ namespace Pomona.Common.Internals.Formatting
         private static string GetName(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (type.IsGenericType)
             {

@@ -37,7 +37,7 @@ namespace Pomona.Documentation.Xml.Serialization
             : base(new XElement("see"))
         {
             if (cref == null)
-                throw new ArgumentNullException("cref");
+                throw new ArgumentNullException(nameof(cref));
             Cref = cref;
         }
 

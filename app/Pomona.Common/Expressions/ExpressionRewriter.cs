@@ -88,7 +88,7 @@ namespace Pomona.Common.Expressions
         internal override Expression OnVisit(IRewriteContext context, Expression node)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             var castExpression = node as TExpression;
             return castExpression != null ? Visit(context, castExpression) : node;
         }

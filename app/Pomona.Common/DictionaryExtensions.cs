@@ -83,9 +83,9 @@ namespace Pomona.Common
             Func<TValue> getDefaultFunc)
         {
             if (dictionary == null)
-                throw new ArgumentNullException("dictionary");
+                throw new ArgumentNullException(nameof(dictionary));
             if (getDefaultFunc == null)
-                throw new ArgumentNullException("getDefaultFunc");
+                throw new ArgumentNullException(nameof(getDefaultFunc));
             TValue value;
             if (!dictionary.TryGetValue(key, out value))
                 return getDefaultFunc();
@@ -99,7 +99,7 @@ namespace Pomona.Common
             TValue defaultValue)
         {
             if (dictionary == null)
-                throw new ArgumentNullException("dictionary");
+                throw new ArgumentNullException(nameof(dictionary));
             TValue value;
             if (!dictionary.TryGetValue(key, out value))
                 return defaultValue;
@@ -112,7 +112,7 @@ namespace Pomona.Common
             TKey key)
         {
             if (dictionary == null)
-                throw new ArgumentNullException("dictionary");
+                throw new ArgumentNullException(nameof(dictionary));
             TValue value;
             if (!dictionary.TryGetValue(key, out value))
                 return default(TValue);
@@ -126,9 +126,9 @@ namespace Pomona.Common
             Func<TKey, TValue> getDefaultFunc)
         {
             if (dictionary == null)
-                throw new ArgumentNullException("dictionary");
+                throw new ArgumentNullException(nameof(dictionary));
             if (getDefaultFunc == null)
-                throw new ArgumentNullException("getDefaultFunc");
+                throw new ArgumentNullException(nameof(getDefaultFunc));
             TValue value;
             if (!dictionary.TryGetValue(key, out value))
                 return getDefaultFunc(key);

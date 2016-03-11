@@ -90,7 +90,7 @@ namespace Pomona
         internal static object Resolve(this NancyContext context, Type type)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             if (type == typeof(NancyContext))
                 return context;
             if (type == typeof(IUriResolver))

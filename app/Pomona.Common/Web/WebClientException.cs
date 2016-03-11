@@ -126,7 +126,7 @@ namespace Pomona.Common.Web
                                                 Exception innerException)
         {
             if (request == null)
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
 
             // String body doesn't create a generic exception, it just puts the string in the message
             if (bodyObject != null && !(bodyObject is string))

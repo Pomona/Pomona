@@ -50,7 +50,7 @@ namespace Pomona.Common.TypeSystem
         public ConstructorSpec(LambdaExpression expression)
         {
             if (expression == null)
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             this.expression = expression;
         }
 
@@ -85,7 +85,7 @@ namespace Pomona.Common.TypeSystem
                                                           Func<ConstructorSpec> defaultFactory = null)
         {
             if (constructorInfo == null)
-                throw new ArgumentNullException("constructorInfo");
+                throw new ArgumentNullException(nameof(constructorInfo));
             var type = convertedType ?? constructorInfo.DeclaringType;
             if (type == null)
                 throw new InvalidOperationException("DeclaringType needs to be defined");
@@ -303,7 +303,7 @@ namespace Pomona.Common.TypeSystem
             internal ParameterSpec(bool isRequired, PropertyInfo propertyInfo, int position)
             {
                 if (propertyInfo == null)
-                    throw new ArgumentNullException("propertyInfo");
+                    throw new ArgumentNullException(nameof(propertyInfo));
                 this.isRequired = isRequired;
                 this.propertyInfo = propertyInfo;
                 this.position = position;

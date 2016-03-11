@@ -38,9 +38,9 @@ namespace Pomona.Common.Linq.Queries.Interception
         public static IQueryable<T> CreateLazy<T>(Func<Type, IQueryable> queryableFactory, IEnumerable<ExpressionVisitor> visitors)
         {
             if (queryableFactory == null)
-                throw new ArgumentNullException("queryableFactory");
+                throw new ArgumentNullException(nameof(queryableFactory));
             if (visitors == null)
-                throw new ArgumentNullException("visitors");
+                throw new ArgumentNullException(nameof(visitors));
             return new InterceptedQueryProvider(visitors).CreateLazySource<T>(queryableFactory);
         }
     }

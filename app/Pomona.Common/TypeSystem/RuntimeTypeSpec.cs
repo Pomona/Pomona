@@ -49,7 +49,7 @@ namespace Pomona.Common.TypeSystem
             : base(typeResolver, type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             this.properties = CreateLazy(() => typeResolver.LoadProperties(this).ToList().AsReadOnly());
             this.interfaces = CreateLazy(() => typeResolver.LoadInterfaces(this).ToList().AsReadOnly());
             this.genericArguments =
@@ -199,9 +199,9 @@ namespace Pomona.Common.TypeSystem
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
                 if (typeResolver == null)
-                    throw new ArgumentNullException("typeResolver");
+                    throw new ArgumentNullException(nameof(typeResolver));
                 if (type == null)
-                    throw new ArgumentNullException("type");
+                    throw new ArgumentNullException(nameof(type));
 
                 return new RuntimeTypeSpec(typeResolver, type);
             }

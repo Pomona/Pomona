@@ -46,7 +46,7 @@ namespace Pomona.RequestProcessing
                                                                     int? defaultPageSize = null)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             return (IQueryableActionResult<T>)WrapActionResult((IQueryable)source, projection, defaultPageSize);
         }
 
@@ -56,7 +56,7 @@ namespace Pomona.RequestProcessing
                                                               int? defaultPageSize = null)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             Type resultType;
             if (projection != null)
                 resultType = projection.GetResultType(source.ElementType);
@@ -76,7 +76,7 @@ namespace Pomona.RequestProcessing
                                                                                   int? defaultPageSize)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             return new QueryableActionResult<TElement, TResult>(source, projection, defaultPageSize);
         }
     }

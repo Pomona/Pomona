@@ -47,10 +47,10 @@ namespace Pomona.Common.Linq
             Expression<Func<TSource, TProperty>> propertySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             if (propertySelector == null)
-                throw new ArgumentNullException("propertySelector");
+                throw new ArgumentNullException(nameof(propertySelector));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(typeof(TSource), typeof(TProperty));
@@ -72,9 +72,9 @@ namespace Pomona.Common.Linq
                                                                       ExpandMode expandMode)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (propertySelector == null)
-                throw new ArgumentNullException("propertySelector");
+                throw new ArgumentNullException(nameof(propertySelector));
 
             switch (expandMode)
             {
@@ -96,9 +96,9 @@ namespace Pomona.Common.Linq
                                                                      ExpandMode expandMode)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (propertySelector == null)
-                throw new ArgumentNullException("propertySelector");
+                throw new ArgumentNullException(nameof(propertySelector));
 
             switch (expandMode)
             {
@@ -118,9 +118,9 @@ namespace Pomona.Common.Linq
                                                                       Func<TSource, TProperty> propertySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (propertySelector == null)
-                throw new ArgumentNullException("propertySelector");
+                throw new ArgumentNullException(nameof(propertySelector));
 
             return source;
         }
@@ -131,9 +131,9 @@ namespace Pomona.Common.Linq
             Func<TSource, TProperty> propertySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (propertySelector == null)
-                throw new ArgumentNullException("propertySelector");
+                throw new ArgumentNullException(nameof(propertySelector));
 
             return source;
         }
@@ -147,10 +147,10 @@ namespace Pomona.Common.Linq
             Expression<Func<TSource, TProperty>> propertySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             if (propertySelector == null)
-                throw new ArgumentNullException("propertySelector");
+                throw new ArgumentNullException(nameof(propertySelector));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(typeof(TSource), typeof(TProperty));
@@ -170,7 +170,7 @@ namespace Pomona.Common.Linq
         public static TSource FirstLazy<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(new[] { typeof(TSource) });
@@ -183,7 +183,7 @@ namespace Pomona.Common.Linq
         public static TSource FirstLazy<TSource>(this IEnumerable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             return source.First();
         }
@@ -192,7 +192,7 @@ namespace Pomona.Common.Linq
         public static IQueryable<TSource> IncludeTotalCount<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(typeof(TSource));
@@ -205,7 +205,7 @@ namespace Pomona.Common.Linq
         public static IEnumerable<TSource> IncludeTotalCount<TSource>(this IEnumerable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             return source;
         }
@@ -214,7 +214,7 @@ namespace Pomona.Common.Linq
         public static JToken ToJson<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(new[] { typeof(TSource) });
@@ -227,7 +227,7 @@ namespace Pomona.Common.Linq
         public static QueryResult<TSource> ToQueryResult<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(new[] { typeof(TSource) });
@@ -267,7 +267,7 @@ namespace Pomona.Common.Linq
         public static Uri ToUri<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(new[] { typeof(TSource) });
@@ -281,7 +281,7 @@ namespace Pomona.Common.Linq
                                                                Action<IRequestOptions> optionsModifier)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             var method = (MethodInfo)MethodBase.GetCurrentMethod();
             var genericMethod = method.MakeGenericMethod(typeof(TSource));
@@ -300,7 +300,7 @@ namespace Pomona.Common.Linq
         public static IEnumerable<TSource> WithOptions<TSource>(this IEnumerable<TSource> source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             return source;
         }

@@ -42,9 +42,9 @@ namespace Pomona.Common.Internals
         public MappedReadOnlyCollection(ICollection<TInner> inner, Func<TInner, TOuter> map)
         {
             if (inner == null)
-                throw new ArgumentNullException("inner");
+                throw new ArgumentNullException(nameof(inner));
             if (map == null)
-                throw new ArgumentNullException("map");
+                throw new ArgumentNullException(nameof(map));
             this.inner = inner;
             this.map = map;
         }

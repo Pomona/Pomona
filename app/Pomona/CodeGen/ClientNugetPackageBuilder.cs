@@ -47,7 +47,7 @@ namespace Pomona.CodeGen
         public ClientNugetPackageBuilder(TypeMapper typeMapper)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             this.typeMapper = typeMapper;
         }
 

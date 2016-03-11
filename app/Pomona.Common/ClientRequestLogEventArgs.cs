@@ -45,7 +45,7 @@ namespace Pomona.Common
                                          Exception thrownException)
         {
             if (request == null)
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
             this.request = request;
             this.response = response;
             this.thrownException = thrownException;

@@ -45,7 +45,7 @@ namespace Pomona.FluentMapping
         public PropertyOptionsBuilder(PropertyMappingOptions options)
         {
             if (options == null)
-                throw new ArgumentNullException("options");
+                throw new ArgumentNullException(nameof(options));
             this.options = options;
         }
 
@@ -184,7 +184,7 @@ namespace Pomona.FluentMapping
             Expression<Func<TDeclaringType, TPropertyType>> formula)
         {
             if (formula == null)
-                throw new ArgumentNullException("formula");
+                throw new ArgumentNullException(nameof(formula));
             this.options.Formula = formula;
             return this;
         }

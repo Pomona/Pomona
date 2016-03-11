@@ -51,7 +51,7 @@ namespace Pomona.Common.Serialization
                                 TypeSpec expectedBaseType)
         {
             if (textWriter == null)
-                throw new ArgumentNullException("textWriter");
+                throw new ArgumentNullException(nameof(textWriter));
 
             var writer = CreateWriter(textWriter);
             var itemValueNode = new ItemValueSerializerNode(obj,

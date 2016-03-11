@@ -41,7 +41,7 @@ namespace Pomona.Common.Linq
         protected RestQuery(RestQueryProvider provider)
         {
             if (provider == null)
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             this.provider = provider;
             this.expression = Expression.Constant(this);
         }
@@ -50,11 +50,11 @@ namespace Pomona.Common.Linq
         public RestQuery(RestQueryProvider provider, Expression expression)
         {
             if (provider == null)
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             if (expression == null)
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
-                throw new ArgumentOutOfRangeException("expression");
+                throw new ArgumentOutOfRangeException(nameof(expression));
             this.provider = provider;
             this.expression = expression;
         }

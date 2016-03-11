@@ -47,7 +47,7 @@ namespace Pomona.Common.ExtendedResources
         public ExtendedQueryProvider(ExtendedResourceMapper extendedResourceMapper)
         {
             if (extendedResourceMapper == null)
-                throw new ArgumentNullException("extendedResourceMapper");
+                throw new ArgumentNullException(nameof(extendedResourceMapper));
             this.extendedResourceMapper = extendedResourceMapper;
         }
 

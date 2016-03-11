@@ -62,10 +62,10 @@ namespace Pomona.TestHelpers
         public static string FindProjectPathOf(Assembly assembly)
         {
             if (assembly == null)
-                throw new ArgumentNullException("assembly");
+                throw new ArgumentNullException(nameof(assembly));
 
             if (String.IsNullOrEmpty(assembly.CodeBase))
-                throw new ArgumentException(String.Format("The assembly '{0}' has no code base.", assembly), "assembly");
+                throw new ArgumentException(String.Format("The assembly '{0}' has no code base.", assembly), nameof(assembly));
 
             UriBuilder uri = new UriBuilder(assembly.CodeBase);
             string unescapeDataString = Uri.UnescapeDataString(uri.Path);
@@ -137,7 +137,7 @@ namespace Pomona.TestHelpers
         public static string FindSolutionPathOf(object @object)
         {
             if (@object == null)
-                throw new ArgumentNullException("object");
+                throw new ArgumentNullException(nameof(@object));
 
             return FindSolutionPathOf(@object.GetType());
         }
@@ -153,7 +153,7 @@ namespace Pomona.TestHelpers
         public static string FindSolutionPathOf(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return FindSolutionPathOf(type.Assembly);
         }

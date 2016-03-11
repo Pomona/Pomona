@@ -57,7 +57,7 @@ namespace Pomona.Common
         public ClientRepository(IPomonaClient client, string uri, IEnumerable results, IClientResource parent)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             this.client = client;
             this.uri = uri;
             this.results = results as IEnumerable<TResource> ?? (results != null ? results.Cast<TResource>() : null);
@@ -197,9 +197,9 @@ namespace Pomona.Common
             where TPostForm : class, IPostForm, IClientResource
         {
             if (resource == null)
-                throw new ArgumentNullException("resource");
+                throw new ArgumentNullException(nameof(resource));
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
 
             return this.client.Post(((IHasResourceUri)resource).Uri, form, null);
         }

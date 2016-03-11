@@ -39,7 +39,7 @@ namespace Pomona.Common.Linq
             : base(provider)
         {
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             this.uri = uri;
         }
 

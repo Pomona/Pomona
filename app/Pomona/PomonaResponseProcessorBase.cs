@@ -58,7 +58,7 @@ namespace Pomona
         protected PomonaResponseProcessorBase(IRouteCacheProvider routeCacheProvider)
         {
             if (routeCacheProvider == null)
-                throw new ArgumentNullException("routeCacheProvider");
+                throw new ArgumentNullException(nameof(routeCacheProvider));
 
             this.routeCacheProvider = routeCacheProvider;
         }

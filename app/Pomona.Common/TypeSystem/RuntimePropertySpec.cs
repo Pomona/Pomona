@@ -39,7 +39,7 @@ namespace Pomona.Common.TypeSystem
             : base(typeResolver, propertyInfo, reflectedType)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
         }
 
 

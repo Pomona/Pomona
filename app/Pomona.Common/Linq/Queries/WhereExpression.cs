@@ -84,9 +84,9 @@ namespace Pomona.Common.Linq.Queries
             public WhereExpression Create(QueryExpression source, LambdaExpression predicate)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 return new WhereExpression(Call(Method.MakeGenericMethod(source.ElementType),
                                                 source.Node,
                                                 ConvertAndQuote(predicate, source.ElementType)),

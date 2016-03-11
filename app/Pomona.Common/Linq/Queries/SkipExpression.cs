@@ -82,7 +82,7 @@ namespace Pomona.Common.Linq.Queries
             public SkipExpression Create(QueryExpression source, int count)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 return new SkipExpression(Call(Method.MakeGenericMethod(source.ElementType),
                                                source.Node,
                                                Constant(count)),

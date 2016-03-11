@@ -54,11 +54,11 @@ namespace Pomona.Common.TypeSystem
                                    Delegate del = null)
         {
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             if (declaringType == null)
-                throw new ArgumentNullException("declaringType");
+                throw new ArgumentNullException(nameof(declaringType));
             if (reflectedType == null)
-                throw new ArgumentNullException("reflectedType");
+                throw new ArgumentNullException(nameof(reflectedType));
             this.parameters = parameters ?? new ParameterInfo[] { };
             this.name = name;
             this.declaringType = declaringType;

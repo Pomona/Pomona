@@ -57,7 +57,7 @@ namespace Pomona.Common.TypeSystem
                                    string pluralName)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             this.type = type;
             this.urlRelativePath = urlRelativePath;
             this.isExposedAsRepository = isExposedAsRepository;

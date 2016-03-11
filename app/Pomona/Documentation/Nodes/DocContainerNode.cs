@@ -40,7 +40,7 @@ namespace Pomona.Documentation.Nodes
         public DocContainerNode(IEnumerable<IDocNode> children)
         {
             if (children == null)
-                throw new ArgumentNullException("children");
+                throw new ArgumentNullException(nameof(children));
             this.children = children.ToList().AsReadOnly();
         }
 

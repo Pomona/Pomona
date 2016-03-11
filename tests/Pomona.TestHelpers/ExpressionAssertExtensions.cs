@@ -266,11 +266,11 @@ namespace Pomona.TestHelpers
         private static void AssertEquals<T>(ReadOnlyCollection<T> actual, ReadOnlyCollection<T> expected, Action<T, T> itemAssertion)
         {
             if (actual == null)
-                throw new ArgumentNullException("actual");
+                throw new ArgumentNullException(nameof(actual));
             if (expected == null)
-                throw new ArgumentNullException("expected");
+                throw new ArgumentNullException(nameof(expected));
             if (itemAssertion == null)
-                throw new ArgumentNullException("itemAssertion");
+                throw new ArgumentNullException(nameof(itemAssertion));
             Assert.That(actual.Count, Is.EqualTo(expected.Count));
             for (int i = 0; i < actual.Count; i++)
                 itemAssertion(actual[i], expected[i]);

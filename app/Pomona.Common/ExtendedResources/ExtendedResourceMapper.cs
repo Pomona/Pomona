@@ -49,7 +49,7 @@ namespace Pomona.Common.ExtendedResources
         public ExtendedResourceMapper(IClientTypeResolver clientTypeResolver)
         {
             if (clientTypeResolver == null)
-                throw new ArgumentNullException("clientTypeResolver");
+                throw new ArgumentNullException(nameof(clientTypeResolver));
             this.clientTypeResolver = clientTypeResolver;
         }
 

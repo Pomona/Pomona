@@ -52,12 +52,12 @@ namespace Pomona.Common.TypeSystem
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
                 if (typeResolver == null)
-                    throw new ArgumentNullException("typeResolver");
+                    throw new ArgumentNullException(nameof(typeResolver));
                 var structuredTypeResolver = typeResolver as IStructuredTypeResolver;
                 if (structuredTypeResolver == null)
-                    throw new ArgumentException("typerResolver must be of type " + typeof(IStructuredTypeResolver).FullName, "typeResolver");
+                    throw new ArgumentException("typerResolver must be of type " + typeof(IStructuredTypeResolver).FullName, nameof(typeResolver));
                 if (type == null)
-                    throw new ArgumentNullException("type");
+                    throw new ArgumentNullException(nameof(type));
                 if (!type.IsAnonymous())
                     return null;
 

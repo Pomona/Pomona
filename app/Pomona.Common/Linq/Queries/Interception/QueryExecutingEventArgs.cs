@@ -39,7 +39,7 @@ namespace Pomona.Common.Linq.Queries.Interception
         public QueryExecutingEventArgs(Expression expression)
         {
             if (expression == null)
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             this.expression = expression;
         }
 

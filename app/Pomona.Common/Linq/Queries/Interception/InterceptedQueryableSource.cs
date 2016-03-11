@@ -40,7 +40,7 @@ namespace Pomona.Common.Linq.Queries.Interception
             : base(provider, null)
         {
             if (wrappedSource == null)
-                throw new ArgumentNullException("wrappedSource");
+                throw new ArgumentNullException(nameof(wrappedSource));
             this.wrappedSource = wrappedSource;
         }
 

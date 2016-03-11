@@ -52,7 +52,7 @@ namespace Pomona
                              DynamicDictionary query = null)
         {
             if (url == null)
-                throw new ArgumentNullException("url");
+                throw new ArgumentNullException(nameof(url));
             this.method = method;
             this.url = url;
             this.relativePath = relativePath;

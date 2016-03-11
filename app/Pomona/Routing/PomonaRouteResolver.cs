@@ -38,7 +38,7 @@ namespace Pomona.Routing
         public PomonaRouteResolver(Route rootRoute)
         {
             if (rootRoute == null)
-                throw new ArgumentNullException("rootRoute");
+                throw new ArgumentNullException(nameof(rootRoute));
             if (!rootRoute.IsRoot)
                 throw new ArgumentException("The route resolver takes a root route.");
             this.rootRoute = rootRoute;
@@ -48,9 +48,9 @@ namespace Pomona.Routing
         public RouteMatchTree Resolve(IPomonaSession session, string path)
         {
             if (session == null)
-                throw new ArgumentNullException("session");
+                throw new ArgumentNullException(nameof(session));
             if (path == null)
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             var match = new RouteMatchTree(this.rootRoute, path, session);
 

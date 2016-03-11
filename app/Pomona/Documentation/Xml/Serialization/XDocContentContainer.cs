@@ -125,16 +125,16 @@ namespace Pomona.Documentation.Xml.Serialization
             get
             {
                 if (index < 0)
-                    throw new ArgumentOutOfRangeException("index", "Index must be greater than or equal to zero.");
+                    throw new ArgumentOutOfRangeException(nameof(index), "Index must be greater than or equal to zero.");
                 var nodeAt = Node.Nodes().ElementAtOrDefault(index);
                 if (nodeAt == null)
-                    throw new ArgumentOutOfRangeException("index", "Index out of range.");
+                    throw new ArgumentOutOfRangeException(nameof(index), "Index out of range.");
                 return Wrap(nodeAt);
             }
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 this[index].Node.ReplaceWith(value.Node);
             }
         }

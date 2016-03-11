@@ -78,7 +78,7 @@ namespace Pomona.Common.Linq.Queries
             public DistinctExpression Create(QueryExpression source)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 return new DistinctExpression(Call(Method.MakeGenericMethod(source.ElementType), source.Node),
                                               source);
             }

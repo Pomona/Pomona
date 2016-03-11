@@ -118,7 +118,7 @@ namespace Pomona
         public PomonaResponse(PomonaQuery query, object entity, HttpStatusCode statusCode)
         {
             if (query == null)
-                throw new ArgumentNullException("query");
+                throw new ArgumentNullException(nameof(query));
 
             this.entity = entity;
             this.statusCode = statusCode;

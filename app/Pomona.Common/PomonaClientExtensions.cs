@@ -42,7 +42,7 @@ namespace Pomona.Common
         public static T Get<T>(this IPomonaClient client, string uri)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             return (T)client.Get(uri, typeof(T), null);
         }
 
@@ -50,7 +50,7 @@ namespace Pomona.Common
         public static T Get<T>(this IPomonaClient client, string uri, RequestOptions requestOptions)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
 
             var type = typeof(T);
             var resource = client.Get(uri, type, requestOptions);
@@ -65,7 +65,7 @@ namespace Pomona.Common
         public static object Get(this IPomonaClient client, string uri, Type type)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             return client.Get(uri, type, null);
         }
 
@@ -73,7 +73,7 @@ namespace Pomona.Common
         public static async Task<T> GetAsync<T>(this IPomonaClient client, string uri, RequestOptions requestOptions)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
 
             var type = typeof(T);
             var resource = await client.GetAsync(uri, type, requestOptions);
@@ -88,7 +88,7 @@ namespace Pomona.Common
         public static T GetLazy<T>(this IPomonaClient client, string uri)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             var typeInfo = client.GetResourceInfoForType(typeof(T));
             var proxy = (LazyProxyBase)Activator.CreateInstance(typeInfo.LazyProxyType);
             proxy.Initialize(uri, client, typeInfo.PocoType);
@@ -99,7 +99,7 @@ namespace Pomona.Common
         public static T Patch<T>(this IPomonaClient client, T target, Action<T> updateAction, Action<IRequestOptions<T>> options = null)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             var patchForm = (T)client.TypeMapper.CreatePatchForm(typeof(T), target);
             updateAction(patchForm);
 
@@ -114,9 +114,9 @@ namespace Pomona.Common
         public static IQueryable<T> Query<T>(this IPomonaRootResource client, Expression<Func<T, bool>> predicate)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             if (predicate == null)
-                throw new ArgumentNullException("predicate");
+                throw new ArgumentNullException(nameof(predicate));
             return client.Query<T>().Where(predicate);
         }
 
@@ -160,7 +160,7 @@ namespace Pomona.Common
                                                     Action<IRequestOptions<T>> options = null)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             var patchForm = (T)client.TypeMapper.CreatePatchForm(typeof(T), target);
             updateAction(patchForm);
 
@@ -174,7 +174,7 @@ namespace Pomona.Common
         internal static object Post<T>(this IPomonaClient client, string uri, Action<T> postAction, RequestOptions options)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             var postForm = (T)client.TypeMapper.CreatePostForm(typeof(T));
             postAction(postForm);
             return client.Post(uri, postForm, options);
@@ -184,7 +184,7 @@ namespace Pomona.Common
         internal static Task<object> PostAsync<T>(this IPomonaClient client, string uri, Action<T> postAction, RequestOptions options)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             var postForm = client.TypeMapper.CreatePostForm(typeof(T));
             postAction((T)postForm);
             return client.PostAsync(uri, postForm, options);
@@ -194,7 +194,7 @@ namespace Pomona.Common
         internal static bool TryGetResourceInfoAttribute(this Type type, out ResourceInfoAttribute resourceInfoAttribute)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             resourceInfoAttribute = type
                 .GetCustomAttributes(typeof(ResourceInfoAttribute), false)

@@ -72,7 +72,7 @@ namespace Pomona.Common.Serialization.Patch
         public void Add(KeyValuePair<TKey, TValue> item)
         {
             if (ContainsKey(item.Key))
-                throw new ArgumentException("Adding duplicate key not allowed.", "item");
+                throw new ArgumentException("Adding duplicate key not allowed.", nameof(item));
             this.removed.Remove(item.Key);
             this.replaced.Add(item.Key, item.Value);
             SetDirty();

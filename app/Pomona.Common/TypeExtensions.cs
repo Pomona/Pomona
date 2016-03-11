@@ -43,7 +43,7 @@ namespace Pomona.Common
         public static IEnumerable<PropertyInfo> GetAllInheritedPropertiesFromInterface(this Type sourceType)
         {
             if (sourceType == null)
-                throw new ArgumentNullException("sourceType");
+                throw new ArgumentNullException(nameof(sourceType));
 
             return sourceType
                 .WrapAsEnumerable()
@@ -92,10 +92,10 @@ namespace Pomona.Common
         public static ConstructorInfo GetConstructor(this Type type, params Type[] parameterTypes)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (parameterTypes == null || parameterTypes.Length == 0)
-                throw new ArgumentNullException("parameterTypes");
+                throw new ArgumentNullException(nameof(parameterTypes));
 
             var constructor = type
                 .GetConstructors()
@@ -115,7 +115,7 @@ namespace Pomona.Common
         public static MethodInfo GetDelegateInvokeMethod(this Type delegateType)
         {
             if (delegateType == null)
-                throw new ArgumentNullException("delegateType");
+                throw new ArgumentNullException(nameof(delegateType));
 
             return delegateType.GetMethod("Invoke");
         }
@@ -125,7 +125,7 @@ namespace Pomona.Common
             where TAttribute : Attribute
         {
             if (member == null)
-                throw new ArgumentNullException("member");
+                throw new ArgumentNullException(nameof(member));
 
             return member.GetCustomAttributes(typeof(TAttribute), inherit).OfType<TAttribute>().FirstOrDefault();
         }
@@ -146,7 +146,7 @@ namespace Pomona.Common
         public static string GetFullNameWithSignature(this MethodInfo method)
         {
             if (method == null)
-                throw new ArgumentNullException("method");
+                throw new ArgumentNullException(nameof(method));
 
             var methodFormatter = new MethodFormatter(method);
             return methodFormatter.ToString();
@@ -156,7 +156,7 @@ namespace Pomona.Common
         public static IEnumerable<Type> GetFullTypeHierarchy(this Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return type.WalkTree(x => x.BaseType);
         }
@@ -220,7 +220,7 @@ namespace Pomona.Common
         public static IEnumerable<Type> GetInterfacesOfGeneric(this Type type, Type genericTypeDefinition)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             var metadataToken = genericTypeDefinition.UniqueToken();
 
@@ -234,7 +234,7 @@ namespace Pomona.Common
         public static TypeSpec GetItemType(this TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
 
             var enumerableTypeSpec = typeSpec as EnumerableTypeSpec;
             if (enumerableTypeSpec != null)
@@ -258,7 +258,7 @@ namespace Pomona.Common
         public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
         {
             if (assembly == null)
-                throw new ArgumentNullException("assembly");
+                throw new ArgumentNullException(nameof(assembly));
 
             try
             {
@@ -274,7 +274,7 @@ namespace Pomona.Common
         public static Type GetPropertyOrFieldType(this MemberInfo memberInfo)
         {
             if (memberInfo == null)
-                throw new ArgumentNullException("memberInfo");
+                throw new ArgumentNullException(nameof(memberInfo));
 
             var propInfo = memberInfo as PropertyInfo;
             if (propInfo != null)
@@ -291,7 +291,7 @@ namespace Pomona.Common
         public static object GetPropertyOrFieldValue(this MemberInfo memberInfo, object obj)
         {
             if (memberInfo == null)
-                throw new ArgumentNullException("memberInfo");
+                throw new ArgumentNullException(nameof(memberInfo));
 
             var propInfo = memberInfo as PropertyInfo;
             if (propInfo != null)
@@ -308,10 +308,10 @@ namespace Pomona.Common
         public static PropertyInfo GetPropertySearchInheritedInterfaces(this Type sourceType, string propertyName)
         {
             if (sourceType == null)
-                throw new ArgumentNullException("sourceType");
+                throw new ArgumentNullException(nameof(sourceType));
 
             if (propertyName == null)
-                throw new ArgumentNullException("propertyName");
+                throw new ArgumentNullException(nameof(propertyName));
 
             return sourceType
                 .WrapAsEnumerable()
@@ -324,7 +324,7 @@ namespace Pomona.Common
             where TAttribute : Attribute
         {
             if (member == null)
-                throw new ArgumentNullException("member");
+                throw new ArgumentNullException(nameof(member));
 
             return member.GetCustomAttributes(typeof(TAttribute), inherit).Any();
         }
@@ -339,10 +339,10 @@ namespace Pomona.Common
         public static object InvokeDirect(this MethodInfo method, params object[] targetAndArgs)
         {
             if (method == null)
-                throw new ArgumentNullException("method");
+                throw new ArgumentNullException(nameof(method));
 
             if (targetAndArgs == null)
-                throw new ArgumentNullException("targetAndArgs");
+                throw new ArgumentNullException(nameof(targetAndArgs));
 
             IEnumerable<object> args = targetAndArgs;
             var argCount = targetAndArgs.Length;
@@ -371,7 +371,7 @@ namespace Pomona.Common
         public static bool IsAnonymous(this TypeSpec type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return IsAnonymousTypeName(type.Name);
         }
@@ -380,7 +380,7 @@ namespace Pomona.Common
         public static bool IsAnonymous(this Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return IsAnonymousTypeName(type.Name);
         }
@@ -389,7 +389,7 @@ namespace Pomona.Common
         public static bool IsAnonymousTypeName(string typeName)
         {
             if (typeName == null)
-                throw new ArgumentNullException("typeName");
+                throw new ArgumentNullException(nameof(typeName));
 
             return typeName.StartsWith("<>f__AnonymousType") || typeName.StartsWith("<>__AnonType");
         }
@@ -405,10 +405,10 @@ namespace Pomona.Common
         public static bool IsGenericallyEquivalentTo(this Type a, Type b)
         {
             if (a == null)
-                throw new ArgumentNullException("a");
+                throw new ArgumentNullException(nameof(a));
 
             if (b == null)
-                throw new ArgumentNullException("b");
+                throw new ArgumentNullException(nameof(b));
 
             if (a.IsGenericParameter)
             {
@@ -447,10 +447,10 @@ namespace Pomona.Common
         public static bool IsGenericInstanceOf(this Type type, params Type[] genericTypeDefinitions)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (genericTypeDefinitions == null)
-                throw new ArgumentNullException("genericTypeDefinitions");
+                throw new ArgumentNullException(nameof(genericTypeDefinitions));
 
             return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
         }
@@ -459,10 +459,10 @@ namespace Pomona.Common
         public static bool IsGenericInstanceOf(this MethodInfo type, params MethodInfo[] genericTypeDefinitions)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (genericTypeDefinitions == null)
-                throw new ArgumentNullException("genericTypeDefinitions");
+                throw new ArgumentNullException(nameof(genericTypeDefinitions));
 
             return genericTypeDefinitions.Any(x => x.UniqueToken() == type.UniqueToken());
         }
@@ -471,7 +471,7 @@ namespace Pomona.Common
         public static bool IsNullable(this Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             // TODO: Shouldn't this also check type.IsValueType? @asbjornu
             return Nullable.GetUnderlyingType(type) != null;
@@ -481,7 +481,7 @@ namespace Pomona.Common
         public static bool IsStatic(this PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
 
             return propertyInfo.GetAccessors(true).First(x => x != null).IsStatic;
         }
@@ -490,7 +490,7 @@ namespace Pomona.Common
         public static bool IsTuple(this Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return type.Namespace == "System" && type.Name.StartsWith("Tuple`");
         }
@@ -504,7 +504,7 @@ namespace Pomona.Common
             where TMemberInfo : MemberInfo
         {
             if (memberInfo == null)
-                throw new ArgumentNullException("memberInfo");
+                throw new ArgumentNullException(nameof(memberInfo));
 
             if (memberInfo.DeclaringType == null || memberInfo.DeclaringType == memberInfo.ReflectedType)
                 return memberInfo;
@@ -532,7 +532,7 @@ namespace Pomona.Common
         public static bool ParameterTypesMatch<TParam1, TParam2>(this MethodBase method)
         {
             if (method == null)
-                throw new ArgumentNullException("method");
+                throw new ArgumentNullException(nameof(method));
 
             var parameters = method.GetParameters();
             if (parameters.Length != 2)
@@ -553,13 +553,13 @@ namespace Pomona.Common
         public static bool TryExtractTypeArguments(this Type typeInstance, Type genTypeDef, out Type[] typeArgs)
         {
             if (typeInstance == null)
-                throw new ArgumentNullException("typeInstance");
+                throw new ArgumentNullException(nameof(typeInstance));
 
             if (genTypeDef == null)
-                throw new ArgumentNullException("genTypeDef");
+                throw new ArgumentNullException(nameof(genTypeDef));
 
             if (!genTypeDef.IsGenericTypeDefinition)
-                throw new ArgumentException("gentTypeDef is required to be a generic type definition.", "genTypeDef");
+                throw new ArgumentException("gentTypeDef is required to be a generic type definition.", nameof(genTypeDef));
 
             if (typeInstance.IsGenericType && typeInstance.GetGenericTypeDefinition() == genTypeDef)
             {
@@ -601,13 +601,13 @@ namespace Pomona.Common
                                                         out bool typeArgsWasResolved)
         {
             if (wantedType == null)
-                throw new ArgumentNullException("wantedType");
+                throw new ArgumentNullException(nameof(wantedType));
 
             if (actualType == null)
-                throw new ArgumentNullException("actualType");
+                throw new ArgumentNullException(nameof(actualType));
 
             if (methodTypeArgs == null)
-                throw new ArgumentNullException("methodTypeArgs");
+                throw new ArgumentNullException(nameof(methodTypeArgs));
 
             typeArgsWasResolved = false;
 
@@ -615,14 +615,14 @@ namespace Pomona.Common
             {
                 throw new ArgumentException(
                     "Does not expect genDefArgType to be a generic type definition.",
-                    "wantedType");
+                    nameof(wantedType));
             }
 
             if (actualType.IsGenericTypeDefinition)
             {
                 throw new ArgumentException(
                     "Does not expect instanceArgType to be a generic type definition.",
-                    "actualType");
+                    nameof(actualType));
             }
 
             if (wantedType.IsGenericParameter)
@@ -693,7 +693,7 @@ namespace Pomona.Common
         public static bool TryGetEnumerableElementType(this Type type, out Type elementType)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             Type[] typeArgs;
             if (TryExtractTypeArguments(type, typeof(IEnumerable<>), out typeArgs))
@@ -712,10 +712,10 @@ namespace Pomona.Common
                                                 out PropertySpec property)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             property = type.AllProperties.FirstOrDefault(x => String.Equals(x.Name, name, stringComparison));
             return property != null;
@@ -725,10 +725,10 @@ namespace Pomona.Common
         public static bool TryGetPropertyByUriName(this ResourceType type, string name, out PropertySpec property)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             property =
                 type.Properties.FirstOrDefault(
@@ -746,10 +746,10 @@ namespace Pomona.Common
                                                    out MethodInfo method)
         {
             if (methodDefinition == null)
-                throw new ArgumentNullException("methodDefinition");
+                throw new ArgumentNullException(nameof(methodDefinition));
 
             if (argumentTypes == null)
-                throw new ArgumentNullException("argumentTypes");
+                throw new ArgumentNullException(nameof(argumentTypes));
 
             method = methodDefinition;
             var methodParameters = method.GetParameters();
@@ -792,7 +792,7 @@ namespace Pomona.Common
         public static UniqueMemberToken UniqueToken(this MemberInfo member)
         {
             if (member == null)
-                throw new ArgumentNullException("member");
+                throw new ArgumentNullException(nameof(member));
 
             return UniqueMemberToken.FromMemberInfo(member);
         }
@@ -801,10 +801,10 @@ namespace Pomona.Common
         private static bool ConstructorMatchesArguments(ConstructorInfo constructor, Type[] parameterTypes)
         {
             if (constructor == null)
-                throw new ArgumentNullException("constructor");
+                throw new ArgumentNullException(nameof(constructor));
 
             if (parameterTypes == null)
-                throw new ArgumentNullException("parameterTypes");
+                throw new ArgumentNullException(nameof(parameterTypes));
 
             var parameters = constructor.GetParameters();
             if (parameters.Length != parameterTypes.Length)
@@ -829,13 +829,13 @@ namespace Pomona.Common
                                                                 bool validateArgumentTypes)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (String.IsNullOrWhiteSpace(methodName))
-                throw new ArgumentNullException("methodName");
+                throw new ArgumentNullException(nameof(methodName));
 
             if (genericArgumentTypes == null || genericArgumentTypes.Length == 0)
-                throw new ArgumentNullException("genericArgumentTypes");
+                throw new ArgumentNullException(nameof(genericArgumentTypes));
 
             var method = type
                 .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
@@ -862,10 +862,10 @@ namespace Pomona.Common
         private static Type SubstituteTypeParameters(Type type, Type[] methodTypeArgs)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (methodTypeArgs == null)
-                throw new ArgumentNullException("methodTypeArgs");
+                throw new ArgumentNullException(nameof(methodTypeArgs));
 
             if (type.IsGenericParameter)
                 return methodTypeArgs[type.GenericParameterPosition];

@@ -218,7 +218,7 @@ namespace Pomona.UnitTests.Client
             public SplitExpressionAsserter(Expression<Func<TestResource, TRet>> expr)
             {
                 if (expr == null)
-                    throw new ArgumentNullException("expr");
+                    throw new ArgumentNullException(nameof(expr));
                 this.expr = expr;
             }
 

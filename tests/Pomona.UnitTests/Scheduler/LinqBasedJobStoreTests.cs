@@ -89,9 +89,9 @@ namespace Pomona.UnitTests.Scheduler
             public override Job Complete(Job job)
             {
                 if (job == null)
-                    throw new ArgumentNullException("job");
+                    throw new ArgumentNullException(nameof(job));
                 if (job.CompletedOn.HasValue)
-                    throw new ArgumentException("Job has already been completed.", "job");
+                    throw new ArgumentException("Job has already been completed.", nameof(job));
                 job.Complete(OnGetUtcNow());
                 return job;
             }
@@ -100,7 +100,7 @@ namespace Pomona.UnitTests.Scheduler
             public override Job Queue(JobDetails jobDetails)
             {
                 if (jobDetails == null)
-                    throw new ArgumentNullException("jobDetails");
+                    throw new ArgumentNullException(nameof(jobDetails));
                 var job = new Job(jobDetails.Url, jobDetails.ScheduledOn, jobDetails.Method);
                 this.jobs.Add(job);
                 return job;

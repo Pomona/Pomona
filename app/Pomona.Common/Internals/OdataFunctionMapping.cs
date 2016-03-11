@@ -498,9 +498,9 @@ namespace Pomona.Common.Internals
             public ReorderedList(IList<T> targetList, IList<int> order)
             {
                 if (targetList == null)
-                    throw new ArgumentNullException("targetList");
+                    throw new ArgumentNullException(nameof(targetList));
                 if (order == null)
-                    throw new ArgumentNullException("order");
+                    throw new ArgumentNullException(nameof(order));
                 if (targetList.Count != order.Count)
                     throw new ArgumentException();
                 this.targetList = targetList;

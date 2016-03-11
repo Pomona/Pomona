@@ -50,7 +50,7 @@ namespace Pomona
                              IContainer container = null)
         {
             if (factory == null)
-                throw new ArgumentNullException("factory");
+                throw new ArgumentNullException(nameof(factory));
             this.factory = factory;
             this.container = container;
         }
@@ -59,7 +59,7 @@ namespace Pomona
         private PomonaResponse DispatchInternal(PomonaContext context)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             if (context.Session != this)
                 throw new ArgumentException("Request session is not same as this.");
             var savedOuterContext = CurrentContext;

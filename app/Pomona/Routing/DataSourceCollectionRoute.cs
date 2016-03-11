@@ -46,7 +46,7 @@ namespace Pomona.Routing
             : base(0, parent)
         {
             if (resultItemType == null)
-                throw new ArgumentNullException("resultItemType");
+                throw new ArgumentNullException(nameof(resultItemType));
             this.parent = parent;
             this.resultItemType = resultItemType;
             this.resultType = parent.TypeMapper.FromType(typeof(IEnumerable<>).MakeGenericType(resultItemType));

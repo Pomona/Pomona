@@ -50,7 +50,7 @@ namespace Pomona.Queries
         public NodeTreeToExpressionConverter(IQueryTypeResolver propertyResolver, string parsedString)
         {
             if (propertyResolver == null)
-                throw new ArgumentNullException("propertyResolver");
+                throw new ArgumentNullException(nameof(propertyResolver));
             this.propertyResolver = propertyResolver;
             this.parsedString = parsedString;
         }
@@ -93,9 +93,9 @@ namespace Pomona.Queries
             NodeBase node)
         {
             if (thisParam == null)
-                throw new ArgumentNullException("thisParam");
+                throw new ArgumentNullException(nameof(thisParam));
             if (lamdbaParameters == null)
-                throw new ArgumentNullException("lamdbaParameters");
+                throw new ArgumentNullException(nameof(lamdbaParameters));
             try
             {
                 this.thisParam = thisParam;
@@ -491,7 +491,7 @@ namespace Pomona.Queries
         private Expression ParseMethodCallNode(MethodCallNode node, Expression memberExpression)
         {
             if (memberExpression == null)
-                throw new ArgumentNullException("memberExpression");
+                throw new ArgumentNullException(nameof(memberExpression));
             if (memberExpression == this.thisParam)
             {
                 if (node.HasArguments)
@@ -542,7 +542,7 @@ namespace Pomona.Queries
         private Expression ResolveSymbolNode(SymbolNode node, Expression memberExpression, Type expectedType)
         {
             if (memberExpression == null)
-                throw new ArgumentNullException("memberExpression");
+                throw new ArgumentNullException(nameof(memberExpression));
             if (memberExpression == this.thisParam)
             {
                 if (node.Name == "this")

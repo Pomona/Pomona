@@ -38,7 +38,7 @@ namespace Pomona.NHibernate3.Tests.Models
         public OrderLine(Order order)
         {
             if (order == null)
-                throw new ArgumentNullException("order");
+                throw new ArgumentNullException(nameof(order));
             this.order = order;
         }
 

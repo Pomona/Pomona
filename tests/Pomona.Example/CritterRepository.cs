@@ -77,7 +77,7 @@ namespace Pomona.Example
         public CritterRepository(TypeMapper typeMapper)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             this.typeMapper = typeMapper;
             ResetTestData();
         }

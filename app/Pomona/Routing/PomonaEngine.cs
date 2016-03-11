@@ -42,7 +42,7 @@ namespace Pomona.Routing
         public PomonaEngine(IPomonaSession session)
         {
             if (session == null)
-                throw new ArgumentNullException("session");
+                throw new ArgumentNullException(nameof(session));
             this.session = session;
         }
 
@@ -50,9 +50,9 @@ namespace Pomona.Routing
         public PomonaResponse Handle(NancyContext context, string modulePath)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             if (modulePath == null)
-                throw new ArgumentNullException("modulePath");
+                throw new ArgumentNullException(nameof(modulePath));
 
             HttpMethod httpMethod =
                 (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);

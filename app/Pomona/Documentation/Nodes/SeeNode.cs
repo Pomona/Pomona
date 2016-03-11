@@ -37,7 +37,7 @@ namespace Pomona.Documentation.Nodes
         public SeeNode(MemberSpec reference)
         {
             if (reference == null)
-                throw new ArgumentNullException("reference");
+                throw new ArgumentNullException(nameof(reference));
             Reference = reference;
         }
 

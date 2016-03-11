@@ -44,9 +44,9 @@ namespace Pomona.Common.TypeSystem
             : base(typeResolver, type)
         {
             if (keyType == null)
-                throw new ArgumentNullException("keyType");
+                throw new ArgumentNullException(nameof(keyType));
             if (valueType == null)
-                throw new ArgumentNullException("valueType");
+                throw new ArgumentNullException(nameof(valueType));
             this.keyType = CreateLazy(keyType);
             this.valueType = CreateLazy(valueType);
         }

@@ -83,7 +83,7 @@ namespace Pomona
         public PomonaQuery(StructuredType sourceType, StructuredType ofType = null)
         {
             if (sourceType == null)
-                throw new ArgumentNullException("sourceType");
+                throw new ArgumentNullException(nameof(sourceType));
 
             OrderByExpressions = new List<Tuple<LambdaExpression, SortOrder>>();
             this.sourceType = sourceType;

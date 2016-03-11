@@ -47,7 +47,7 @@ namespace Pomona.Queries
         public QueryTypeResolver(ITypeResolver typeMapper)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             this.typeMapper = typeMapper;
         }
 

@@ -36,7 +36,7 @@ namespace Pomona.Documentation.Xml.Serialization
         protected XDocNode(XNode node)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             Node = node;
         }
 

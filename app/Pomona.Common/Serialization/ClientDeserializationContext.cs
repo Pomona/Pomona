@@ -52,10 +52,10 @@ namespace Pomona.Common.Serialization
                                             IResourceLoader resourceLoader)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
 
             if (resourceLoader == null)
-                throw new ArgumentNullException("resourceLoader");
+                throw new ArgumentNullException(nameof(resourceLoader));
 
             this.typeMapper = typeMapper;
             this.client = client;

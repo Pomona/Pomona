@@ -84,9 +84,9 @@ namespace Pomona.Common.Linq.Queries
             public SelectExpression Create(QueryExpression source, LambdaExpression selector)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 if (selector == null)
-                    throw new ArgumentNullException("selector");
+                    throw new ArgumentNullException(nameof(selector));
                 return new SelectExpression(Call(Method.MakeGenericMethod(source.ElementType, selector.ReturnType),
                                                  source.Node,
                                                  ConvertAndQuote(selector, source.ElementType)),

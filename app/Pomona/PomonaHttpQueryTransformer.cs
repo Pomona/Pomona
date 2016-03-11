@@ -44,9 +44,9 @@ namespace Pomona
         public PomonaHttpQueryTransformer(ITypeResolver typeMapper, QueryExpressionParser parser)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             if (parser == null)
-                throw new ArgumentNullException("parser");
+                throw new ArgumentNullException(nameof(parser));
             this.typeMapper = typeMapper;
             this.parser = parser;
         }
@@ -56,9 +56,9 @@ namespace Pomona
         public PomonaQuery TransformRequest(PomonaContext context, StructuredType rootType, int? defaultTop = null)
         {
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             if (rootType == null)
-                throw new ArgumentNullException("rootType");
+                throw new ArgumentNullException(nameof(rootType));
 
             StructuredType ofType = null;
             if (context.Query["$oftype"].HasValue)

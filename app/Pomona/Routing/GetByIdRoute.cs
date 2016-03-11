@@ -46,7 +46,7 @@ namespace Pomona.Routing
             : base(10, parent)
         {
             if (resultItemType == null)
-                throw new ArgumentNullException("resultItemType");
+                throw new ArgumentNullException(nameof(resultItemType));
             this.resultItemType = resultItemType;
             this.allowedMethods = allowedMethods;
             this.idProperty = this.resultItemType.PrimaryId;

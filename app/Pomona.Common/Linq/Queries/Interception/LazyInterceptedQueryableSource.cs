@@ -40,7 +40,7 @@ namespace Pomona.Common.Linq.Queries.Interception
             : base(provider, null)
         {
             if (factory == null)
-                throw new ArgumentNullException("factory");
+                throw new ArgumentNullException(nameof(factory));
             this.factory = factory;
         }
 

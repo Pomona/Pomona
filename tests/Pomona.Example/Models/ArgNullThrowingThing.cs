@@ -38,7 +38,7 @@ namespace Pomona.Example.Models
         public ArgNullThrowingThing(string incoming)
         {
             if (incoming == null)
-                throw new ArgumentNullException("incoming");
+                throw new ArgumentNullException(nameof(incoming));
             this.incoming = incoming;
         }
 

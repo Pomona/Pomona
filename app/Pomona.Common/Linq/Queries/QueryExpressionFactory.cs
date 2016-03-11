@@ -40,7 +40,7 @@ namespace Pomona.Common.Linq.Queries
         {
             QueryExpression wrapper;
             if (!TryWrapNode(node, out wrapper))
-                throw new ArgumentException("Expression not wrappable by factory", "node");
+                throw new ArgumentException("Expression not wrappable by factory", nameof(node));
             return wrapper;
         }
 

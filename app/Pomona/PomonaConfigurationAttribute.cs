@@ -39,7 +39,7 @@ namespace Pomona
         public PomonaConfigurationAttribute(Type configurationType)
         {
             if (configurationType == null)
-                throw new ArgumentNullException("configurationType");
+                throw new ArgumentNullException(nameof(configurationType));
             this.configurationType = configurationType;
         }
 

@@ -573,7 +573,7 @@ namespace Pomona.UnitTests.Linq.Queries
             where TQueryExpression : QueryExpression
         {
             if (queryBuildAction == null)
-                throw new ArgumentNullException("queryBuildAction");
+                throw new ArgumentNullException(nameof(queryBuildAction));
             var queryExpr = queryBuildAction(Enumerable.Empty<Dummy>().AsQueryable()).Expression;
             var wrapper = QueryExpression.Wrap(queryExpr);
             Assert.That(wrapper, Is.InstanceOf<TQueryExpression>());

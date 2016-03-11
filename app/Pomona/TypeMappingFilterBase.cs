@@ -135,7 +135,7 @@ namespace Pomona
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return false;
         }
 
@@ -167,7 +167,7 @@ namespace Pomona
         public virtual Type GetClientLibraryType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return null;
         }
@@ -176,7 +176,7 @@ namespace Pomona
         public virtual JsonConverter GetJsonConverterForType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             //if (type == typeof(byte[]))
             //    return new BinaryConverter();
             return null;
@@ -204,7 +204,7 @@ namespace Pomona
         public virtual Type GetPostReturnType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             return type;
         }
 
@@ -254,7 +254,7 @@ namespace Pomona
         public virtual LambdaExpression GetPropertyFormula(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return null;
         }
 
@@ -278,7 +278,7 @@ namespace Pomona
         public virtual string GetPropertyMappedName(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return propertyInfo.Name;
         }
 
@@ -292,7 +292,7 @@ namespace Pomona
         public virtual Type GetPropertyType(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return propertyInfo.PropertyType;
         }
 
@@ -321,7 +321,7 @@ namespace Pomona
         public virtual Type GetUriBaseType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             if (TypeIsMappedAsValueObject(type))
                 return null;
@@ -358,7 +358,7 @@ namespace Pomona
         public virtual bool PropertyIsAttributes(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return false;
         }
 
@@ -366,7 +366,7 @@ namespace Pomona
         public virtual bool PropertyIsEtag(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return false;
         }
 
@@ -374,7 +374,7 @@ namespace Pomona
         public virtual bool PropertyIsIncluded(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             var getMethod = propertyInfo.GetGetMethod(true);
             return getMethod != null && getMethod.IsPublic && !getMethod.IsStatic;
         }
@@ -383,7 +383,7 @@ namespace Pomona
         public virtual bool PropertyIsPrimaryId(Type type, PropertyInfo propertyInfo)
         {
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return propertyInfo.Name.ToLower() == "id";
         }
 
@@ -391,7 +391,7 @@ namespace Pomona
         public virtual Type ResolveRealTypeForProxy(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             // TODO: Implement some crude heuristics to check whether a type is a proxy type,
             //       that should be treated as its base type.
             //
@@ -439,7 +439,7 @@ namespace Pomona
         public virtual bool TypeIsMappedAsCollection(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             Type _;
             return type != typeof(string) &&

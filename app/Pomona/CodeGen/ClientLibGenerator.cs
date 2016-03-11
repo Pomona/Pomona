@@ -77,7 +77,7 @@ namespace Pomona.CodeGen
         public ClientLibGenerator(TypeMapper typeMapper, IDocumentationProvider docProvider = null)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             this.typeMapper = typeMapper;
             this.docProvider = docProvider ?? new EmptyDocProvider();
             this.allowedReferencedAssemblies = new[]
@@ -1421,7 +1421,7 @@ namespace Pomona.CodeGen
                 }
 
                 if (parent == null)
-                    throw new ArgumentNullException("parent");
+                    throw new ArgumentNullException(nameof(parent));
 
                 this.parent = parent;
                 this.structuredType = structuredType;

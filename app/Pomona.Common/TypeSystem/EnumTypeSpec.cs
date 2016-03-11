@@ -71,9 +71,9 @@ namespace Pomona.Common.TypeSystem
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
                 if (typeResolver == null)
-                    throw new ArgumentNullException("typeResolver");
+                    throw new ArgumentNullException(nameof(typeResolver));
                 if (type == null)
-                    throw new ArgumentNullException("type");
+                    throw new ArgumentNullException(nameof(type));
 
                 if (!type.IsEnum)
                     return null;

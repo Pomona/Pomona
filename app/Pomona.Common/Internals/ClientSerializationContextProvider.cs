@@ -43,13 +43,13 @@ namespace Pomona.Common.Internals
         internal ClientSerializationContextProvider(ClientTypeMapper clientTypeMapper, IPomonaClient client, IResourceLoader resourceLoader)
         {
             if (clientTypeMapper == null)
-                throw new ArgumentNullException("clientTypeMapper");
+                throw new ArgumentNullException(nameof(clientTypeMapper));
 
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
 
             if (resourceLoader == null)
-                throw new ArgumentNullException("resourceLoader");
+                throw new ArgumentNullException(nameof(resourceLoader));
 
             this.clientTypeMapper = clientTypeMapper;
             this.client = client;

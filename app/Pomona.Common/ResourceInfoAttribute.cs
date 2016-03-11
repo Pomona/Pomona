@@ -92,7 +92,7 @@ namespace Pomona.Common
         public static bool TryGet(Type type, out ResourceInfoAttribute ria)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             if (!attributeCache.TryGetValue(type, out ria))
             {
                 // Only cache if not null

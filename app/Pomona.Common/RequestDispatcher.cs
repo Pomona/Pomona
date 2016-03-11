@@ -73,11 +73,11 @@ namespace Pomona.Common
                                                    RequestOptions options = null)
         {
             if (provider == null)
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (httpMethod == null)
-                throw new ArgumentNullException("httpMethod");
+                throw new ArgumentNullException(nameof(httpMethod));
             if (options == null)
                 options = new RequestOptions();
 
@@ -242,11 +242,11 @@ namespace Pomona.Common
                                                          RequestOptions options)
         {
             if (provider == null)
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (httpMethod == null)
-                throw new ArgumentNullException("httpMethod");
+                throw new ArgumentNullException(nameof(httpMethod));
             if (options == null)
                 options = new RequestOptions();
 

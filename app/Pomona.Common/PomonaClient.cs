@@ -63,7 +63,7 @@ namespace Pomona.Common
         public PomonaClient(ClientTypeMapper typeMapper, IRequestDispatcher dispatcher)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             dispatcher = dispatcher ?? CreateDefaultRequestDispatcher(typeMapper);
 
             this.typeMapper = typeMapper;
@@ -137,7 +137,7 @@ namespace Pomona.Common
         private static string GetUriOfForm(object form)
         {
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
             var delta = form as IDelta;
             if (delta != null)
                 return ((IHasResourceUri)delta.Original).Uri;
@@ -152,7 +152,7 @@ namespace Pomona.Common
         public virtual void Delete(object resource, RequestOptions options)
         {
             if (resource == null)
-                throw new ArgumentNullException("resource");
+                throw new ArgumentNullException(nameof(resource));
             var uri = ((IHasResourceUri)resource).Uri;
             this.dispatcher.SendRequest(uri, "DELETE", null, GetSerializationContextProvider(options), options);
         }
@@ -161,7 +161,7 @@ namespace Pomona.Common
         public virtual Task<object> GetAsync(string uri, Type type, RequestOptions requestOptions)
         {
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (requestOptions == null)
                 requestOptions = new RequestOptions(type);
             else if (type != null && requestOptions.ExpectedResponseType == null)
@@ -173,7 +173,7 @@ namespace Pomona.Common
         public virtual object Get(string uri, Type type, RequestOptions requestOptions)
         {
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (requestOptions == null)
                 requestOptions = new RequestOptions(type);
             else if (type != null && requestOptions.ExpectedResponseType == null)
@@ -186,7 +186,7 @@ namespace Pomona.Common
         public virtual object Patch(object form, RequestOptions options)
         {
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
 
             var uri = GetUriOfForm(form);
 
@@ -198,9 +198,9 @@ namespace Pomona.Common
         public virtual object Post(string uri, object form, RequestOptions options)
         {
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
 
             return this.dispatcher.SendRequest(uri, "POST", form, GetSerializationContextProvider(options), options);
         }
@@ -209,9 +209,9 @@ namespace Pomona.Common
         public virtual Task<object> PostAsync(string uri, IPostForm form, RequestOptions options)
         {
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
 
             return this.dispatcher.SendRequestAsync(uri, "POST", form, GetSerializationContextProvider(options), options);
         }
@@ -220,7 +220,7 @@ namespace Pomona.Common
         public virtual Task<object> PatchAsync(object form, RequestOptions options)
         {
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
 
             var uri = GetUriOfForm(form);
 
@@ -232,7 +232,7 @@ namespace Pomona.Common
         public async Task DeleteAsync(object resource, RequestOptions options)
         {
             if (resource == null)
-                throw new ArgumentNullException("resource");
+                throw new ArgumentNullException(nameof(resource));
             var uri = ((IHasResourceUri)resource).Uri;
             await this.dispatcher.SendRequestAsync(uri, "DELETE", null, GetSerializationContextProvider(options), options);
         }
@@ -241,7 +241,7 @@ namespace Pomona.Common
         public virtual IQueryable<T> Query<T>(string uri)
         {
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
 
             return
                 this.typeMapper.WrapExtendedQuery<T>(
@@ -255,11 +255,11 @@ namespace Pomona.Common
             if (resourceWithUri == null)
             {
                 throw new ArgumentException("Could not find resource URI, resouce not of type IHasResourceUri.",
-                                            "resource");
+                                            nameof(resource));
             }
 
             if (resourceWithUri.Uri == null)
-                throw new ArgumentException("Uri on resource was null.", "resource");
+                throw new ArgumentException("Uri on resource was null.", nameof(resource));
 
             if (!typeof(T).IsInterface)
                 throw new ArgumentException("Type should be an interface inherited from a known resource type.");

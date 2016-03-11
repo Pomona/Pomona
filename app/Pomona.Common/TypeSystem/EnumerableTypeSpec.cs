@@ -39,7 +39,7 @@ namespace Pomona.Common.TypeSystem
             : base(typeResolver, type)
         {
             if (itemType == null)
-                throw new ArgumentNullException("itemType");
+                throw new ArgumentNullException(nameof(itemType));
             this.itemType = itemType;
         }
 
@@ -84,9 +84,9 @@ namespace Pomona.Common.TypeSystem
             public TypeSpec CreateFromType(ITypeResolver typeResolver, Type type)
             {
                 if (typeResolver == null)
-                    throw new ArgumentNullException("typeResolver");
+                    throw new ArgumentNullException(nameof(typeResolver));
                 if (type == null)
-                    throw new ArgumentNullException("type");
+                    throw new ArgumentNullException(nameof(type));
 
                 Type itemTypeLocal;
                 if (type == typeof(string) || !type.TryGetEnumerableElementType(out itemTypeLocal))

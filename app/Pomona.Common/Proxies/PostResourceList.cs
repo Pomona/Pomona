@@ -42,7 +42,7 @@ namespace Pomona.Common.Proxies
         internal PostResourceList(PostResourceBase owner, string propertyName)
         {
             if (owner == null)
-                throw new ArgumentNullException("owner");
+                throw new ArgumentNullException(nameof(owner));
             this.owner = owner;
             this.propertyName = propertyName;
         }

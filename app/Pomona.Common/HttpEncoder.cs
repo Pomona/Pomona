@@ -221,17 +221,17 @@ namespace Pomona.Common
         internal static byte[] UrlEncodeToBytes(byte[] bytes, int offset, int count)
         {
             if (bytes == null)
-                throw new ArgumentNullException("bytes");
+                throw new ArgumentNullException(nameof(bytes));
 
             var blen = bytes.Length;
             if (blen == 0)
                 return new byte[0];
 
             if (offset < 0 || offset >= blen)
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
 
             if (count < 0 || count > blen - offset)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             var result = new MemoryStream(count);
             var end = offset + count;

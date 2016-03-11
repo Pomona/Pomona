@@ -41,10 +41,10 @@ namespace Pomona.Scheduler
         IJob IJobStore.Complete(IJob job)
         {
             if (job == null)
-                throw new ArgumentNullException("job");
+                throw new ArgumentNullException(nameof(job));
             var castJob = job as TJob;
             if (castJob == null)
-                throw new ArgumentException("Job must be of type " + typeof(TJob).FullName, "job");
+                throw new ArgumentException("Job must be of type " + typeof(TJob).FullName, nameof(job));
             return Complete(castJob);
         }
 
@@ -52,7 +52,7 @@ namespace Pomona.Scheduler
         IJob IJobScheduler.Queue(JobDetails jobDetails)
         {
             if (jobDetails == null)
-                throw new ArgumentNullException("jobDetails");
+                throw new ArgumentNullException(nameof(jobDetails));
             return Queue(jobDetails);
         }
 

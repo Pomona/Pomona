@@ -37,7 +37,7 @@ namespace Pomona.Common.Linq.Queries.Interception
         public static IQueryable<T> InterceptWith<T>(this IQueryable<T> source, params ExpressionVisitor[] visitors)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             return new InterceptedQueryableSource<T>(new InterceptedQueryProvider(visitors), source);
         }
     }

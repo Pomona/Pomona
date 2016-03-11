@@ -58,9 +58,9 @@ namespace Pomona
         public TypeMapper(ITypeMappingFilter filter, IEnumerable<Type> sourceTypes, Action<TypeMapper> onMappingComplete)
         {
             if (filter == null)
-                throw new ArgumentNullException("filter");
+                throw new ArgumentNullException(nameof(filter));
             if (sourceTypes == null)
-                throw new ArgumentNullException("sourceTypes");
+                throw new ArgumentNullException(nameof(sourceTypes));
 
             Filter = filter;
 

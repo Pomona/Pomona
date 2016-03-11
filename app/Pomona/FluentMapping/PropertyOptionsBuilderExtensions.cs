@@ -39,7 +39,7 @@ namespace Pomona.FluentMapping
             <TDeclaringType, TPropertyType>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> builder)
         {
             if (builder == null)
-                throw new ArgumentNullException("builder");
+                throw new ArgumentNullException(nameof(builder));
             return builder.Expand(ExpandMode.Full);
         }
 
@@ -48,7 +48,7 @@ namespace Pomona.FluentMapping
             <TDeclaringType, TPropertyType>(this IPropertyOptionsBuilder<TDeclaringType, TPropertyType> builder)
         {
             if (builder == null)
-                throw new ArgumentNullException("builder");
+                throw new ArgumentNullException(nameof(builder));
             return builder.Expand(ExpandMode.Shallow);
         }
 
@@ -58,7 +58,7 @@ namespace Pomona.FluentMapping
                                             Expression<Func<TDeclaringType, TPropertyType>> getter)
         {
             if (builder == null)
-                throw new ArgumentNullException("builder");
+                throw new ArgumentNullException(nameof(builder));
             return builder.OnQuery(getter).OnGet(getter.Compile());
         }
     }

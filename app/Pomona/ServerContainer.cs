@@ -42,7 +42,7 @@ namespace Pomona
         public ServerContainer(NancyContext nancyContext)
         {
             if (nancyContext == null)
-                throw new ArgumentNullException("nancyContext");
+                throw new ArgumentNullException(nameof(nancyContext));
             this.nancyContext = nancyContext;
         }
 

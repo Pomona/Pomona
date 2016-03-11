@@ -52,7 +52,7 @@ namespace Pomona.Common.Internals
             {
                 throw new ArgumentException(
                     "sourceType does not implement any resource-type known to client.",
-                    "sourceType");
+                    nameof(sourceType));
             }
             return mostSubtyped.InterfaceType;
         }

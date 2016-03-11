@@ -49,7 +49,7 @@ namespace Pomona.Common.Expressions
         public LambdaRewriter(Func<IRewriteContext, TExpression, Expression> visitMethod)
         {
             if (visitMethod == null)
-                throw new ArgumentNullException("visitMethod");
+                throw new ArgumentNullException(nameof(visitMethod));
             this.visitMethod = visitMethod;
         }
 

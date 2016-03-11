@@ -81,7 +81,7 @@ namespace Pomona.Common.TypeSystem
         protected virtual TypeSpec CreateType(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             var typeSpec = this.typeFactories.Select(x => x.CreateFromType(this, type)).FirstOrDefault(x => x != null);
             if (typeSpec == null)
                 throw new InvalidOperationException("Unable to find a TypeSpec factory for mapping type " + type);
@@ -126,7 +126,7 @@ namespace Pomona.Common.TypeSystem
         public virtual PropertySpec LoadBaseDefinition(PropertySpec propertySpec)
         {
             if (propertySpec == null)
-                throw new ArgumentNullException("propertySpec");
+                throw new ArgumentNullException(nameof(propertySpec));
             return propertySpec.OnLoadBaseDefinition();
         }
 
@@ -134,7 +134,7 @@ namespace Pomona.Common.TypeSystem
         public virtual TypeSpec LoadBaseType(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             return typeSpec.OnLoadBaseType();
         }
 
@@ -142,7 +142,7 @@ namespace Pomona.Common.TypeSystem
         public virtual ConstructorSpec LoadConstructor(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             return typeSpec.OnLoadConstructor();
         }
 
@@ -150,7 +150,7 @@ namespace Pomona.Common.TypeSystem
         public virtual IEnumerable<Attribute> LoadDeclaredAttributes(MemberSpec memberSpec)
         {
             if (memberSpec == null)
-                throw new ArgumentNullException("memberSpec");
+                throw new ArgumentNullException(nameof(memberSpec));
             return memberSpec.OnLoadDeclaredAttributes();
         }
 
@@ -158,7 +158,7 @@ namespace Pomona.Common.TypeSystem
         public virtual TypeSpec LoadDeclaringType(PropertySpec propertySpec)
         {
             if (propertySpec == null)
-                throw new ArgumentNullException("propertySpec");
+                throw new ArgumentNullException(nameof(propertySpec));
 
             return propertySpec.OnLoadDeclaringType();
         }
@@ -167,7 +167,7 @@ namespace Pomona.Common.TypeSystem
         public virtual IEnumerable<TypeSpec> LoadGenericArguments(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             return typeSpec.OnLoadGenericArguments();
         }
 
@@ -175,7 +175,7 @@ namespace Pomona.Common.TypeSystem
         public virtual PropertyGetter LoadGetter(PropertySpec propertySpec)
         {
             if (propertySpec == null)
-                throw new ArgumentNullException("propertySpec");
+                throw new ArgumentNullException(nameof(propertySpec));
             return propertySpec.OnLoadGetter();
         }
 
@@ -183,7 +183,7 @@ namespace Pomona.Common.TypeSystem
         public virtual IEnumerable<TypeSpec> LoadInterfaces(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             return typeSpec.OnLoadInterfaces();
         }
 
@@ -191,7 +191,7 @@ namespace Pomona.Common.TypeSystem
         public virtual string LoadName(MemberSpec memberSpec)
         {
             if (memberSpec == null)
-                throw new ArgumentNullException("memberSpec");
+                throw new ArgumentNullException(nameof(memberSpec));
             return memberSpec.OnLoadName();
         }
 
@@ -199,7 +199,7 @@ namespace Pomona.Common.TypeSystem
         public virtual string LoadNamespace(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
 
             return typeSpec.OnLoadNamespace();
         }
@@ -208,7 +208,7 @@ namespace Pomona.Common.TypeSystem
         public virtual IEnumerable<PropertySpec> LoadProperties(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             return typeSpec.OnLoadProperties();
         }
 
@@ -216,7 +216,7 @@ namespace Pomona.Common.TypeSystem
         public virtual PropertyFlags LoadPropertyFlags(PropertySpec propertySpec)
         {
             if (propertySpec == null)
-                throw new ArgumentNullException("propertySpec");
+                throw new ArgumentNullException(nameof(propertySpec));
             return propertySpec.OnLoadPropertyFlags();
         }
 
@@ -224,7 +224,7 @@ namespace Pomona.Common.TypeSystem
         public virtual TypeSpec LoadPropertyType(PropertySpec propertySpec)
         {
             if (propertySpec == null)
-                throw new ArgumentNullException("propertySpec");
+                throw new ArgumentNullException(nameof(propertySpec));
             return propertySpec.OnLoadPropertyType();
         }
 
@@ -232,7 +232,7 @@ namespace Pomona.Common.TypeSystem
         public virtual IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             return typeSpec.OnLoadRequiredProperties();
         }
 
@@ -240,7 +240,7 @@ namespace Pomona.Common.TypeSystem
         public virtual RuntimeTypeDetails LoadRuntimeTypeDetails(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             return typeSpec.OnLoadRuntimeTypeDetails();
         }
 
@@ -248,7 +248,7 @@ namespace Pomona.Common.TypeSystem
         public virtual PropertySetter LoadSetter(PropertySpec propertySpec)
         {
             if (propertySpec == null)
-                throw new ArgumentNullException("propertySpec");
+                throw new ArgumentNullException(nameof(propertySpec));
             return propertySpec.OnLoadSetter();
         }
 
@@ -256,7 +256,7 @@ namespace Pomona.Common.TypeSystem
         public virtual ResourceType LoadUriBaseType(ResourceType resourceType)
         {
             if (resourceType == null)
-                throw new ArgumentNullException("resourceType");
+                throw new ArgumentNullException(nameof(resourceType));
             return resourceType.OnLoadUriBaseType();
         }
 
@@ -270,9 +270,9 @@ namespace Pomona.Common.TypeSystem
         public virtual PropertySpec WrapProperty(TypeSpec typeSpec, PropertyInfo propertyInfo)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             if (propertyInfo == null)
-                throw new ArgumentNullException("propertyInfo");
+                throw new ArgumentNullException(nameof(propertyInfo));
             return typeSpec.OnWrapProperty(propertyInfo);
         }
     }

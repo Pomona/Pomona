@@ -43,7 +43,7 @@ namespace Pomona.Common.Expressions
         private SearchReplaceVisitor(IEnumerable<TreePatternMatcher> matchers)
         {
             if (matchers == null)
-                throw new ArgumentNullException("matchers");
+                throw new ArgumentNullException(nameof(matchers));
             this.matchers = matchers.ToList();
         }
 

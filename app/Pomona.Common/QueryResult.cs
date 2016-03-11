@@ -98,7 +98,7 @@ namespace Pomona.Common
         private static QueryResult Create<TSource>(IEnumerable source, int skip, int totalCount, string previousPageUrl, string nextPageUrl)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             var castSource = source as IEnumerable<TSource> ?? source.Cast<TSource>();
             Type[] tmp;
             var isSetCollection = source.GetType().TryExtractTypeArguments(typeof(ISet<>), out tmp);

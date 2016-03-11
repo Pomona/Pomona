@@ -61,13 +61,13 @@ namespace Pomona.Common.TypeSystem
                                      VirtualPropertyInfo baseDefinition)
         {
             if (declaringType == null)
-                throw new ArgumentNullException("declaringType");
+                throw new ArgumentNullException(nameof(declaringType));
             if (reflectedType == null)
-                throw new ArgumentNullException("reflectedType");
+                throw new ArgumentNullException(nameof(reflectedType));
             if (propertyType == null)
-                throw new ArgumentNullException("propertyType");
+                throw new ArgumentNullException(nameof(propertyType));
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             this.declaringType = declaringType;
             this.reflectedType = reflectedType;
             this.propertyType = propertyType;

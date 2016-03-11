@@ -35,7 +35,7 @@ namespace Pomona.Common.TypeSystem
         public static TypeSpec FromType<T>(this ITypeResolver typeResolver)
         {
             if (typeResolver == null)
-                throw new ArgumentNullException("typeResolver");
+                throw new ArgumentNullException(nameof(typeResolver));
             return typeResolver.FromType(typeof(T));
         }
     }

@@ -43,7 +43,7 @@ namespace Pomona.Example
         public HandledThingsHandler(CritterRepository repository)
         {
             if (repository == null)
-                throw new ArgumentNullException("repository");
+                throw new ArgumentNullException(nameof(repository));
             this.repository = repository;
         }
 
@@ -72,7 +72,7 @@ namespace Pomona.Example
         public HandledSingleChild Patch(HandledThing parent, HandledSingleChild child)
         {
             if (parent == null)
-                throw new ArgumentNullException("parent");
+                throw new ArgumentNullException(nameof(parent));
 
             child.PatchHandlerCalled = true;
 
@@ -94,9 +94,9 @@ namespace Pomona.Example
         public HandledThing Post(HandledThing handledThing, PomonaContext context)
         {
             if (handledThing == null)
-                throw new ArgumentNullException("handledThing");
+                throw new ArgumentNullException(nameof(handledThing));
             if (context == null)
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException(nameof(context));
             handledThing.Marker = "HANDLER WAS HERE!";
             return (HandledThing)this.repository.Post(handledThing);
         }

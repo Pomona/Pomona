@@ -51,7 +51,7 @@ namespace Pomona.Common.Serialization.Json
         public PomonaJsonSerializerTypeEntry(TypeSpec type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             this.type = type;
 
             BuildAcceleratedPropertyWritingAction();

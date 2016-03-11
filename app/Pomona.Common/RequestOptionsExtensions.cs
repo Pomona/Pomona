@@ -39,11 +39,11 @@ namespace Pomona.Common
             where TRequestOptions : IRequestOptions
         {
             if ((object)requestOptions == null)
-                throw new ArgumentNullException("requestOptions");
+                throw new ArgumentNullException(nameof(requestOptions));
             if (key == null)
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             return requestOptions.RewriteUrl(u => string.Format(CultureInfo.InvariantCulture,
                                                                 "{0}{1}{2}={3}",
@@ -59,9 +59,9 @@ namespace Pomona.Common
             where TRequestOptions : IRequestOptions
         {
             if ((object)requestOptions == null)
-                throw new ArgumentNullException("requestOptions");
+                throw new ArgumentNullException(nameof(requestOptions));
             if (urlRewriter == null)
-                throw new ArgumentNullException("urlRewriter");
+                throw new ArgumentNullException(nameof(urlRewriter));
 
             return (TRequestOptions)requestOptions.ModifyRequest(x => x.RequestUri = new Uri(urlRewriter(x.RequestUri.ToString())));
         }

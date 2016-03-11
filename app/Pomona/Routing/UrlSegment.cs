@@ -64,10 +64,10 @@ namespace Pomona.Routing
                            RouteMatchTree tree = null)
         {
             if (route == null)
-                throw new ArgumentNullException("route");
+                throw new ArgumentNullException(nameof(route));
             tree = tree ?? (parent != null ? parent.tree : null);
             if (tree == null)
-                throw new ArgumentNullException("tree");
+                throw new ArgumentNullException(nameof(tree));
             if (parent != null && route.Parent != parent.route)
             {
                 throw new ArgumentException(

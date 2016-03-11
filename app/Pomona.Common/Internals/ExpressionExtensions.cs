@@ -66,7 +66,7 @@ namespace Pomona.Common.Internals
         public static string GetPropertyPath(this LambdaExpression lambdaExpression, bool jsonNameStyle = false)
         {
             if (lambdaExpression == null)
-                throw new ArgumentNullException("lambdaExpression");
+                throw new ArgumentNullException(nameof(lambdaExpression));
             var sb = new StringBuilder();
 
             var body = lambdaExpression.Body;
@@ -120,7 +120,7 @@ namespace Pomona.Common.Internals
             where TVisitor : ExpressionVisitor, new()
         {
             if (expression == null)
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             return new TVisitor().Visit(expression);
         }
 

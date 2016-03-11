@@ -38,7 +38,7 @@ namespace Pomona.Example.Models
         public HandledChild(HandledThing parent)
         {
             if (parent == null)
-                throw new ArgumentNullException("parent");
+                throw new ArgumentNullException(nameof(parent));
             this.parent = parent;
             this.parent.Children.Add(this);
         }

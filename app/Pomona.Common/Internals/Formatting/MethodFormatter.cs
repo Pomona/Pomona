@@ -43,7 +43,7 @@ namespace Pomona.Common.Internals.Formatting
             : base(method.Maybe().Select(m => m.Name).OrDefault())
         {
             if (method == null)
-                throw new ArgumentNullException("method");
+                throw new ArgumentNullException(nameof(method));
 
             this.method = method;
         }

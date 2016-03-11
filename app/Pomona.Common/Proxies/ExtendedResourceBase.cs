@@ -135,11 +135,11 @@ namespace Pomona.Common.Proxies
         internal void Initialize(IClientTypeResolver client, ExtendedResourceInfo userTypeInfo, object proxyTarget)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
+                throw new ArgumentNullException(nameof(client));
             if (userTypeInfo == null)
-                throw new ArgumentNullException("userTypeInfo");
+                throw new ArgumentNullException(nameof(userTypeInfo));
             if (proxyTarget == null)
-                throw new ArgumentNullException("proxyTarget");
+                throw new ArgumentNullException(nameof(proxyTarget));
             Client = client;
             UserTypeInfo = userTypeInfo;
             WrappedResource = proxyTarget;

@@ -134,7 +134,7 @@ namespace Pomona.Common.TypeSystem
         public Maybe<TRet> Switch<TRet>(Func<ITypeSwitch, ITypeSwitch<TRet>> cases)
         {
             if (cases == null)
-                throw new ArgumentNullException("cases");
+                throw new ArgumentNullException(nameof(cases));
             if (!this.hasValue)
                 return Maybe<TRet>.Empty;
             return cases(Switch()).EndSwitch();
@@ -158,7 +158,7 @@ namespace Pomona.Common.TypeSystem
         public Maybe<T> Where(Func<T, bool> predicate)
         {
             if (predicate == null)
-                throw new ArgumentNullException("predicate");
+                throw new ArgumentNullException(nameof(predicate));
             if (this.hasValue && predicate(this.value))
                 return this;
             return Empty;
@@ -383,7 +383,7 @@ namespace Pomona.Common.TypeSystem
             public ITypeSwitch<TRet> Then<TRet>(Func<TIn, TRet> thenFunc)
             {
                 if (thenFunc == null)
-                    throw new ArgumentNullException("thenFunc");
+                    throw new ArgumentNullException(nameof(thenFunc));
                 return new FinishedTypeSwitch<TRet>(this.value.Select(thenFunc));
             }
         }
@@ -402,7 +402,7 @@ namespace Pomona.Common.TypeSystem
             public ITypeSwitch<TRet> Then(Func<TIn, TRet> thenFunc)
             {
                 if (thenFunc == null)
-                    throw new ArgumentNullException("thenFunc");
+                    throw new ArgumentNullException(nameof(thenFunc));
                 return new FinishedTypeSwitch<TRet>(new Maybe<TRet>(thenFunc(this.value)));
             }
         }
@@ -431,7 +431,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<TCast> Case<TCast>(Func<TCast, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (!this.value.HasValue)
                     return new MatchingCaseThen<TCast>(Maybe<TCast>.Empty);
                 if (this.value.Value is TCast)
@@ -447,7 +447,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<T> Case(Func<T, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (!this.value.HasValue || predicate(this.value.Value))
                     return new MatchingCaseThen<T>(this.value);
                 return new NonMatchingCaseThen<T>(this.value);
@@ -468,7 +468,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<TCast, TRet> Case<TCast>(Func<TCast, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (this.value is TCast)
                 {
                     var castValue = (TCast)((object)this.value);
@@ -488,7 +488,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<T, TRet> Case(Func<T, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (predicate(this.value))
                     return new MatchingCaseThen<T, TRet>(this.value);
                 return new PassthroughCaseThen<T, TRet>(this);

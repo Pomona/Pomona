@@ -238,7 +238,7 @@ namespace Pomona.Fetcher
         protected virtual IEnumerable<TEntity> FetchEntitiesById<TEntity, TId>(TId[] ids, PropertyInfo idProp)
         {
             if (idProp == null)
-                throw new ArgumentNullException("idProp");
+                throw new ArgumentNullException(nameof(idProp));
             var fetchPredicateParam = Expression.Parameter(typeof(TEntity), "x");
             var fetchPredicate = Expression.Lambda<Func<TEntity, bool>>(
                 Expression.Call(
@@ -357,9 +357,9 @@ namespace Pomona.Fetcher
         private static IEnumerable<T[]> Partition<T>(IEnumerable<T> source, int partLength)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (partLength < 1)
-                throw new ArgumentOutOfRangeException("partLength", "Can't divide sequence in parts less than length 1");
+                throw new ArgumentOutOfRangeException(nameof(partLength), "Can't divide sequence in parts less than length 1");
             T[] part = null;
             var offset = 0;
             foreach (var item in source)

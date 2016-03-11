@@ -41,7 +41,7 @@ namespace Pomona.Common.Linq
             : base(type ?? typeof(string), localExecutionPreferred)
         {
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             this.value = value;
         }
 

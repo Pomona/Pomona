@@ -42,11 +42,11 @@ namespace Pomona.Common.Serialization.Patch
         protected Delta(object original, TypeSpec type, ITypeResolver typeMapper, Delta parent = null)
         {
             if (original == null)
-                throw new ArgumentNullException("original");
+                throw new ArgumentNullException(nameof(original));
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             Original = original;
             Type = type;
             TypeMapper = typeMapper;

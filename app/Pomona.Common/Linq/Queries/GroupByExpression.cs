@@ -84,9 +84,9 @@ namespace Pomona.Common.Linq.Queries
             public GroupByExpression Create(QueryExpression source, LambdaExpression keySelector)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 if (keySelector == null)
-                    throw new ArgumentNullException("keySelector");
+                    throw new ArgumentNullException(nameof(keySelector));
                 return new GroupByExpression(Call(Method.MakeGenericMethod(source.ElementType, keySelector.ReturnType),
                                                   source.Node,
                                                   ConvertAndQuote(keySelector, source.ElementType)),

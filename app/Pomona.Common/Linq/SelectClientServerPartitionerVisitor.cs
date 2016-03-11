@@ -50,7 +50,7 @@ namespace Pomona.Common.Linq
         public SelectClientServerPartitionerVisitor(QueryPredicateBuilder builder)
         {
             if (builder == null)
-                throw new ArgumentNullException("builder");
+                throw new ArgumentNullException(nameof(builder));
             this.builder = builder;
         }
 
@@ -78,7 +78,7 @@ namespace Pomona.Common.Linq
         internal ClientServerSplitSelectExpression SplitExpression(LambdaExpression node)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             if (this.rootLambda != null)
                 throw new InvalidOperationException();
             this.rootLambda = node;

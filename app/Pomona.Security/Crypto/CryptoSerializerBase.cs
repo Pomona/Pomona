@@ -49,9 +49,9 @@ namespace Pomona.Security.Crypto
         public CryptoSerializerBase(ISiteKeyProvider siteKeyProvider, RandomNumberGenerator randomNumberGenerator)
         {
             if (siteKeyProvider == null)
-                throw new ArgumentNullException("siteKeyProvider");
+                throw new ArgumentNullException(nameof(siteKeyProvider));
             if (randomNumberGenerator == null)
-                throw new ArgumentNullException("randomNumberGenerator");
+                throw new ArgumentNullException(nameof(randomNumberGenerator));
             this.siteKeyProvider = siteKeyProvider;
             this.randomNumberGenerator = randomNumberGenerator;
         }
@@ -154,7 +154,7 @@ namespace Pomona.Security.Crypto
         public T Deserialize<T>(string hexString)
         {
             if (hexString == null)
-                throw new ArgumentNullException("hexString");
+                throw new ArgumentNullException(nameof(hexString));
             try
             {
                 return DeserializeUnprotected<T>(hexString);

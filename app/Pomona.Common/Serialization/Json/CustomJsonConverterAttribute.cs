@@ -40,7 +40,7 @@ namespace Pomona.Common.Serialization.Json
         public CustomJsonConverterAttribute(JsonConverter jsonConverter)
         {
             if (jsonConverter == null)
-                throw new ArgumentNullException("jsonConverter");
+                throw new ArgumentNullException(nameof(jsonConverter));
             this.jsonConverter = jsonConverter;
         }
 

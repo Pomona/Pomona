@@ -37,7 +37,7 @@ namespace Pomona.Queries
             : base(nodeType, children)
         {
             if (Children.Count != 2)
-                throw new ArgumentException("A binary operator always need to have 2 child nodes", "children");
+                throw new ArgumentException("A binary operator always need to have 2 child nodes", nameof(children));
         }
 
 

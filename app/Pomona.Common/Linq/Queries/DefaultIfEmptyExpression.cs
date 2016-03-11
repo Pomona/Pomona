@@ -78,7 +78,7 @@ namespace Pomona.Common.Linq.Queries
             public DefaultIfEmptyExpression Create(QueryExpression source)
             {
                 if (source == null)
-                    throw new ArgumentNullException("source");
+                    throw new ArgumentNullException(nameof(source));
                 return new DefaultIfEmptyExpression(Call(Method.MakeGenericMethod(source.ElementType), source.Node),
                                                     source);
             }

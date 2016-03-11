@@ -40,9 +40,9 @@ namespace Pomona.Security.Authentication
                                                   IPreAuthenticatedUriProvider authenticatedUrlHelper)
         {
             if (uriResolver == null)
-                throw new ArgumentNullException("uriResolver");
+                throw new ArgumentNullException(nameof(uriResolver));
             if (authenticatedUrlHelper == null)
-                throw new ArgumentNullException("authenticatedUrlHelper");
+                throw new ArgumentNullException(nameof(authenticatedUrlHelper));
             this.uriResolver = uriResolver;
             this.authenticatedUrlHelper = authenticatedUrlHelper;
         }

@@ -62,7 +62,7 @@ namespace Pomona.Common.Serialization.Json
         public PomonaJsonDeserializer(ISerializationContextProvider contextProvider)
         {
             if (contextProvider == null)
-                throw new ArgumentNullException("contextProvider");
+                throw new ArgumentNullException(nameof(contextProvider));
             this.contextProvider = contextProvider;
             this.jsonSerializer = new JsonSerializer() { DateParseHandling = DateParseHandling.None };
             this.jsonSerializer.Converters.Add(new StringEnumConverter());

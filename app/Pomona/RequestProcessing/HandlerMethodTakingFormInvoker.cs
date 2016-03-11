@@ -42,11 +42,11 @@ namespace Pomona.RequestProcessing
             : base(method)
         {
             if (formParameter == null)
-                throw new ArgumentNullException("formParameter");
+                throw new ArgumentNullException(nameof(formParameter));
             if (formParameter.Method != method)
-                throw new ArgumentException("Parameter provided does not belong to method.", "formParameter");
+                throw new ArgumentException("Parameter provided does not belong to method.", nameof(formParameter));
             if (targetResourceParameter != null && targetResourceParameter.Method != method)
-                throw new ArgumentException("Parameter provided does not belong to method.", "targetResourceParameter");
+                throw new ArgumentException("Parameter provided does not belong to method.", nameof(targetResourceParameter));
             this.formParameter = formParameter;
             this.targetResourceParameter = targetResourceParameter;
         }

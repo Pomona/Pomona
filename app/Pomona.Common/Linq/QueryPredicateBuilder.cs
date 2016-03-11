@@ -604,9 +604,9 @@ namespace Pomona.Common.Linq
         private static object GetMemberValue(object obj, MemberInfo member)
         {
             if (obj == null)
-                throw new ArgumentNullException("obj");
+                throw new ArgumentNullException(nameof(obj));
             if (member == null)
-                throw new ArgumentNullException("member");
+                throw new ArgumentNullException(nameof(member));
             var propertyInfo = member as PropertyInfo;
             if (propertyInfo != null)
                 return propertyInfo.GetValue(obj, null);

@@ -41,7 +41,7 @@ namespace Pomona.Routing
         public static IEnumerable<Route> GetRoutes(this ResourceType resourceType, Route parent)
         {
             if (resourceType == null)
-                throw new ArgumentNullException("resourceType");
+                throw new ArgumentNullException(nameof(resourceType));
 
             var mergedTypes = resourceType.MergedTypes.ToList();
             if (mergedTypes.Any())
@@ -66,7 +66,7 @@ namespace Pomona.Routing
         public static IEnumerable<Route> GetRoutes(this StructuredProperty property, Route parent)
         {
             if (property == null)
-                throw new ArgumentNullException("property");
+                throw new ArgumentNullException(nameof(property));
             var routes = property.PropertyType.Maybe().Switch(
                 x =>
                     x.Case<ResourceType>().Then(y => y.GetRoutes(parent)).Case<EnumerableTypeSpec>().Then(
@@ -82,7 +82,7 @@ namespace Pomona.Routing
         internal static bool IsPrimaryChildResourceProperty(this PropertySpec property)
         {
             if (property == null)
-                throw new ArgumentNullException("property");
+                throw new ArgumentNullException(nameof(property));
 
             var resourceType = property.PropertyType.GetItemType() as ResourceType;
             if (resourceType == null)

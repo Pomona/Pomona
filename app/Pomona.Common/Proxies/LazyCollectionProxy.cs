@@ -42,7 +42,7 @@ namespace Pomona.Common.Proxies
         protected LazyCollectionProxy(string uri, IResourceLoader resourceLoader)
         {
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
 
             this.uri = uri;
             this.resourceLoader = resourceLoader;

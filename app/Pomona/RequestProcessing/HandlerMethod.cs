@@ -49,9 +49,9 @@ namespace Pomona.RequestProcessing
         public HandlerMethod(MethodInfo methodInfo, TypeMapper typeMapper)
         {
             if (methodInfo == null)
-                throw new ArgumentNullException("methodInfo");
+                throw new ArgumentNullException(nameof(methodInfo));
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             this.methodInfo = methodInfo;
             this.typeMapper = typeMapper;
             this.parameters =

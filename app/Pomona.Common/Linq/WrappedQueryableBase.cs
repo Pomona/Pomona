@@ -42,7 +42,7 @@ namespace Pomona.Common.Linq
         public WrappedQueryableBase(IQueryable<TElement> innerQueryable)
         {
             if (innerQueryable == null)
-                throw new ArgumentNullException("innerQueryable");
+                throw new ArgumentNullException(nameof(innerQueryable));
             this.innerQueryable = innerQueryable;
         }
 

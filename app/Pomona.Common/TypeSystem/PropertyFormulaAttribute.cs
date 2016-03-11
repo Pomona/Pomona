@@ -40,7 +40,7 @@ namespace Pomona.Common.TypeSystem
         public PropertyFormulaAttribute(LambdaExpression formula)
         {
             if (formula == null)
-                throw new ArgumentNullException("formula");
+                throw new ArgumentNullException(nameof(formula));
             this.formula = formula;
         }
 

@@ -37,7 +37,7 @@ namespace Pomona.Common.TypeSystem
         public override IEnumerable<PropertySpec> LoadRequiredProperties(TypeSpec typeSpec)
         {
             if (typeSpec == null)
-                throw new ArgumentNullException("typeSpec");
+                throw new ArgumentNullException(nameof(typeSpec));
             var transformedType = typeSpec as StructuredType;
             if (transformedType != null)
             {

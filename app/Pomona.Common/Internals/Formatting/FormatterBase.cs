@@ -40,7 +40,7 @@ namespace Pomona.Common.Internals.Formatting
         protected FormatterBase(string name)
         {
             if (String.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             this.name = name;
         }

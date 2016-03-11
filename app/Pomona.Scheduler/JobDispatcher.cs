@@ -42,7 +42,7 @@ namespace Pomona.Scheduler
         public JobDispatcher(IJobStore jobStore)
         {
             if (jobStore == null)
-                throw new ArgumentNullException("jobStore");
+                throw new ArgumentNullException(nameof(jobStore));
             this.jobStore = jobStore;
             this.webClient = new HttpWebClient();
         }

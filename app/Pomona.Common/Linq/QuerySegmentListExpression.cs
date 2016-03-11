@@ -42,7 +42,7 @@ namespace Pomona.Common.Linq
             : base(type)
         {
             if (children == null)
-                throw new ArgumentNullException("children");
+                throw new ArgumentNullException(nameof(children));
             this.children = children as object[] ?? children.ToArray();
         }
 

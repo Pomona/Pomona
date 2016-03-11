@@ -62,7 +62,7 @@ namespace Pomona.Common.Linq.NonGeneric
         public virtual object Execute(IQueryable queryable)
         {
             if (queryable == null)
-                throw new ArgumentNullException("queryable");
+                throw new ArgumentNullException(nameof(queryable));
             return queryable.Provider.Execute(Apply(queryable));
         }
 

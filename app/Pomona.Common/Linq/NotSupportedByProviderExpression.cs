@@ -42,7 +42,7 @@ namespace Pomona.Common.Linq
             : base(expression.Type)
         {
             if (expression == null)
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             this.expression = expression;
             this.exception = exception;
         }

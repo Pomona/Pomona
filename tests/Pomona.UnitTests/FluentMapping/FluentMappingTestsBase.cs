@@ -126,7 +126,7 @@ namespace Pomona.UnitTests.FluentMapping
             var memberExpr = body as MemberExpression;
 
             if (memberExpr == null)
-                throw new ArgumentException("Expected expression with MemberExpression as body", "expr");
+                throw new ArgumentException("Expected expression with MemberExpression as body", nameof(expr));
 
             var propInfo = memberExpr.Member as PropertyInfo;
             if (propInfo == null)

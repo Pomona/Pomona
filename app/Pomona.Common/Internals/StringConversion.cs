@@ -56,9 +56,9 @@ namespace Pomona.Common.Internals
         public static object Parse(this string s, Type toType, IFormatProvider provider = null)
         {
             if (s == null)
-                throw new ArgumentNullException("s");
+                throw new ArgumentNullException(nameof(s));
             if (toType == null)
-                throw new ArgumentNullException("toType");
+                throw new ArgumentNullException(nameof(toType));
             object result;
             if (!s.TryParse(toType, provider, out result))
                 throw new FormatException("Unable to parse string to type");
@@ -69,7 +69,7 @@ namespace Pomona.Common.Internals
         public static bool TryParse(this string s, Type toType, IFormatProvider provider, out object result)
         {
             if (toType == null)
-                throw new ArgumentNullException("toType");
+                throw new ArgumentNullException(nameof(toType));
 
             return GetCachedConverter(toType).TryParse(s, provider, out result);
         }

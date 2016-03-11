@@ -45,7 +45,7 @@ namespace Pomona.Routing
             : base(0, null)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             var dataSourceInterface = typeof(IPomonaDataSource);
             dataSource = dataSource ?? dataSourceInterface;
 

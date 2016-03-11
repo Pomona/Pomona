@@ -48,7 +48,7 @@ namespace Pomona.Routing
         public QueryGetActionResolver(IQueryProviderCapabilityResolver capabilityResolver)
         {
             if (capabilityResolver == null)
-                throw new ArgumentNullException("capabilityResolver");
+                throw new ArgumentNullException(nameof(capabilityResolver));
             this.capabilityResolver = capabilityResolver;
         }
 

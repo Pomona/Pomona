@@ -47,13 +47,13 @@ namespace Pomona
                                                   IContainer container)
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             if (uriResolver == null)
-                throw new ArgumentNullException("uriResolver");
+                throw new ArgumentNullException(nameof(uriResolver));
             if (resourceResolver == null)
-                throw new ArgumentNullException("resourceResolver");
+                throw new ArgumentNullException(nameof(resourceResolver));
             if (container == null)
-                throw new ArgumentNullException("container");
+                throw new ArgumentNullException(nameof(container));
             this.typeMapper = typeMapper;
             this.uriResolver = uriResolver;
             this.resourceResolver = resourceResolver;

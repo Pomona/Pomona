@@ -48,7 +48,7 @@ namespace Pomona.Queries
         public QueryExpressionParser(IQueryTypeResolver queryPropertyResolver)
         {
             if (queryPropertyResolver == null)
-                throw new ArgumentNullException("queryPropertyResolver");
+                throw new ArgumentNullException(nameof(queryPropertyResolver));
             this.queryPropertyResolver = queryPropertyResolver;
         }
 
@@ -179,7 +179,7 @@ namespace Pomona.Queries
         private static NodeBase ParseSymbolTree(string odataExpression)
         {
             if (odataExpression == null)
-                throw new ArgumentNullException("odataExpression");
+                throw new ArgumentNullException(nameof(odataExpression));
             var parser = CreateParser(odataExpression);
             var parseReturn = parser.parse();
             var tree = (CommonTree)parseReturn.Tree;

@@ -41,7 +41,7 @@ namespace Pomona.Security.Authentication
         public PreAuthenticatedUriProvider(ICryptoSerializer cryptoSerializer)
         {
             if (cryptoSerializer == null)
-                throw new ArgumentNullException("cryptoSerializer");
+                throw new ArgumentNullException(nameof(cryptoSerializer));
             this.cryptoSerializer = cryptoSerializer;
         }
 

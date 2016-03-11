@@ -58,9 +58,9 @@ namespace Pomona.Common.ExtendedResources
         public ExtendedResourceList(IList<TServer> wrappedList, ExtendedResourceInfo userTypeInfo)
         {
             if (wrappedList == null)
-                throw new ArgumentNullException("wrappedList");
+                throw new ArgumentNullException(nameof(wrappedList));
             if (userTypeInfo == null)
-                throw new ArgumentNullException("userTypeInfo");
+                throw new ArgumentNullException(nameof(userTypeInfo));
             this.wrappedList = wrappedList;
             this.userTypeInfo = userTypeInfo;
         }
