@@ -37,9 +37,9 @@ namespace Pomona
         }
 
 
-        public PomonaContext CurrentContext { get; private set; }
-
         public IPomonaSessionFactory Factory { get; }
+
+        private PomonaContext CurrentContext { get; set; }
 
 
         private PomonaResponse DispatchInternal(PomonaContext context)
