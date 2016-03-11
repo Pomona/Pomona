@@ -1,8 +1,8 @@
-// System.Web.HttpUtility
+﻿// System.Web.HttpUtility
 //
 // Authors:
 //   Patrik Torstensson (Patrik.Torstensson@labs2.com)
-//   Wictor Wil�n (decode/encode functions) (wictor@ibizkit.se)
+//   Wictor Wilén (decode/encode functions) (wictor@ibizkit.se)
 //   Tim Coleman (tim@timcoleman.com)
 //   Gonzalo Paniagua Javier (gonzalo@ximian.com)
 //   Karsten N. Strand (minor modifications)\
