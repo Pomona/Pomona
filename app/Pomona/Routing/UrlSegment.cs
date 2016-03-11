@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -39,10 +18,8 @@ namespace Pomona.Routing
 {
     public class UrlSegment : IResourceNode, ITreeNodeWithRoot<UrlSegment>
     {
-        private readonly UrlSegment parent;
         private readonly int pathSegmentIndex;
         private readonly string[] pathSegments;
-        private readonly Route route;
         private readonly RouteMatchTree tree;
         private TypeSpec actualResultType;
         private ReadOnlyCollection<UrlSegment> children;
@@ -68,17 +45,17 @@ namespace Pomona.Routing
             tree = tree ?? (parent != null ? parent.tree : null);
             if (tree == null)
                 throw new ArgumentNullException(nameof(tree));
-            if (parent != null && route.Parent != parent.route)
+            if (parent != null && route.Parent != parent.Route)
             {
                 throw new ArgumentException(
                     "match child-parent relation must be same equivalent to route child-parent relation");
             }
 
             this.tree = tree;
-            this.route = route;
+            Route = route;
             this.pathSegments = pathSegments;
             this.pathSegmentIndex = pathSegmentIndex;
-            this.parent = parent;
+            Parent = parent;
         }
 
 
@@ -132,7 +109,7 @@ namespace Pomona.Routing
 
         public TypeSpec InputType
         {
-            get { return this.route.InputType; }
+            get { return Route.InputType; }
         }
 
         public bool IsLastSegment
@@ -147,7 +124,7 @@ namespace Pomona.Routing
 
         public bool IsRoot
         {
-            get { return this.parent != null; }
+            get { return Parent != null; }
         }
 
         public IEnumerable<UrlSegment> Leafs
@@ -177,13 +154,10 @@ namespace Pomona.Routing
 
         public TypeSpec ResultItemType
         {
-            get { return this.route.ResultItemType; }
+            get { return Route.ResultItemType; }
         }
 
-        public Route Route
-        {
-            get { return this.route; }
-        }
+        public Route Route { get; }
 
         public UrlSegment SelectedChild
         {
@@ -237,7 +211,7 @@ namespace Pomona.Routing
             if (childPathSegmentIndex < this.pathSegments.Length)
             {
                 return
-                    this.route.MatchChildren(this.pathSegments[childPathSegmentIndex]).Select(
+                    Route.MatchChildren(this.pathSegments[childPathSegmentIndex]).Select(
                         x => new UrlSegment(x, this.pathSegments, childPathSegmentIndex, this)).Where(
                             x => x.Leafs.Any(y => y.IsLastSegment));
             }
@@ -247,9 +221,9 @@ namespace Pomona.Routing
 
         private string GetPrefix()
         {
-            if (this.route is ResourcePropertyRoute)
+            if (Route is ResourcePropertyRoute)
                 return "p:";
-            if (this.route is GetByIdRoute)
+            if (Route is GetByIdRoute)
                 return "id:";
             return string.Empty;
         }
@@ -258,20 +232,17 @@ namespace Pomona.Routing
         private string GetTypeStringOfRoute()
         {
             return string.Format("{0}=>{1}{2}",
-                                 this.route.InputType != null ? this.route.InputType.Name : "void",
-                                 this.route.ResultItemType.Name,
-                                 this.route.IsSingle ? "?" : "*");
+                                 Route.InputType != null ? Route.InputType.Name : "void",
+                                 Route.ResultItemType.Name,
+                                 Route.IsSingle ? "?" : "*");
         }
 
 
-        public UrlSegment Parent
-        {
-            get { return this.parent; }
-        }
+        public UrlSegment Parent { get; }
 
         public TypeSpec ResultType
         {
-            get { return this.route.ResultType; }
+            get { return Route.ResultType; }
         }
 
         public UrlSegment Root

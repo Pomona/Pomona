@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -38,17 +17,15 @@ namespace Pomona.Common.TypeSystem
     public abstract class MemberSpec
     {
         private readonly Lazy<ReadOnlyCollection<Attribute>> declaredAttributes;
-        private readonly MemberInfo member;
         private readonly Lazy<string> name;
-        private readonly ITypeResolver typeResolver;
 
 
         protected MemberSpec(ITypeResolver typeResolver, MemberInfo member)
         {
             if (typeResolver == null)
                 throw new ArgumentNullException(nameof(typeResolver));
-            this.typeResolver = typeResolver;
-            this.member = member;
+            TypeResolver = typeResolver;
+            Member = member;
             this.declaredAttributes = CreateLazy(() => typeResolver.LoadDeclaredAttributes(this).ToList().AsReadOnly());
             this.name = CreateLazy(() => typeResolver.LoadName(this));
         }
@@ -66,10 +43,7 @@ namespace Pomona.Common.TypeSystem
 
         public abstract IEnumerable<Attribute> InheritedAttributes { get; }
 
-        public MemberInfo Member
-        {
-            get { return this.member; }
-        }
+        public MemberInfo Member { get; }
 
         public string Name
         {
@@ -78,13 +52,10 @@ namespace Pomona.Common.TypeSystem
 
         public UniqueMemberToken Token
         {
-            get { return this.member.UniqueToken(); }
+            get { return Member.UniqueToken(); }
         }
 
-        public ITypeResolver TypeResolver
-        {
-            get { return this.typeResolver; }
-        }
+        public ITypeResolver TypeResolver { get; }
 
 
         public override bool Equals(object obj)
@@ -110,8 +81,8 @@ namespace Pomona.Common.TypeSystem
         {
             unchecked
             {
-                return ((this.member != null ? this.member.GetHashCode() : 0) * 397) ^
-                       (this.typeResolver != null ? this.typeResolver.GetHashCode() : 0);
+                return ((Member != null ? Member.GetHashCode() : 0) * 397) ^
+                       (TypeResolver != null ? TypeResolver.GetHashCode() : 0);
             }
         }
 
@@ -138,25 +109,25 @@ namespace Pomona.Common.TypeSystem
 
         protected internal virtual IEnumerable<Attribute> OnLoadDeclaredAttributes()
         {
-            if (this.member == null)
+            if (Member == null)
                 return Enumerable.Empty<Attribute>();
 
-            return this.member.GetCustomAttributes(false).Cast<Attribute>();
+            return Member.GetCustomAttributes(false).Cast<Attribute>();
         }
 
 
         protected internal virtual string OnLoadName()
         {
-            if (this.member == null)
+            if (Member == null)
                 throw new InvalidOperationException("Don't know how to load name for member with no wrapped member.");
 
-            return this.member.Name;
+            return Member.Name;
         }
 
 
         protected bool Equals(MemberSpec other)
         {
-            return Equals(this.member, other.member) && Equals(this.typeResolver, other.typeResolver);
+            return Equals(Member, other.Member) && Equals(TypeResolver, other.TypeResolver);
         }
 
 

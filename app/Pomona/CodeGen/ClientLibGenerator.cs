@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -66,7 +45,6 @@ namespace Pomona.CodeGen
         private readonly IDocumentationProvider docProvider;
         private readonly TypeMapper typeMapper;
         private readonly Dictionary<Type, TypeReference> typeReferenceCache = new Dictionary<Type, TypeReference>();
-        private readonly XDoc xDoc = new XDoc();
         private TypeDefinition clientInterface;
         private Dictionary<TypeSpec, TypeCodeGenInfo> clientTypeInfoDict;
         private Dictionary<EnumTypeSpec, TypeReference> enumClientTypeDict;
@@ -95,10 +73,7 @@ namespace Pomona.CodeGen
         public bool MakeProxyTypesPublic { get; set; }
         public bool PomonaClientEmbeddingEnabled { get; set; }
 
-        public XDoc XDoc
-        {
-            get { return this.xDoc; }
-        }
+        public XDoc XDoc { get; } = new XDoc();
 
         private TypeReference StringTypeRef
         {
@@ -120,7 +95,7 @@ namespace Pomona.CodeGen
             var version = new Version(this.typeMapper.Filter.ApiVersion.PadTo(4));
             var assemblyName = this.typeMapper.Filter.ClientMetadata.AssemblyName;
             var assembly = CreateAssembly(assemblyName, version);
-            this.xDoc.Assembly.Name = assembly.Name.Name;
+            XDoc.Assembly.Name = assembly.Name.Name;
 
             this.module = assembly.MainModule;
             this.module.Name = assemblyName + ".dll";
@@ -185,8 +160,8 @@ namespace Pomona.CodeGen
 
             stream.Write(array, 0, array.Length);
 
-            if (this.xDoc.Members.Count > 0 && onXmlDocCompleted != null)
-                onXmlDocCompleted(this.xDoc);
+            if (XDoc.Members.Count > 0 && onXmlDocCompleted != null)
+                onXmlDocCompleted(XDoc);
         }
 
 
@@ -316,7 +291,7 @@ namespace Pomona.CodeGen
             var description = this.docProvider.GetSummary(prop);
             if (description != null)
             {
-                this.xDoc.Members.Add(new XDocMember()
+                XDoc.Members.Add(new XDocMember()
                 {
                     Name = "P:" + propDef.DeclaringType.FullName + "." + propDef.Name,
                     // TODO: Proper conversion of reference nodes etc..
@@ -1394,11 +1369,8 @@ namespace Pomona.CodeGen
             private readonly Lazy<Type> customRepositoryBaseType;
             private readonly Lazy<TypeDefinition> customRepositoryBaseTypeDefinition;
             private readonly Lazy<TypeReference> customRepositoryBaseTypeReference;
-            private readonly TypeDefinition customRepositoryInterface;
-            private readonly TypeDefinition interfaceType;
             private readonly ClientLibGenerator parent;
             private readonly Lazy<TypeReference> postReturnTypeReference;
-            private readonly StructuredType structuredType;
 
 
             public TypeCodeGenInfo(ClientLibGenerator parent, StructuredType structuredType)
@@ -1410,13 +1382,13 @@ namespace Pomona.CodeGen
                         || (resourceType.ParentToChildProperty != null
                             && resourceType.ParentToChildProperty.ExposedAsRepository))
                     {
-                        this.customRepositoryInterface = new TypeDefinition(parent.@namespace,
-                                                                            String.Format("I{0}Repository",
-                                                                                          structuredType.Name),
-                                                                            TypeAttributes.Interface
-                                                                            | TypeAttributes.Public
-                                                                            | TypeAttributes.Abstract);
-                        parent.module.Types.Add(this.customRepositoryInterface);
+                        CustomRepositoryInterface = new TypeDefinition(parent.@namespace,
+                                                                       String.Format("I{0}Repository",
+                                                                                     structuredType.Name),
+                                                                       TypeAttributes.Interface
+                                                                       | TypeAttributes.Public
+                                                                       | TypeAttributes.Abstract);
+                        parent.module.Types.Add(CustomRepositoryInterface);
                     }
                 }
 
@@ -1424,7 +1396,7 @@ namespace Pomona.CodeGen
                     throw new ArgumentNullException(nameof(parent));
 
                 this.parent = parent;
-                this.structuredType = structuredType;
+                StructuredType = structuredType;
 
                 this.postReturnTypeReference = new Lazy<TypeReference>(() =>
                 {
@@ -1473,11 +1445,11 @@ namespace Pomona.CodeGen
                 // Add I in front of name if resource is class type, do not for interfaces to avoid IIWhatever name.
                 var name = "I" + structuredType.Name;
 
-                this.interfaceType = new TypeDefinition(parent.@namespace,
-                                                        name,
-                                                        TypeAttributes.Interface
-                                                        | TypeAttributes.Public
-                                                        | TypeAttributes.Abstract);
+                InterfaceType = new TypeDefinition(parent.@namespace,
+                                                   name,
+                                                   TypeAttributes.Interface
+                                                   | TypeAttributes.Public
+                                                   | TypeAttributes.Abstract);
             }
 
 
@@ -1493,17 +1465,11 @@ namespace Pomona.CodeGen
                 get { return (GenericInstanceType)this.customRepositoryBaseTypeReference.Value; }
             }
 
-            public TypeDefinition CustomRepositoryInterface
-            {
-                get { return this.customRepositoryInterface; }
-            }
+            public TypeDefinition CustomRepositoryInterface { get; }
 
             public MethodDefinition EmptyPocoCtor { get; set; }
 
-            public TypeDefinition InterfaceType
-            {
-                get { return this.interfaceType; }
-            }
+            public TypeDefinition InterfaceType { get; }
 
             public TypeDefinition LazyProxyType { get; set; }
             public TypeDefinition PatchFormType { get; set; }
@@ -1520,16 +1486,13 @@ namespace Pomona.CodeGen
                 get
                 {
                     return
-                        this.parent.Import(this.structuredType.PrimaryId != null
-                            ? this.structuredType.PrimaryId.PropertyType
+                        this.parent.Import(StructuredType.PrimaryId != null
+                            ? StructuredType.PrimaryId.PropertyType
                             : typeof(object));
                 }
             }
 
-            public StructuredType StructuredType
-            {
-                get { return this.structuredType; }
-            }
+            public StructuredType StructuredType { get; }
 
             public TypeDefinition UriBaseType { get; set; }
         }

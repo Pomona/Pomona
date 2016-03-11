@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -41,9 +20,7 @@ namespace Pomona.Common.TypeSystem
         private readonly Lazy<TypeSpec> declaringType;
         private readonly Lazy<PropertyGetter> getter;
         private readonly Lazy<bool> isRequiredForConstructor;
-        private readonly PropertyFlags propertyFlags;
         private readonly Lazy<TypeSpec> propertyType;
-        private readonly TypeSpec reflectedType;
         private readonly Lazy<PropertySetter> setter;
 
 
@@ -54,10 +31,10 @@ namespace Pomona.Common.TypeSystem
         {
             if (reflectedType == null)
                 throw new ArgumentNullException(nameof(reflectedType));
-            this.reflectedType = reflectedType;
+            ReflectedType = reflectedType;
             this.declaringType = CreateLazy(() => typeResolver.LoadDeclaringType(this));
             this.propertyType = CreateLazy(() => typeResolver.LoadPropertyType(this));
-            this.propertyFlags = typeResolver.LoadPropertyFlags(this);
+            Flags = typeResolver.LoadPropertyFlags(this);
             this.baseDefinition = CreateLazy(() => typeResolver.LoadBaseDefinition(this));
             this.getter = CreateLazy(() => typeResolver.LoadGetter(this));
             this.setter = CreateLazy(() => typeResolver.LoadSetter(this));
@@ -95,10 +72,7 @@ namespace Pomona.Common.TypeSystem
             get { return this.propertyType.Value; }
         }
 
-        public virtual TypeSpec ReflectedType
-        {
-            get { return this.reflectedType; }
-        }
+        public virtual TypeSpec ReflectedType { get; }
 
         public virtual PropertySetter Setter
         {
@@ -252,14 +226,11 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public PropertyFlags Flags
-        {
-            get { return this.propertyFlags; }
-        }
+        public PropertyFlags Flags { get; }
 
         public bool IsReadable
         {
-            get { return this.propertyFlags.HasFlag(PropertyFlags.IsReadable); }
+            get { return Flags.HasFlag(PropertyFlags.IsReadable); }
         }
 
         public bool IsRequiredForConstructor
@@ -269,7 +240,7 @@ namespace Pomona.Common.TypeSystem
 
         public bool IsWritable
         {
-            get { return this.propertyFlags.HasFlag(PropertyFlags.IsWritable); }
+            get { return Flags.HasFlag(PropertyFlags.IsWritable); }
         }
 
         public string LowerCaseName

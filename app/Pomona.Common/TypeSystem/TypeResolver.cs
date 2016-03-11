@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -40,7 +19,6 @@ namespace Pomona.Common.TypeSystem
     {
         private readonly Lazy<Dictionary<string, TypeSpec>> primitiveNameTypeMap;
         private readonly IEnumerable<ITypeFactory> typeFactories;
-        private readonly ConcurrentDictionary<Type, TypeSpec> typeMap = new ConcurrentDictionary<Type, TypeSpec>();
 
 
         public TypeResolver()
@@ -72,10 +50,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        protected ConcurrentDictionary<Type, TypeSpec> TypeMap
-        {
-            get { return this.typeMap; }
-        }
+        protected ConcurrentDictionary<Type, TypeSpec> TypeMap { get; } = new ConcurrentDictionary<Type, TypeSpec>();
 
 
         protected virtual TypeSpec CreateType(Type type)
@@ -118,7 +93,7 @@ namespace Pomona.Common.TypeSystem
         public virtual TypeSpec FromType(Type type)
         {
             type = MapExposedClrType(type);
-            var typeSpec = this.typeMap.GetOrAdd(type, CreateType);
+            var typeSpec = TypeMap.GetOrAdd(type, CreateType);
             return typeSpec;
         }
 

@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -42,19 +21,17 @@ namespace Pomona.Routing
     {
         private readonly Lazy<ReadOnlyCollection<Route>> childrenSortedByPriority;
         private readonly Lazy<ReadOnlyDictionary<string, IEnumerable<Route>>> literalRouteMap;
-        private readonly Route parent;
-        private readonly int priority;
 
 
         public Route(int priority, Route parent)
         {
-            this.priority = priority;
-            this.parent = parent;
+            Priority = priority;
+            Parent = parent;
             this.literalRouteMap = new Lazy<ReadOnlyDictionary<string, IEnumerable<Route>>>(LoadLiteralRouteMap,
                                                                                             LazyThreadSafetyMode
                                                                                                 .PublicationOnly);
             this.childrenSortedByPriority =
-                new Lazy<ReadOnlyCollection<Route>>(() => LoadChildren().OrderBy(x => x.priority).ToList().AsReadOnly());
+                new Lazy<ReadOnlyCollection<Route>>(() => LoadChildren().OrderBy(x => x.Priority).ToList().AsReadOnly());
         }
 
 
@@ -63,7 +40,7 @@ namespace Pomona.Routing
 
         public bool IsRoot
         {
-            get { return this.parent == null; }
+            get { return Parent == null; }
         }
 
         public virtual bool IsSingle
@@ -81,10 +58,7 @@ namespace Pomona.Routing
             }
         }
 
-        public int Priority
-        {
-            get { return this.priority; }
-        }
+        public int Priority { get; }
 
         public virtual TypeSpec ResultItemType
         {
@@ -111,8 +85,8 @@ namespace Pomona.Routing
 
         public override sealed string ToString()
         {
-            if (this.parent != null)
-                return this.parent.ToString() + "/" + PathSegmentToString();
+            if (Parent != null)
+                return Parent.ToString() + "/" + PathSegmentToString();
             return PathSegmentToString();
         }
 
@@ -149,9 +123,6 @@ namespace Pomona.Routing
             get { return this.childrenSortedByPriority.Value; }
         }
 
-        public Route Parent
-        {
-            get { return this.parent; }
-        }
+        public Route Parent { get; }
     }
 }

@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -1989,44 +1968,32 @@ Cataract
             @"gun bazooka rocket-launcher knife spear axe dagger sickle 
 sword switchblade barong bat baton boomerang dart dirk bombs rifle";
 
-        private static readonly List<string> adjectives;
-        private static readonly List<string> animals;
         private static readonly List<string> instruments;
         private static readonly List<string> randomNouns;
         private static readonly List<string> sicknesses;
-        private static readonly List<string> weapons;
 
 
         static Words()
         {
-            weapons = ParseToList(weaponsRawText);
-            animals = ParseToList(animalsRawText);
-            adjectives = ParseToList(adjectivesRawText);
+            Weapons = ParseToList(weaponsRawText);
+            Animals = ParseToList(animalsRawText);
+            Adjectives = ParseToList(adjectivesRawText);
             sicknesses = ParseToList(sicknessRawText);
             instruments = ParseToList(instrumentsRawText);
             randomNouns = ParseToList(randomNounsRawText);
         }
 
 
-        public static List<string> Adjectives
-        {
-            get { return adjectives; }
-        }
+        public static List<string> Adjectives { get; }
 
-        public static List<string> Animals
-        {
-            get { return animals; }
-        }
+        public static List<string> Animals { get; }
 
-        public static List<string> Weapons
-        {
-            get { return weapons; }
-        }
+        public static List<string> Weapons { get; }
 
 
         public static string GetAnimalWithPersonality(Random rng)
         {
-            var animal = animals[rng.Next(0, animals.Count)];
+            var animal = Animals[rng.Next(0, Animals.Count)];
             //var potentialAdjectives = adjectives.Where(x => x[0] == animal[0]).ToList();
             //if (potentialAdjectives.Count == 0)
             //    potentialAdjectives = adjectives;
@@ -2058,7 +2025,7 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
 
         public static string GetSpecialWeapon(Random rng)
         {
-            var weapon = weapons[rng.Next(0, weapons.Count)];
+            var weapon = Weapons[rng.Next(0, Weapons.Count)];
             var adjective = GetAdjective(rng);
 
             return FirstToUpper(adjective) + " " + FirstToUpper(weapon);
@@ -2073,7 +2040,7 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
 
         private static string GetAdjective(Random rng)
         {
-            return adjectives[rng.Next(0, adjectives.Count)];
+            return Adjectives[rng.Next(0, Adjectives.Count)];
         }
 
 

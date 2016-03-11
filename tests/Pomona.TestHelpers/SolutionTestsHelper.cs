@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -303,10 +282,8 @@ namespace Pomona.TestHelpers
         {
             private static readonly string[] knownFrameworkVersions = { "net451", "net45", "net40", "net35", "net20" };
             private static readonly string[] preferredFrameworkVersions = { "net45", "net40", "net35", "net20" };
-            private readonly string id;
             private readonly string projectFile;
             private readonly string solutionDirectoy;
-            private readonly string version;
             private string[] availableFrameworkVersions;
             private string fullPackagePath;
             private XDocument projectXmlDocument;
@@ -320,14 +297,14 @@ namespace Pomona.TestHelpers
                 this.projectFile = project;
                 this.solutionDirectoy = solutionDirectoy;
                 this.projectXmlDocument = projectXmlDocument;
-                this.id = packagesConfigElement.Attribute("id").Value;
-                this.version = packagesConfigElement.Attribute("version").Value;
+                Id = packagesConfigElement.Attribute("id").Value;
+                Version = packagesConfigElement.Attribute("version").Value;
             }
 
 
             public string AssumedPackagePath
             {
-                get { return AssumedPackagePathStart + this.version; }
+                get { return AssumedPackagePathStart + Version; }
             }
 
             public string AssumedPackagePathStart
@@ -335,10 +312,7 @@ namespace Pomona.TestHelpers
                 get { return Path.Combine(RelativePackagesPath, Id + "."); }
             }
 
-            public string Id
-            {
-                get { return this.id; }
-            }
+            public string Id { get; }
 
             public string PreferredFrameworkVersion
             {
@@ -369,10 +343,7 @@ namespace Pomona.TestHelpers
                 }
             }
 
-            public string Version
-            {
-                get { return this.version; }
-            }
+            public string Version { get; }
 
             private string[] AvailableFrameworkVersions
             {
@@ -536,10 +507,7 @@ namespace Pomona.TestHelpers
 
             private class LibReference
             {
-                private readonly string hintPath;
                 private readonly NugetPackageElement parent;
-                private readonly string pathVersionPart;
-                private readonly string targetFrameworkVersion;
 
 
                 public LibReference(NugetPackageElement parent,
@@ -549,17 +517,17 @@ namespace Pomona.TestHelpers
                 {
                     this.parent = parent;
                     var hintPathElement = element.Descendants(ns + "HintPath").First();
-                    this.hintPath = hintPathElement.Value;
-                    this.pathVersionPart = this.hintPath.Substring(hintPathBeforePrefix.Length,
-                                                                   this.hintPath.IndexOfAny(new char[] { '\\', '/' },
-                                                                                            hintPathBeforePrefix.Length)
-                                                                   - hintPathBeforePrefix.Length);
-                    var packageRelativePath = this.hintPath.Substring(hintPathBeforePrefix.Length + this.pathVersionPart.Length + 1);
+                    HintPath = hintPathElement.Value;
+                    PathVersionPart = HintPath.Substring(hintPathBeforePrefix.Length,
+                                                         HintPath.IndexOfAny(new char[] { '\\', '/' },
+                                                                             hintPathBeforePrefix.Length)
+                                                         - hintPathBeforePrefix.Length);
+                    var packageRelativePath = HintPath.Substring(hintPathBeforePrefix.Length + PathVersionPart.Length + 1);
 
                     var pathSegments = packageRelativePath.Split(Path.DirectorySeparatorChar);
                     if (pathSegments[0] == "lib")
                     {
-                        this.targetFrameworkVersion =
+                        TargetFrameworkVersion =
                             pathSegments
                                 .Skip(1)
                                 .Take(1)
@@ -570,20 +538,11 @@ namespace Pomona.TestHelpers
                 }
 
 
-                public string HintPath
-                {
-                    get { return this.hintPath; }
-                }
+                public string HintPath { get; }
 
-                public string PathVersionPart
-                {
-                    get { return this.pathVersionPart; }
-                }
+                public string PathVersionPart { get; }
 
-                public string TargetFrameworkVersion
-                {
-                    get { return this.targetFrameworkVersion; }
-                }
+                public string TargetFrameworkVersion { get; }
             }
 
             #endregion

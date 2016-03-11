@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -44,28 +23,23 @@ namespace Pomona.Common.TypeSystem
         private static readonly MethodInfo requiresMethod =
             ReflectionHelper.GetMethodDefinition<IConstructorControl<object>>(x => x.Requires());
 
-        private readonly LambdaExpression expression;
-
 
         public ConstructorSpec(LambdaExpression expression)
         {
             if (expression == null)
                 throw new ArgumentNullException(nameof(expression));
-            this.expression = expression;
+            ConstructorExpression = expression;
         }
 
 
-        public LambdaExpression ConstructorExpression
-        {
-            get { return this.expression; }
-        }
+        public LambdaExpression ConstructorExpression { get; }
 
         public LambdaExpression InjectingConstructorExpression
         {
             get
             {
                 var visitor = new CallConstructorPropertySourceVisitor();
-                return (LambdaExpression)visitor.Visit(this.expression);
+                return (LambdaExpression)visitor.Visit(ConstructorExpression);
             }
         }
 
@@ -74,7 +48,7 @@ namespace Pomona.Common.TypeSystem
             get
             {
                 var visitor = new FindRequiredPropertiesVisitor();
-                visitor.Visit(this.expression);
+                visitor.Visit(ConstructorExpression);
                 return visitor.ParameterSpecs;
             }
         }
@@ -135,7 +109,7 @@ namespace Pomona.Common.TypeSystem
         public ParameterSpec GetParameterSpec(PropertyInfo propertyInfo)
         {
             var visitor = new FindRequiredPropertiesVisitor();
-            visitor.Visit(this.expression);
+            visitor.Visit(ConstructorExpression);
             return visitor.ParameterSpecs.FirstOrDefault(x => PropertiesAreEquivalent(propertyInfo, x));
         }
 
@@ -295,35 +269,21 @@ namespace Pomona.Common.TypeSystem
 
         public class ParameterSpec
         {
-            private readonly bool isRequired;
-            private readonly int position;
-            private readonly PropertyInfo propertyInfo;
-
-
             internal ParameterSpec(bool isRequired, PropertyInfo propertyInfo, int position)
             {
                 if (propertyInfo == null)
                     throw new ArgumentNullException(nameof(propertyInfo));
-                this.isRequired = isRequired;
-                this.propertyInfo = propertyInfo;
-                this.position = position;
+                IsRequired = isRequired;
+                PropertyInfo = propertyInfo;
+                Position = position;
             }
 
 
-            public bool IsRequired
-            {
-                get { return this.isRequired; }
-            }
+            public bool IsRequired { get; }
 
-            public int Position
-            {
-                get { return this.position; }
-            }
+            public int Position { get; }
 
-            public PropertyInfo PropertyInfo
-            {
-                get { return this.propertyInfo; }
-            }
+            public PropertyInfo PropertyInfo { get; }
         }
 
         #endregion

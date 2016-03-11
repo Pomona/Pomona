@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -68,8 +47,6 @@ namespace Pomona
         #endregion
 
         private static readonly Func<Type, PomonaQuery, IQueryable, bool, PomonaResponse> applyAndExecuteMethod;
-        private readonly StructuredType ofType;
-        private readonly StructuredType sourceType;
 
 
         static PomonaQuery()
@@ -86,8 +63,8 @@ namespace Pomona
                 throw new ArgumentNullException(nameof(sourceType));
 
             OrderByExpressions = new List<Tuple<LambdaExpression, SortOrder>>();
-            this.sourceType = sourceType;
-            this.ofType = ofType ?? sourceType;
+            SourceType = sourceType;
+            OfType = ofType ?? sourceType;
             DebugInfoKeys = new HashSet<string>();
         }
 
@@ -98,10 +75,7 @@ namespace Pomona
         public LambdaExpression GroupByExpression { get; set; }
         public bool IncludeTotalCount { get; set; }
 
-        public StructuredType OfType
-        {
-            get { return this.ofType; }
-        }
+        public StructuredType OfType { get; }
 
         public List<Tuple<LambdaExpression, SortOrder>> OrderByExpressions { get; set; }
         public ProjectionType Projection { get; set; }
@@ -109,10 +83,7 @@ namespace Pomona
         public LambdaExpression SelectExpression { get; set; }
         public int Skip { get; set; }
 
-        public StructuredType SourceType
-        {
-            get { return this.sourceType; }
-        }
+        public StructuredType SourceType { get; }
 
         public int Top { get; set; }
         public string Url { get; set; }
@@ -128,7 +99,7 @@ namespace Pomona
         public IQueryable ApplyExpressions(IQueryable queryable)
         {
             if (queryable.ElementType != OfType.Type)
-                queryable = queryable.OfType(this.ofType.Type);
+                queryable = queryable.OfType(OfType.Type);
 
             queryable = queryable.Where(FilterExpression);
 

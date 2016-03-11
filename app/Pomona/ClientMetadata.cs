@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -39,13 +18,6 @@ namespace Pomona
     /// </summary>
     public class ClientMetadata
     {
-        private readonly string assemblyName;
-        private readonly string informationalVersion;
-        private readonly string interfaceName;
-        private readonly string name;
-        private readonly string @namespace;
-
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ClientMetadata" /> class.
         /// </summary>
@@ -89,11 +61,11 @@ namespace Pomona
                 });
             }
 
-            this.assemblyName = assemblyName;
-            this.name = name;
-            this.interfaceName = interfaceName;
-            this.@namespace = @namespace;
-            this.informationalVersion = informationalVersion;
+            AssemblyName = assemblyName;
+            Name = name;
+            InterfaceName = interfaceName;
+            Namespace = @namespace;
+            InformationalVersion = informationalVersion;
         }
 
 
@@ -103,10 +75,7 @@ namespace Pomona
         /// <value>
         /// The name of the generated assembly. Default set to "Client".
         /// </value>
-        public string AssemblyName
-        {
-            get { return this.assemblyName; }
-        }
+        public string AssemblyName { get; }
 
         /// <summary>
         /// Gets or sets the informational version of the generated assembly.
@@ -115,10 +84,7 @@ namespace Pomona
         /// The informational version of the generated assembly.
         /// </value>
         /// <exception cref="System.ArgumentNullException">value</exception>
-        public string InformationalVersion
-        {
-            get { return this.informationalVersion; }
-        }
+        public string InformationalVersion { get; }
 
         /// <summary>
         /// Gets or sets the name of the REST client <c>interface</c>.
@@ -130,10 +96,7 @@ namespace Pomona
         /// This should usually be identical to <see cref="Name"/>, with an 'I' prefix.
         /// Default set to "IClient".
         /// </value>
-        public string InterfaceName
-        {
-            get { return this.interfaceName; }
-        }
+        public string InterfaceName { get; }
 
         /// <summary>
         /// Gets or sets the name of the REST client <c>class</c>.
@@ -142,10 +105,7 @@ namespace Pomona
         /// <value>
         /// The name of the REST client <c>class</c>. Default set to "Client".
         /// </value>
-        public string Name
-        {
-            get { return this.name; }
-        }
+        public string Name { get; }
 
         /// <summary>
         /// Gets or sets the namespace that <see cref="Name"/> and all other generated
@@ -159,10 +119,7 @@ namespace Pomona
         /// but not necessarily.
         /// Default set to "Client".
         /// </value>
-        public string Namespace
-        {
-            get { return this.@namespace; }
-        }
+        public string Namespace { get; }
 
 
         /// <summary>
@@ -190,19 +147,19 @@ namespace Pomona
                                    string informationalVersion = null)
         {
             if (String.IsNullOrWhiteSpace(assemblyName))
-                assemblyName = this.assemblyName;
+                assemblyName = AssemblyName;
 
             if (String.IsNullOrWhiteSpace(name))
-                name = this.name;
+                name = Name;
 
             if (String.IsNullOrWhiteSpace(interfaceName))
                 interfaceName = String.Concat('I', name);
 
             if (String.IsNullOrWhiteSpace(@namespace))
-                @namespace = this.@namespace;
+                @namespace = Namespace;
 
             if (String.IsNullOrWhiteSpace(informationalVersion))
-                informationalVersion = this.informationalVersion;
+                informationalVersion = InformationalVersion;
 
             return new ClientMetadata(assemblyName, name, interfaceName, @namespace, informationalVersion);
         }

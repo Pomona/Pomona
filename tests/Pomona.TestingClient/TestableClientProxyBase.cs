@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -30,7 +9,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -54,8 +32,6 @@ namespace Pomona.TestingClient
         private readonly Dictionary<Type, Delegate> postHandlers;
         private readonly Dictionary<string, object> repositoryCache;
         private readonly Dictionary<Type, object> resourceCollections;
-        private readonly ClientSettings settings;
-        private readonly ClientTypeMapper typeMapper;
         private long idCounter;
 
 
@@ -84,14 +60,14 @@ namespace Pomona.TestingClient
 
         public TestableClientProxyBase()
         {
-            this.settings = new ClientSettings();
+            Settings = new ClientSettings();
             this.postHandlers = new Dictionary<Type, Delegate>();
             this.repositoryCache = new Dictionary<string, object>();
             this.resourceCollections = new Dictionary<Type, object>();
             this.idCounter = 1;
             var proxiedClientInterface =
                 GetType().GetInterfaces().Except((typeof(TestableClientProxyBase).GetInterfaces())).Single();
-            this.typeMapper = new ClientTypeMapper(proxiedClientInterface.Assembly);
+            TypeMapper = new ClientTypeMapper(proxiedClientInterface.Assembly);
         }
 
 
@@ -157,12 +133,6 @@ namespace Pomona.TestingClient
                 return del.DynamicInvoke(form);
 
             return SaveResourceFromForm(form);
-        }
-
-
-        public virtual IQueryable<T> Query<T>()
-        {
-            return this.typeMapper.WrapExtendedQuery<T>(Query);
         }
 
 
@@ -369,6 +339,12 @@ namespace Pomona.TestingClient
         }
 
 
+        public Task DeleteAsync(object resource, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public object Get(string uri, Type type, RequestOptions requestOptions)
         {
             throw new NotImplementedException();
@@ -387,9 +363,27 @@ namespace Pomona.TestingClient
         }
 
 
+        public Task<object> PatchAsync(object form, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public object Post(string uri, object form, RequestOptions options)
         {
             throw new NotImplementedException();
+        }
+
+
+        public Task<object> PostAsync(string uri, IPostForm form, RequestOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public virtual IQueryable<T> Query<T>()
+        {
+            return TypeMapper.WrapExtendedQuery<T>(Query);
         }
 
 
@@ -404,32 +398,11 @@ namespace Pomona.TestingClient
             return resource;
         }
 
-
 #pragma warning disable 67
         public event EventHandler<ClientRequestLogEventArgs> RequestCompleted;
 #pragma warning restore 67
-        public Task<object> PostAsync(string uri, IPostForm form, RequestOptions options)
-        {
-            throw new NotImplementedException();
-        }
 
-
-        public Task<object> PatchAsync(object form, RequestOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public Task DeleteAsync(object resource, RequestOptions options)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public ClientSettings Settings
-        {
-            get { return this.settings; }
-        }
+        public ClientSettings Settings { get; }
 
 
         public void SetupPostHandler<TResource>(
@@ -449,10 +422,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public ClientTypeMapper TypeMapper
-        {
-            get { return this.typeMapper; }
-        }
+        public ClientTypeMapper TypeMapper { get; }
 
         public IWebClient WebClient
         {

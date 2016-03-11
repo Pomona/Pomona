@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -101,9 +80,7 @@ namespace Pomona.Common.Serialization.Json
             if (node.ExpectedBaseType != null && node.ExpectedBaseType.IsCollection)
                 elementType = node.ExpectedBaseType.ElementType;
             else
-            {
                 elementType = node.Context.GetClassMapping(typeof(object));
-            }
 
             deserializeArrayNodeGenericMethod(elementType, this, node, reader);
         }
@@ -217,9 +194,7 @@ namespace Pomona.Common.Serialization.Json
             }
 
             if (node.Value == null)
-            {
                 node.Value = asArray ? collection.ToArray() : collection;
-            }
         }
 
 
@@ -673,16 +648,16 @@ namespace Pomona.Common.Serialization.Json
             {
                 public PropertyContainer(JProperty jProperty)
                 {
-                    this.JProperty = jProperty;
+                    JProperty = jProperty;
                     if (jProperty.Name.StartsWith("!"))
                     {
-                        this.Name = jProperty.Name.Substring(1);
-                        this.Operation = DeserializerNodeOperation.Post;
+                        Name = jProperty.Name.Substring(1);
+                        Operation = DeserializerNodeOperation.Post;
                     }
                     else
                     {
-                        this.Name = jProperty.Name;
-                        this.Operation = DeserializerNodeOperation.Patch;
+                        Name = jProperty.Name;
+                        Operation = DeserializerNodeOperation.Patch;
                     }
                 }
 
@@ -707,7 +682,7 @@ namespace Pomona.Common.Serialization.Json
         {
             public Reader(JToken token)
             {
-                this.Token = token;
+                Token = token;
             }
 
 

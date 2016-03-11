@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -32,34 +11,20 @@ namespace Pomona.Scheduler
 {
     public class JobDetails
     {
-        private readonly string method;
-        private readonly DateTime scheduledOn;
-        private readonly string url;
-
-
         public JobDetails(string url, DateTime scheduledOn, string method = null)
         {
             if (url == null)
                 throw new ArgumentNullException(nameof(url));
-            this.url = url;
-            this.method = method ?? "GET";
-            this.scheduledOn = scheduledOn;
+            Url = url;
+            Method = method ?? "GET";
+            ScheduledOn = scheduledOn;
         }
 
 
-        public string Method
-        {
-            get { return this.method; }
-        }
+        public string Method { get; }
 
-        public DateTime ScheduledOn
-        {
-            get { return this.scheduledOn; }
-        }
+        public DateTime ScheduledOn { get; }
 
-        public string Url
-        {
-            get { return this.url; }
-        }
+        public string Url { get; }
     }
 }

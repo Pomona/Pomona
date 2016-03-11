@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -35,30 +14,20 @@ namespace Pomona.Common.Internals
 {
     public class MappedReadOnlyCollection<TOuter, TInner> : ICollection<TOuter>
     {
-        private readonly ICollection<TInner> inner;
-        private readonly Func<TInner, TOuter> map;
-
-
         public MappedReadOnlyCollection(ICollection<TInner> inner, Func<TInner, TOuter> map)
         {
             if (inner == null)
                 throw new ArgumentNullException(nameof(inner));
             if (map == null)
                 throw new ArgumentNullException(nameof(map));
-            this.inner = inner;
-            this.map = map;
+            Inner = inner;
+            Map = map;
         }
 
 
-        protected ICollection<TInner> Inner
-        {
-            get { return this.inner; }
-        }
+        protected ICollection<TInner> Inner { get; }
 
-        protected Func<TInner, TOuter> Map
-        {
-            get { return this.map; }
-        }
+        protected Func<TInner, TOuter> Map { get; }
 
 
         public void Add(TOuter item)
@@ -75,25 +44,25 @@ namespace Pomona.Common.Internals
 
         public bool Contains(TOuter item)
         {
-            return this.inner.Select(this.map).Contains(item);
+            return Inner.Select(Map).Contains(item);
         }
 
 
         public void CopyTo(TOuter[] array, int arrayIndex)
         {
-            this.inner.Select(this.map).ToList().CopyTo(array, arrayIndex);
+            Inner.Select(Map).ToList().CopyTo(array, arrayIndex);
         }
 
 
         public int Count
         {
-            get { return this.inner.Count; }
+            get { return Inner.Count; }
         }
 
 
         public IEnumerator<TOuter> GetEnumerator()
         {
-            return this.inner.Select(this.map).GetEnumerator();
+            return Inner.Select(Map).GetEnumerator();
         }
 
 

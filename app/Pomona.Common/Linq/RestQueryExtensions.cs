@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -189,6 +168,20 @@ namespace Pomona.Common.Linq
         }
 
 
+        public static Task<TResult> Future<TSource, TResult>(this IQueryable<TSource> source,
+                                                             Expression<Func<IQueryable<TSource>, TResult>> expr)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            if (expr == null)
+                throw new ArgumentNullException(nameof(expr));
+
+            var mergedExpression = expr.Body.Replace(expr.Parameters[0], source.Expression);
+
+            return source.Provider.Execute<Task<TResult>>(mergedExpression);
+        }
+
+
         public static IQueryable<TSource> IncludeTotalCount<TSource>(this IQueryable<TSource> source)
         {
             if (source == null)
@@ -238,29 +231,16 @@ namespace Pomona.Common.Linq
         }
 
 
-        public static Task<TResult> Future<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<IQueryable<TSource>, TResult>> expr)
+        public static QueryResult<TSource> ToQueryResult<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-            if (expr == null)
-                throw new ArgumentNullException(nameof(expr));
-
-            var mergedExpression = expr.Body.Replace(expr.Parameters[0], source.Expression);
-
-            return source.Provider.Execute<Task<TResult>>(mergedExpression);
+            var enumerable = source as TSource[] ?? source.ToArray();
+            return new QueryResult<TSource>(enumerable, 0, enumerable.Length, null, null);
         }
 
 
         public static Task<QueryResult<TSource>> ToQueryResultAsync<TSource>(this IQueryable<TSource> source)
         {
             return source.Future(x => x.ToQueryResult());
-        }
-
-
-        public static QueryResult<TSource> ToQueryResult<TSource>(this IEnumerable<TSource> source)
-        {
-            var enumerable = source as TSource[] ?? source.ToArray();
-            return new QueryResult<TSource>(enumerable, 0, enumerable.Length, null, null);
         }
 
 

@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -34,10 +13,6 @@ namespace Pomona.Common.Serialization
 {
     public class ItemValueDeserializerNode : IDeserializerNode
     {
-        private readonly IDeserializationContext context;
-        private readonly string expandPath;
-        private readonly TypeSpec expectedBaseType;
-        private readonly IDeserializerNode parent;
         public TypeSpec valueType;
 
         #region Implementation of IDeserializerNode
@@ -47,28 +22,19 @@ namespace Pomona.Common.Serialization
                                          string expandPath = "",
                                          IDeserializerNode parent = null)
         {
-            this.parent = parent;
-            this.expectedBaseType = expectedBaseType;
-            this.context = context;
-            this.expandPath = expandPath;
+            Parent = parent;
+            ExpectedBaseType = expectedBaseType;
+            Context = context;
+            ExpandPath = expandPath;
             this.valueType = expectedBaseType;
         }
 
 
-        public IDeserializationContext Context
-        {
-            get { return this.context; }
-        }
+        public IDeserializationContext Context { get; }
 
-        public TypeSpec ExpectedBaseType
-        {
-            get { return this.expectedBaseType; }
-        }
+        public TypeSpec ExpectedBaseType { get; }
 
-        public string ExpandPath
-        {
-            get { return this.expandPath; }
-        }
+        public string ExpandPath { get; }
 
         public string Uri { get; set; }
 
@@ -81,7 +47,7 @@ namespace Pomona.Common.Serialization
 
         TypeSpec IResourceNode.ResultType
         {
-            get { return this.expectedBaseType; }
+            get { return ExpectedBaseType; }
         }
 
 
@@ -90,10 +56,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public IDeserializerNode Parent
-        {
-            get { return this.parent; }
-        }
+        public IDeserializerNode Parent { get; }
 
         public TypeSpec ValueType
         {
@@ -105,13 +68,13 @@ namespace Pomona.Common.Serialization
 
         public void SetValueType(string typeName)
         {
-            this.valueType = this.context.GetTypeByName(typeName);
+            this.valueType = Context.GetTypeByName(typeName);
         }
 
 
         public void SetValueType(Type type)
         {
-            this.valueType = this.context.GetClassMapping(type);
+            this.valueType = Context.GetClassMapping(type);
         }
 
 
@@ -122,7 +85,7 @@ namespace Pomona.Common.Serialization
 
         public void SetProperty(PropertySpec property, object propertyValue)
         {
-            this.context.SetProperty(this, property, propertyValue);
+            Context.SetProperty(this, property, propertyValue);
         }
 
         #endregion

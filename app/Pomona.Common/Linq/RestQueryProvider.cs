@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -50,7 +29,6 @@ namespace Pomona.Common.Linq
     {
         private static readonly ExecuteGenericMethodDelegate executeGenericMethod;
         private static readonly ExecuteWithClientSelectPartDelegate executeWithClientSelectPart;
-        private readonly IPomonaClient client;
 
 
         static RestQueryProvider()
@@ -75,14 +53,11 @@ namespace Pomona.Common.Linq
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
 
-            this.client = client;
+            Client = client;
         }
 
 
-        internal IPomonaClient Client
-        {
-            get { return this.client; }
-        }
+        internal IPomonaClient Client { get; }
 
 
         public override IQueryable<TElement> CreateQuery<TElement>(Expression expression)
@@ -125,7 +100,7 @@ namespace Pomona.Common.Linq
             clientSideSelectPart = null;
             var builder = new UriQueryBuilder();
 
-            var resourceInfo = this.client.GetResourceInfoForType(parser.ElementType);
+            var resourceInfo = Client.GetResourceInfoForType(parser.ElementType);
 
             if (!resourceInfo.IsUriBaseType)
                 builder.AppendParameter("$oftype", resourceInfo.JsonTypeName);
@@ -178,7 +153,7 @@ namespace Pomona.Common.Linq
 
             var requestOptions = RequestOptions.Create<T>(x => parser.RequestOptionActions.ForEach(y => y(x)));
             if (parser.ResultMode == RestQueryableTreeParser.ResultModeType.ToJson)
-                return this.client.Get<JToken>(uri, requestOptions);
+                return Client.Get<JToken>(uri, requestOptions);
 
             var queryProjection = parser.Projection;
 
@@ -207,18 +182,18 @@ namespace Pomona.Common.Linq
             if (executeAsync)
                 return ExecuteAsync(uri, queryProjection, clientSideSelectPart, requestOptions);
 
-;            return ExecuteSync(uri, queryProjection, clientSideSelectPart, requestOptions);
+            ;
+            return ExecuteSync(uri, queryProjection, clientSideSelectPart, requestOptions);
         }
 
+
         private object ExecuteAsync<T, TConverted>(string uri,
-                                          RestQueryableTreeParser.QueryProjection queryProjection,
-                                          Func<T, TConverted> clientSideSelectPart,
-                                          RequestOptions requestOptions)
+                                                   RestQueryableTreeParser.QueryProjection queryProjection,
+                                                   Func<T, TConverted> clientSideSelectPart,
+                                                   RequestOptions requestOptions)
         {
             if (queryProjection == RestQueryableTreeParser.QueryProjection.FirstLazy)
-            {
                 throw new InvalidOperationException("Don't use FirstLazy when executing async as this is redundant.");
-            }
 
             switch (queryProjection)
             {
@@ -239,35 +214,9 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
                 case RestQueryableTreeParser.QueryProjection.Count:
-                    return this.client.GetAsync<TConverted>(uri, requestOptions);
+                    return Client.GetAsync<TConverted>(uri, requestOptions);
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + queryProjection);
-            }
-        }
-
-
-        private async Task<IEnumerable<TConverted>> ExecuteToEnumerableAsync<T, TConverted>(string uri, Func<T, TConverted> clientSideSelectPart, RequestOptions requestOptions)
-        {
-            {
-                var result = await this.client.GetAsync<IEnumerable<T>>(uri, requestOptions);
-                if (clientSideSelectPart != null)
-                {
-                    return result.Select(clientSideSelectPart).ToList();
-                }
-                return (QueryResult<TConverted>)((object)result);
-            }
-        }
-
-        private async Task<QueryResult<TConverted>> ExecuteToQueryResultAsync<T, TConverted>(string uri, Func<T, TConverted> clientSideSelectPart, RequestOptions requestOptions)
-        {
-            {
-                var result = await this.client.GetAsync<QueryResult<T>>(uri, requestOptions);
-                if (clientSideSelectPart != null)
-                {
-                    return new QueryResult<TConverted>(result.Select(clientSideSelectPart), result.Skip, result.TotalCount, result.Previous,
-                                                       result.Next);
-                }
-                return (QueryResult<TConverted>)((object)result);
             }
         }
 
@@ -280,10 +229,10 @@ namespace Pomona.Common.Linq
             if (queryProjection == RestQueryableTreeParser.QueryProjection.FirstLazy)
             {
                 var resourceLoader = requestOptions == null || requestOptions.ResourceLoader == null
-                    ? new DefaultResourceLoader(this.client)
+                    ? new DefaultResourceLoader(Client)
                     : requestOptions.ResourceLoader;
 
-                var resourceInfo = this.client.GetResourceInfoForType(typeof(T));
+                var resourceInfo = Client.GetResourceInfoForType(typeof(T));
                 var proxy = (LazyProxyBase)Activator.CreateInstance(resourceInfo.LazyProxyType);
                 proxy.Initialize(uri, resourceLoader, resourceInfo.PocoType);
                 return proxy;
@@ -293,10 +242,11 @@ namespace Pomona.Common.Linq
             {
                 case RestQueryableTreeParser.QueryProjection.ToQueryResult:
                 {
-                    var result = this.client.Get<QueryResult<T>>(uri, requestOptions);
+                    var result = Client.Get<QueryResult<T>>(uri, requestOptions);
                     if (clientSideSelectPart != null)
                     {
-                        return new QueryResult<TConverted>(result.Select(clientSideSelectPart), result.Skip, result.TotalCount, result.Previous,
+                        return new QueryResult<TConverted>(result.Select(clientSideSelectPart), result.Skip, result.TotalCount,
+                                                           result.Previous,
                                                            result.Next);
                     }
                     return result;
@@ -304,7 +254,7 @@ namespace Pomona.Common.Linq
 
                 case RestQueryableTreeParser.QueryProjection.Enumerable:
                 {
-                    var result = this.client.Get<IList<T>>(uri, requestOptions);
+                    var result = Client.Get<IList<T>>(uri, requestOptions);
                     if (clientSideSelectPart != null)
                         return result.Select(clientSideSelectPart).ToList();
                     return result;
@@ -319,14 +269,43 @@ namespace Pomona.Common.Linq
                 case RestQueryableTreeParser.QueryProjection.Any:
                     // TODO: Remove backwards compatibility at some point in the future.
                     // HACK for backwards compatibility. Any is not supported by old versions of pomona server
-                    return this.Client.Get<int>(uri, requestOptions) > 0;
+                    return Client.Get<int>(uri, requestOptions) > 0;
                 case RestQueryableTreeParser.QueryProjection.Max:
                 case RestQueryableTreeParser.QueryProjection.Min:
                 case RestQueryableTreeParser.QueryProjection.Sum:
                 case RestQueryableTreeParser.QueryProjection.Count:
-                    return this.client.Get<T>(uri, requestOptions);
+                    return Client.Get<T>(uri, requestOptions);
                 default:
                     throw new NotImplementedException("Don't recognize projection type " + queryProjection);
+            }
+        }
+
+
+        private async Task<IEnumerable<TConverted>> ExecuteToEnumerableAsync<T, TConverted>(string uri,
+                                                                                            Func<T, TConverted> clientSideSelectPart,
+                                                                                            RequestOptions requestOptions)
+        {
+            {
+                var result = await Client.GetAsync<IEnumerable<T>>(uri, requestOptions);
+                if (clientSideSelectPart != null)
+                    return result.Select(clientSideSelectPart).ToList();
+                return (QueryResult<TConverted>)((object)result);
+            }
+        }
+
+
+        private async Task<QueryResult<TConverted>> ExecuteToQueryResultAsync<T, TConverted>(string uri,
+                                                                                             Func<T, TConverted> clientSideSelectPart,
+                                                                                             RequestOptions requestOptions)
+        {
+            {
+                var result = await Client.GetAsync<QueryResult<T>>(uri, requestOptions);
+                if (clientSideSelectPart != null)
+                {
+                    return new QueryResult<TConverted>(result.Select(clientSideSelectPart), result.Skip, result.TotalCount, result.Previous,
+                                                       result.Next);
+                }
+                return (QueryResult<TConverted>)((object)result);
             }
         }
 
@@ -341,14 +320,16 @@ namespace Pomona.Common.Linq
         {
             return Execute(uri, queryProjection, clientSideExpression.Compile(), requestOptions, executeAsync);
         }
-        private async Task<TConverted> GetOneAsync<T, TConverted>(string uri, RequestOptions requestOptions, Func<T, TConverted> clientSideSelectPart)
+
+
+        private object GetOne<T, TConverted>(string uri, RequestOptions requestOptions, Func<T, TConverted> clientSideSelectPart)
         {
             try
             {
-                var result = await this.client.GetAsync<T>(uri, requestOptions);
+                var result = Client.Get<T>(uri, requestOptions);
                 if (clientSideSelectPart != null)
                     return clientSideSelectPart(result);
-                return (TConverted)((object)result);
+                return result;
             }
             catch (ResourceNotFoundException ex)
             {
@@ -357,15 +338,16 @@ namespace Pomona.Common.Linq
         }
 
 
-
-        private object GetOne<T, TConverted>(string uri, RequestOptions requestOptions, Func<T, TConverted> clientSideSelectPart)
+        private async Task<TConverted> GetOneAsync<T, TConverted>(string uri,
+                                                                  RequestOptions requestOptions,
+                                                                  Func<T, TConverted> clientSideSelectPart)
         {
             try
             {
-                var result = this.client.Get<T>(uri, requestOptions);
+                var result = await Client.GetAsync<T>(uri, requestOptions);
                 if (clientSideSelectPart != null)
                     return clientSideSelectPart(result);
-                return result;
+                return (TConverted)((object)result);
             }
             catch (ResourceNotFoundException ex)
             {
