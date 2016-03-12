@@ -15,36 +15,6 @@ using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class PomonaResponse<T> : PomonaResponse
-    {
-        public PomonaResponse(T entity,
-                              HttpStatusCode statusCode = HttpStatusCode.OK,
-                              string expandedPaths = "",
-                              TypeSpec resultType = null,
-                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
-            : base(entity, statusCode, expandedPaths, resultType, responseHeaders)
-        {
-        }
-
-
-        public PomonaResponse(PomonaQuery query, T entity)
-            : base(query, entity)
-        {
-        }
-
-
-        public PomonaResponse(PomonaQuery query, T entity, HttpStatusCode statusCode)
-            : base(query, entity, statusCode)
-        {
-        }
-
-
-        public new T Entity
-        {
-            get { return (T)base.Entity; }
-        }
-    }
-
     public class PomonaResponse
     {
         internal static readonly object NoBodyEntity;

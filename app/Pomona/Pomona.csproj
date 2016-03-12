@@ -174,7 +174,6 @@
     <Compile Include="PomonaRequest.cs" />
     <Compile Include="PomonaServerException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
-    <Compile Include="PomonaMethodAttribute.cs" />
     <Compile Include="PomonaContext.cs" />
     <Compile Include="PomonaResponse.cs" />
     <Compile Include="PomonaJsonResponseProcessor.cs" />
@@ -183,7 +182,6 @@
     <Compile Include="PomonaSessionExtensions.cs" />
     <Compile Include="PomonaSessionFactory.cs" />
     <Compile Include="Queries\DefaultQueryExecutor.cs" />
-    <Compile Include="Queries\IQueryableResolver.cs" />
     <Compile Include="Queries\IQueryExecutor.cs" />
     <Compile Include="Queries\QueryParseErrorReason.cs" />
     <Compile Include="RequestProcessing\DefaultHandlerMethodInvoker.cs" />

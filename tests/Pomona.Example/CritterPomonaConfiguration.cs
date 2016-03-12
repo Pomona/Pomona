@@ -26,11 +26,6 @@ namespace Pomona.Example
             }
         }
 
-        public override IEnumerable<Type> HandlerTypes
-        {
-            get { yield return typeof(CritterDataSource); }
-        }
-
         public override IEnumerable<Type> SourceTypes
         {
             get { return CritterRepository.GetEntityTypes().Concat(new[] { typeof(GenericBaseClass<int>) }); }

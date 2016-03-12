@@ -26,11 +26,6 @@ namespace Pomona
             get { return Enumerable.Empty<object>(); }
         }
 
-        public virtual IEnumerable<Type> HandlerTypes
-        {
-            get { return Enumerable.Empty<Type>(); }
-        }
-
         public virtual IEnumerable<IRouteActionResolver> RouteActionResolvers
         {
             get

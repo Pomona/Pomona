@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using Nancy;
 using Nancy.Responses.Negotiation;
@@ -17,6 +18,7 @@ using Pomona.Common.Serialization.Json;
 
 namespace Pomona
 {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class PomonaJsonResponseProcessor : PomonaResponseProcessorBase
     {
         private static readonly IEnumerable<Tuple<string, MediaRange>> extensionMappings =
