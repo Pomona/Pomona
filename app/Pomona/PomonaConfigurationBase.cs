@@ -61,7 +61,7 @@ namespace Pomona
 
         protected virtual IRouteActionResolver DataSourceRouteActionResolver
         {
-            get { return new DataSourceRouteActionResolver(); }
+            get { return new DataSourceRouteActionResolver(DataSource); }
         }
 
         protected virtual IRouteActionResolver QueryGetActionResolver

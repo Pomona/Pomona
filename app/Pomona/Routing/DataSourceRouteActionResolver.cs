@@ -17,12 +17,20 @@ namespace Pomona.Routing
 {
     public class DataSourceRouteActionResolver : IRouteActionResolver
     {
+        private readonly Type dataSourceType;
+
+
+        public DataSourceRouteActionResolver(Type dataSourceType)
+        {
+            if (dataSourceType == null)
+                throw new ArgumentNullException(nameof(dataSourceType));
+            this.dataSourceType = dataSourceType;
+        }
+
+
         private IPomonaDataSource GetDataSource(IPomonaSession session)
         {
-            var dataSourceType =
-                session.Routes.MaybeAs<DataSourceRootRoute>().Select(x => x.DataSource).OrDefault(
-                    typeof(IPomonaDataSource));
-            var dataSource = (IPomonaDataSource)session.GetInstance(dataSourceType);
+            var dataSource = (IPomonaDataSource)session.GetInstance(this.dataSourceType);
             return dataSource;
         }
 
