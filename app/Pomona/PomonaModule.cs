@@ -32,24 +32,6 @@ namespace Pomona
         }
 
 
-        [Obsolete(
-            "This PomonaModule ctor will be removed in the future, replace with the one taking no arguments or just IPomonaSessionFactory."
-            )]
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper)
-            : this(dataSource, typeMapper, "/")
-        {
-        }
-
-
-        [Obsolete(
-            "This PomonaModule ctor will be removed in the future, replace with the one taking no arguments or just IPomonaSessionFactory."
-            )]
-        protected PomonaModule(IPomonaDataSource dataSource, TypeMapper typeMapper, string modulePath)
-            : this(typeMapper.SessionFactory, modulePath, dataSource)
-        {
-        }
-
-
         protected PomonaModule(IPomonaSessionFactory sessionFactory,
                                string modulePath = "/",
                                IPomonaDataSource dataSource = null)
