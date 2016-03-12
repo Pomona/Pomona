@@ -6,7 +6,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
@@ -15,7 +14,6 @@ using Nancy;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
-using Pomona.FluentMapping;
 using Pomona.Routing;
 using Pomona.Schemas;
 
@@ -77,11 +75,6 @@ namespace Pomona
         }
 
 
-        protected virtual void OnConfiguration(IConfigurator config)
-        {
-        }
-
-
         protected virtual PomonaError OnException(Exception exception)
         {
             if (exception is PomonaSerializationException)
@@ -96,7 +89,8 @@ namespace Pomona
 
         protected virtual PomonaResponse ProcessRequest()
         {
-            var pomonaSession = this.sessionFactory.CreateSession(Container, new UriResolver(TypeMapper, new BaseUriProvider(Context, ModulePath)));
+            var pomonaSession = this.sessionFactory.CreateSession(Container,
+                                                                  new UriResolver(TypeMapper, new BaseUriProvider(Context, ModulePath)));
             Context.SetPomonaSession(pomonaSession);
             var pomonaEngine =
                 new PomonaEngine(pomonaSession);
@@ -265,23 +259,6 @@ namespace Pomona
             return OnException(UnwrapException(exception));
         }
 
-
-        internal class Configurator : IConfigurator
-        {
-            public List<Delegate> Delegates { get; } = new List<Delegate>();
-
-
-            public IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map)
-            {
-                Delegates.Add(map);
-                return this;
-            }
-        }
-
-        public interface IConfigurator
-        {
-            IConfigurator Map<T>(Action<ITypeMappingConfigurator<T>> map);
-        }
 
         private class ModuleContainer : ServerContainer
         {
