@@ -20,7 +20,6 @@ namespace Pomona
         /// </summary>
         ITextDeserializer Deserializer { get; }
 
-        Route Routes { get; }
         ISerializationContextProvider SerializationContextProvider { get; }
         TypeMapper TypeResolver { get; }
         IUriResolver UriResolver { get; }

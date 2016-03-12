@@ -180,10 +180,5 @@ namespace Pomona
 
         public IUriResolver UriResolver { get; }
         ITextDeserializer IPomonaSession.Deserializer => Factory.SerializerFactory.GetDeserializer(SerializationContextProvider);
-
-        Route IPomonaSession.Routes
-        {
-            get { return Factory.Routes; }
-        }
     }
 }
