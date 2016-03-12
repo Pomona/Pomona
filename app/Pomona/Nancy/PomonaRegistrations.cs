@@ -14,7 +14,7 @@ using Nancy.Routing;
 using Pomona.Queries;
 using Pomona.Routing;
 
-namespace Pomona.Plumbing
+namespace Pomona.Nancy
 {
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     public class PomonaRegistrations : IRegistrations

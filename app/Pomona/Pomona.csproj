@@ -83,7 +83,6 @@
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="BaseUriProvider.cs" />
     <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
     <Compile Include="CodeGen\CecilExtensions.cs" />
     <Compile Include="CodeGen\ClientLibGenerator.cs" />
@@ -144,7 +143,6 @@
     <Compile Include="FluentMapping\TypeMappingConfiguratorBase.cs" />
     <Compile Include="FluentMapping\TypeMappingOptions.cs" />
     <Compile Include="FluentMapping\WrappingTypeMappingFilter.cs" />
-    <Compile Include="HtmlJsonPrettifier.cs" />
     <Compile Include="IBaseUriProvider.cs" />
     <Compile Include="Ioc\RuntimeContainerWrapper.cs" />
     <Compile Include="IO\PathHelper.cs" />
@@ -161,13 +159,19 @@
     <Compile Include="Mapping\IPropertyConventions.cs" />
     <Compile Include="Mapping\IResourceConventions.cs" />
     <Compile Include="Mapping\ITypeConventions.cs" />
+    <Compile Include="Nancy\BaseUriProvider.cs" />
+    <Compile Include="Nancy\DefaultErrorHandler.cs" />
+    <Compile Include="Nancy\HtmlJsonPrettifier.cs" />
+    <Compile Include="Nancy\PomonaEngine.cs" />
+    <Compile Include="Nancy\PomonaJsonResponseProcessor.cs" />
+    <Compile Include="Nancy\PomonaRegistrations.cs" />
+    <Compile Include="Nancy\PomonaResponseProcessorBase.cs" />
+    <Compile Include="Nancy\PomonaRouteMetadataProvider.cs" />
     <Compile Include="PomonaConfigurationAttribute.cs" />
     <Compile Include="NancyExtensions.cs" />
     <Compile Include="NonClosingStreamWriter.cs" />
     <Compile Include="PathNodeType.cs" />
-    <Compile Include="Plumbing\PomonaRegistrations.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
-    <Compile Include="DefaultErrorHandler.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaError.cs" />
     <Compile Include="PomonaModuleConfigurationBinder.cs" />
@@ -176,8 +180,6 @@
     <Compile Include="PomonaExpressionSyntaxException.cs" />
     <Compile Include="PomonaContext.cs" />
     <Compile Include="PomonaResponse.cs" />
-    <Compile Include="PomonaJsonResponseProcessor.cs" />
-    <Compile Include="PomonaResponseProcessorBase.cs" />
     <Compile Include="PomonaSession.cs" />
     <Compile Include="PomonaSessionExtensions.cs" />
     <Compile Include="PomonaSessionFactory.cs" />
@@ -240,14 +242,12 @@
     <Compile Include="Routing\DataSourceRootRoute.cs" />
     <Compile Include="Routing\DefaultQueryProviderCapabilityResolver.cs" />
     <Compile Include="Routing\IQueryProviderCapabilityResolver.cs" />
-    <Compile Include="Routing\PomonaEngine.cs" />
     <Compile Include="Routing\InternalRouteActionResolver.cs" />
     <Compile Include="Routing\GetByIdRoute.cs" />
     <Compile Include="Routing\ILiteralRoute.cs" />
     <Compile Include="Routing\IRouteActionResolver.cs" />
     <Compile Include="Routing\DelegateRouteAction.cs" />
     <Compile Include="Routing\PomonaRouteMetadata.cs" />
-    <Compile Include="Routing\PomonaRouteMetadataProvider.cs" />
     <Compile Include="Routing\PomonaRouteResolver.cs" />
     <Compile Include="Routing\QueryGetActionResolver.cs" />
     <Compile Include="Routing\RequestHandlerActionResolver.cs" />
@@ -292,6 +292,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CodeGen\XmlDoc\" />
+    <Folder Include="Plumbing\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition=" '$(OS)' != 'Unix' ">

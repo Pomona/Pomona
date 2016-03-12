@@ -14,6 +14,7 @@ using Nancy;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
+using Pomona.Nancy;
 using Pomona.Routing;
 using Pomona.Schemas;
 

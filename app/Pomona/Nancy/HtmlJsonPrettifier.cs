@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
 // project's repository, or alternatively at http://pomona.io/
@@ -11,7 +11,7 @@ using System.Text;
 using Nancy;
 using Nancy.Helpers;
 
-namespace Pomona
+namespace Pomona.Nancy
 {
     /// <summary>
     /// This was just hacked together as fast as possible.

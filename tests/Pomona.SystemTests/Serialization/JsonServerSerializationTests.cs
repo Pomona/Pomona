@@ -26,6 +26,7 @@ using Pomona.Common.Serialization.Json;
 using Pomona.Common.TypeSystem;
 using Pomona.Example;
 using Pomona.Example.Models;
+using Pomona.Nancy;
 
 namespace Pomona.SystemTests.Serialization
 {

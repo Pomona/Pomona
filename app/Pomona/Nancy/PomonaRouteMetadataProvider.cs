@@ -11,8 +11,9 @@ using Nancy;
 using Nancy.Routing;
 
 using Pomona.Common;
+using Pomona.Routing;
 
-namespace Pomona.Routing
+namespace Pomona.Nancy
 {
     /// <summary>
     /// The default route metadata provider for Pomona.
