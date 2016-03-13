@@ -8,22 +8,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Nancy;
 
 using Pomona.Common;
+using Pomona.Common.Internals;
 
 namespace Pomona
 {
     public class PomonaRequest
     {
-        private RequestHeaders headers;
-
-
         public PomonaRequest(string url,
                              string relativePath,
                              HttpMethod method = HttpMethod.Get,
-                             RequestHeaders headers = null,
+                             IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers = null,
                              Stream body = null,
                              DynamicDictionary query = null)
         {
@@ -33,21 +32,18 @@ namespace Pomona
             Url = url;
             RelativePath = relativePath;
             Body = body;
-            this.headers = headers;
+            Headers = headers.EmptyIfNull().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
             Query = query ?? new DynamicDictionary();
         }
 
 
         public Stream Body { get; internal set; }
 
-        public RequestHeaders Headers
-        {
-            get { return this.headers ?? (this.headers = new RequestHeaders(new Dictionary<string, IEnumerable<string>>())); }
-        }
+        public IDictionary<string, IEnumerable<string>> Headers { get; }
 
         public HttpMethod Method { get; }
 
-        public DynamicDictionary Query { get; internal set; }
+        public DynamicDictionary Query { get; }
 
         public string RelativePath { get; }
 

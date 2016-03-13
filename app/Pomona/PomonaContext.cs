@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Nancy;
@@ -49,7 +50,7 @@ namespace Pomona
 
         public bool HandleException { get; }
 
-        public RequestHeaders Headers => Request.Headers;
+        public IDictionary<string, IEnumerable<string>> Headers => Request.Headers;
 
         public HttpMethod Method => Request.Method;
 
@@ -130,9 +131,9 @@ namespace Pomona
         }
 
 
-        private static string GetExpandedPathsFromRequest(RequestHeaders requestHeaders, DynamicDictionary query)
+        private static string GetExpandedPathsFromRequest(IDictionary<string, IEnumerable<string>> requestHeaders, DynamicDictionary query)
         {
-            var expansions = requestHeaders["X-Pomona-Expand"];
+            var expansions = requestHeaders.SafeGet("X-Pomona-Expand").EmptyIfNull();
             if (query["$expand"].HasValue)
                 expansions = expansions.Append((string)query["$expand"]);
             var expandedPathsTemp = string.Join(",", expansions);
