@@ -6,6 +6,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Nancy;
 
@@ -39,7 +41,8 @@ namespace Pomona.Nancy
             var moduleRelativePath = context.Request.Path.Substring(modulePath.Length);
             var request = new PomonaRequest(context.Request.Url.ToString(), moduleRelativePath, httpMethod,
                                             context.Request.Headers, context.Request.Body,
-                                            context.Request.Query);
+                                            ((IDictionary<string, object>)context.Request.Query).ToDictionary(x => x.Key,
+                                                                                                              x => x.Value.ToString()));
 
             return this.session.Dispatch(request);
         }

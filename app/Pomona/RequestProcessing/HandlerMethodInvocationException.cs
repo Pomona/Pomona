@@ -6,9 +6,8 @@
 #endregion
 
 using System;
+using System.Net;
 using System.Runtime.Serialization;
-
-using Nancy;
 
 namespace Pomona.RequestProcessing
 {

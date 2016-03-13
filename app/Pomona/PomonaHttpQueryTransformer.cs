@@ -7,8 +7,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
+using Pomona.Common;
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
@@ -40,48 +43,43 @@ namespace Pomona
                 throw new ArgumentNullException(nameof(rootType));
 
             StructuredType ofType = null;
-            if (context.Query["$oftype"].HasValue)
-                ofType = (StructuredType)this.typeMapper.FromType((string)context.Query["$oftype"]);
+            string ofTypeString;
+            var qs = context.Query;
+            if (qs.TryGetValue("$oftype", out ofTypeString))
+                ofType = (StructuredType)this.typeMapper.FromType(ofTypeString);
 
             var query = new PomonaQuery(rootType, ofType);
 
-            if (context.Query["$debug"].HasValue)
+            string debugString;
+            if (qs.TryGetValue("$debug", out debugString))
             {
                 query.DebugInfoKeys =
-                    new HashSet<string>(((string)context.Query["$debug"]).ToLower().Split(',').Select(x => x.Trim()));
+                    new HashSet<string>(debugString.ToLower().Split(',').Select(x => x.Trim()));
             }
 
-            string filter = null;
-            var top = defaultTop ?? 100;
-            var skip = 0;
+            var culture = CultureInfo.InvariantCulture;
 
-            if (context.Query["$totalcount"].HasValue && ((string)context.Query["$totalcount"]).ToLower() == "true")
-                query.IncludeTotalCount = true;
+            query.IncludeTotalCount = qs.SafeGet("$totalcount") == "true";
 
-            if (context.Query["$top"].HasValue)
-                top = int.Parse(context.Query["$top"]);
-
-            if (context.Query["$skip"].HasValue)
-                skip = int.Parse(context.Query["$skip"]);
-
-            if (context.Query["$filter"].HasValue)
-                filter = (string)context.Query["$filter"];
+            var top = qs.SafeGet("$top")?.Parse<int>(culture) ?? defaultTop ?? 100;
+            var skip = qs.SafeGet("$skip")?.Parse<int>(culture) ?? 0;
+            var filter = qs.SafeGet("$filter");
 
             ParseFilterExpression(query, filter);
             var selectSourceType = query.OfType.Type;
 
-            if (context.Query["$groupby"].HasValue)
+            string groupby;
+            if (qs.TryGetValue("$groupby", out groupby))
             {
-                var groupby = (string)context.Query["$groupby"];
                 ParseGroupByExpression(query, groupby);
                 selectSourceType =
                     typeof(IGrouping<,>).MakeGenericType(
                         query.GroupByExpression.ReturnType, selectSourceType);
             }
 
-            if (context.Query["$projection"].HasValue)
+            string projectionString;
+            if (qs.TryGetValue("$projection", out projectionString))
             {
-                var projectionString = (string)context.Query["$projection"];
                 PomonaQuery.ProjectionType projection;
                 if (!Enum.TryParse(projectionString, true, out projection))
                 {
@@ -94,25 +92,20 @@ namespace Pomona
                 query.Projection = projection;
             }
 
-            if (context.Query["$select"].HasValue)
+            string @select;
+            if (qs.TryGetValue("$select", out select))
             {
-                var select = (string)context.Query["$select"];
                 ParseSelect(query, select, selectSourceType);
             }
 
-            if (context.Query["$orderby"].HasValue)
-                ParseOrderBy(query, (string)context.Query["$orderby"]);
+            string @orderby;
+            if (qs.TryGetValue("$orderby", out orderby))
+                ParseOrderBy(query, orderby);
 
             query.Top = top;
             query.Skip = skip;
 
-            if (context.Query["$expand"].HasValue)
-            {
-                // TODO: Translate expanded paths using TypeMapper
-                query.ExpandedPaths = ((string)context.Query["$expand"]);
-            }
-            else
-                query.ExpandedPaths = string.Empty;
+            query.ExpandedPaths = qs.SafeGet("$expand") ?? string.Empty;
 
             query.Url = context.Url;
 

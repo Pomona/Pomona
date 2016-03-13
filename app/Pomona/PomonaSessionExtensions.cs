@@ -6,11 +6,10 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
-using Nancy;
-using Nancy.Extensions;
-
+using Pomona.Common;
 using Pomona.Routing;
 
 namespace Pomona
@@ -22,7 +21,7 @@ namespace Pomona
             // TODO: Move this to some other class.
 
             string urlWithoutQueryPart = url;
-            DynamicDictionary query = null;
+            IDictionary<string, string> query = null;
             var queryStart = url.IndexOf('?');
             if (queryStart != -1)
             {
@@ -59,6 +58,16 @@ namespace Pomona
 
             var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable), handleException : false);
             return (IQueryable)session.Dispatch(request).Entity;
+        }
+
+
+        private static IDictionary<string, string> AsQueryDictionary(this string queryString)
+        {
+            var nameValueCollection = HttpUtility.ParseQueryString(queryString);
+            IDictionary<string, string> queryDictionary = new Dictionary<string, string>();
+            foreach (string index in nameValueCollection.AllKeys.Where(key => key != null))
+                queryDictionary[index] = (string)nameValueCollection[index];
+            return queryDictionary;
         }
     }
 }

@@ -6,12 +6,13 @@
 #endregion
 
 using System;
+using System.Net;
 
-using Nancy;
 using Nancy.Validation;
 
 using Pomona.Common;
 using Pomona.Example.Models;
+using Pomona.Nancy;
 
 namespace Pomona.Example
 {

@@ -8,8 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Nancy;
+using System.Net;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -18,9 +17,6 @@ namespace Pomona
 {
     public class PomonaResponse
     {
-        internal static readonly object NoBodyEntity;
-
-
         static PomonaResponse()
         {
             NoBodyEntity = new object();
@@ -75,6 +71,7 @@ namespace Pomona
         public string ExpandedPaths { get; }
 
         public IDictionary<string, IEnumerable<string>> Headers { get; }
+        public static object NoBodyEntity { get; }
 
         public TypeSpec ResultType { get; }
 

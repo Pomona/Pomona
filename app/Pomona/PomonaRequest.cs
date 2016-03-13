@@ -10,8 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using Nancy;
-
 using Pomona.Common;
 using Pomona.Common.Internals;
 
@@ -24,7 +22,7 @@ namespace Pomona
                              HttpMethod method = HttpMethod.Get,
                              IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers = null,
                              Stream body = null,
-                             DynamicDictionary query = null)
+                             IDictionary<string, string> query = null)
         {
             if (url == null)
                 throw new ArgumentNullException(nameof(url));
@@ -33,7 +31,7 @@ namespace Pomona
             RelativePath = relativePath;
             Body = body;
             Headers = headers.EmptyIfNull().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
-            Query = query ?? new DynamicDictionary();
+            Query = query ?? new Dictionary<string, string>();
         }
 
 
@@ -43,7 +41,7 @@ namespace Pomona
 
         public HttpMethod Method { get; }
 
-        public DynamicDictionary Query { get; }
+        public IDictionary<string, string> Query { get; }
 
         public string RelativePath { get; }
 

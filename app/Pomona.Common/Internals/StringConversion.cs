@@ -32,6 +32,12 @@ namespace Pomona.Common.Internals
             new ConcurrentDictionary<Type, IStringConverter>();
 
 
+        public static T Parse<T>(this string s, IFormatProvider provider = null)
+        {
+            return (T)s.Parse(typeof(T), provider);
+        }
+
+
         public static object Parse(this string s, Type toType, IFormatProvider provider = null)
         {
             if (s == null)

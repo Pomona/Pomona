@@ -60,10 +60,6 @@
       <HintPath>..\..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.Rocks.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Nancy, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Nancy.1.4.1\lib\net40\Nancy.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -148,7 +144,6 @@
     <Compile Include="IO\PathHelper.cs" />
     <Compile Include="IPomonaDataSource.cs" />
     <Compile Include="IPomonaErrorHandler.cs" />
-    <Compile Include="IPomonaModuleConfigurationBinder.cs" />
     <Compile Include="IPomonaRequestProcessor.cs" />
     <Compile Include="IPomonaSessionFactory.cs" />
     <Compile Include="IUriResolver.cs" />
@@ -159,22 +154,11 @@
     <Compile Include="Mapping\IPropertyConventions.cs" />
     <Compile Include="Mapping\IResourceConventions.cs" />
     <Compile Include="Mapping\ITypeConventions.cs" />
-    <Compile Include="Nancy\BaseUriProvider.cs" />
-    <Compile Include="Nancy\DefaultErrorHandler.cs" />
-    <Compile Include="Nancy\HtmlJsonPrettifier.cs" />
-    <Compile Include="Nancy\PomonaEngine.cs" />
-    <Compile Include="Nancy\PomonaJsonResponseProcessor.cs" />
-    <Compile Include="Nancy\PomonaRegistrations.cs" />
-    <Compile Include="Nancy\PomonaResponseProcessorBase.cs" />
-    <Compile Include="Nancy\PomonaRouteMetadataProvider.cs" />
     <Compile Include="PomonaConfigurationAttribute.cs" />
-    <Compile Include="NancyExtensions.cs" />
-    <Compile Include="NonClosingStreamWriter.cs" />
     <Compile Include="PathNodeType.cs" />
     <Compile Include="PomonaConfigurationBase.cs" />
     <Compile Include="PomonaDataSourceExtensions.cs" />
     <Compile Include="PomonaError.cs" />
-    <Compile Include="PomonaModuleConfigurationBinder.cs" />
     <Compile Include="PomonaRequest.cs" />
     <Compile Include="PomonaServerException.cs" />
     <Compile Include="PomonaExpressionSyntaxException.cs" />
@@ -216,7 +200,6 @@
     <Compile Include="Queries\TypeNameNode.cs" />
     <Compile Include="ResourceNotFoundException.cs" />
     <Compile Include="PomonaMappingException.cs" />
-    <Compile Include="PomonaModule.cs" />
     <Compile Include="PomonaQuery.cs" />
     <Compile Include="PomonaHttpQueryTransformer.cs" />
     <Compile Include="IPomonaSession.cs" />
@@ -263,7 +246,6 @@
     <Compile Include="Schemas\SchemaArrayItem.cs" />
     <Compile Include="Schemas\SchemaPropertyEntry.cs" />
     <Compile Include="Schemas\SchemaTypeEntry.cs" />
-    <Compile Include="ServerContainer.cs" />
     <Compile Include="ServerDeserializationContext.cs" />
     <Compile Include="ServerSerializationContextProvider.cs" />
     <Compile Include="SingularToPluralTranslator.cs" />
@@ -292,7 +274,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CodeGen\XmlDoc\" />
-    <Folder Include="Plumbing\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition=" '$(OS)' != 'Unix' ">

@@ -15,7 +15,7 @@ using Nancy;
 using Pomona.Common;
 using Pomona.Ioc;
 
-namespace Pomona
+namespace Pomona.Nancy
 {
     internal static class NancyExtensions
     {

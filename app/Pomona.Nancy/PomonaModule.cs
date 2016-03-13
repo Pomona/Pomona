@@ -14,11 +14,11 @@ using Nancy;
 using Pomona.CodeGen;
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
-using Pomona.Nancy;
-using Pomona.Routing;
 using Pomona.Schemas;
 
-namespace Pomona
+using HttpStatusCode = System.Net.HttpStatusCode;
+
+namespace Pomona.Nancy
 {
     public abstract class PomonaModule : NancyModule, IPomonaErrorHandler
     {

@@ -8,8 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Nancy;
+using System.Net;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;

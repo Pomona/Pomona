@@ -8,11 +8,11 @@
 using System.IO;
 using System.Text;
 
-namespace Pomona
+namespace Pomona.Nancy
 {
     /// <summary>
-    /// A version of <see cref="StreamWriter"/> that doesn't close the underlying <see cref="Stream"/> when <see cref="Dispose"/>d.
-    /// Writes to the underlying <see cref="Stream"/> with a BOM-less UTF-8 encoding.
+    /// A version of <see cref="System.IO.StreamWriter"/> that doesn't close the underlying <see cref="System.IO.Stream"/> when <see cref="Dispose"/>d.
+    /// Writes to the underlying <see cref="System.IO.Stream"/> with a BOM-less UTF-8 encoding.
     /// </summary>
     internal class NonClosingStreamWriter : StreamWriter
     {
@@ -35,7 +35,7 @@ namespace Pomona
 
 
         /// <summary>
-        /// Flushes the content of the <see cref="StreamWriter"/> to the underlying <see cref="Stream"/>,
+        /// Flushes the content of the <see cref="System.IO.StreamWriter"/> to the underlying <see cref="System.IO.Stream"/>,
         /// but does not close it.
         /// </summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>

@@ -138,6 +138,10 @@
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona.Nancy\Pomona.Nancy.csproj">
+      <Project>{ca7980dc-54a7-4b8b-840c-54c56cf5d9c8}</Project>
+      <Name>Pomona.Nancy</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
       <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>
       <Name>Pomona.Example</Name>

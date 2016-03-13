@@ -6,10 +6,9 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-
-using Nancy;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -56,7 +55,7 @@ namespace Pomona
 
         public UrlSegment Node { get; }
 
-        public dynamic Query => Request.Query;
+        public IDictionary<string, string> Query => Request.Query;
 
         public PomonaRequest Request { get; }
 
@@ -131,11 +130,12 @@ namespace Pomona
         }
 
 
-        private static string GetExpandedPathsFromRequest(IDictionary<string, IEnumerable<string>> requestHeaders, DynamicDictionary query)
+        private static string GetExpandedPathsFromRequest(IDictionary<string, IEnumerable<string>> requestHeaders, IDictionary<string, string> query)
         {
             var expansions = requestHeaders.SafeGet("X-Pomona-Expand").EmptyIfNull();
-            if (query["$expand"].HasValue)
-                expansions = expansions.Append((string)query["$expand"]);
+            string queryExpandValue;
+            if (query.TryGetValue("$expand", out queryExpandValue))
+                expansions = expansions.Append(queryExpandValue);
             var expandedPathsTemp = string.Join(",", expansions);
             return expandedPathsTemp;
         }

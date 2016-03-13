@@ -18,6 +18,8 @@ using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Routing;
 
+using NancyHttpStatusCode = Nancy.HttpStatusCode;
+
 namespace Pomona.Nancy
 {
     /// <summary>
@@ -128,7 +130,7 @@ namespace Pomona.Nancy
             var pomonaResponse = (PomonaResponse)model;
 
             if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
-                return new Response { StatusCode = pomonaResponse.StatusCode };
+                return new Response { StatusCode = (HttpStatusCode)pomonaResponse.StatusCode };
 
             var serializer = GetSerializer(context);
             var serializeOptions = new SerializeOptions
@@ -163,7 +165,7 @@ namespace Pomona.Nancy
                         }
                     },
                     ContentType = ContentType,
-                    StatusCode = pomonaResponse.StatusCode
+                    StatusCode = (NancyHttpStatusCode)pomonaResponse.StatusCode
                 };
 
                 if (pomonaResponse.Headers != null)
@@ -171,9 +173,7 @@ namespace Pomona.Nancy
                     foreach (var kvp in pomonaResponse.Headers)
                     {
                         foreach (var headerValue in kvp.Value)
-                        {
                             response.Headers.Add(kvp.Key, headerValue);
-                        }
                     }
                 }
 
