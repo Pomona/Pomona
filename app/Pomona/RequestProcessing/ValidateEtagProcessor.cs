@@ -18,7 +18,7 @@ namespace Pomona.RequestProcessing
     {
         private string GetIfMatchFromRequest(PomonaContext context)
         {
-            var ifMatch = context.Headers.SafeGet("If-Match")?.FirstOrDefault();
+            var ifMatch = context.RequestHeaders.SafeGet("If-Match")?.FirstOrDefault();
             if (ifMatch != null)
             {
                 ifMatch = ifMatch.Trim();

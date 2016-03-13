@@ -50,7 +50,7 @@ namespace Pomona
 
         public bool HandleException { get; }
 
-        public IDictionary<string, IEnumerable<string>> Headers => Request.Headers;
+        public IDictionary<string, IEnumerable<string>> RequestHeaders => Request.Headers;
 
         public HttpMethod Method => Request.Method;
 
