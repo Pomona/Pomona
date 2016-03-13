@@ -166,10 +166,15 @@ namespace Pomona.Nancy
                     StatusCode = pomonaResponse.StatusCode
                 };
 
-                if (pomonaResponse.ResponseHeaders != null)
+                if (pomonaResponse.Headers != null)
                 {
-                    foreach (var kvp in pomonaResponse.ResponseHeaders)
-                        response.Headers.Add(kvp);
+                    foreach (var kvp in pomonaResponse.Headers)
+                    {
+                        foreach (var headerValue in kvp.Value)
+                        {
+                            response.Headers.Add(kvp.Key, headerValue);
+                        }
+                    }
                 }
 
                 // Add etag header

@@ -11,6 +11,7 @@ using System.Linq;
 
 using Nancy;
 
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
@@ -31,7 +32,7 @@ namespace Pomona
                               HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               TypeSpec resultType = null,
-                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+                              IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders = null)
             : this(entity, statusCode, GetExpandedPaths(context, expandedPaths), resultType, responseHeaders)
         {
         }
@@ -47,15 +48,13 @@ namespace Pomona
                               HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               TypeSpec resultType = null,
-                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+                              IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders = null)
         {
             Entity = entity;
             StatusCode = statusCode;
             ExpandedPaths = expandedPaths;
             ResultType = resultType;
-
-            if (responseHeaders != null)
-                ResponseHeaders = responseHeaders.ToList();
+            Headers = responseHeaders.EmptyIfNull().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
         }
 
 
@@ -75,7 +74,7 @@ namespace Pomona
 
         public string ExpandedPaths { get; }
 
-        public List<KeyValuePair<string, string>> ResponseHeaders { get; }
+        public IDictionary<string, IEnumerable<string>> Headers { get; }
 
         public TypeSpec ResultType { get; }
 
