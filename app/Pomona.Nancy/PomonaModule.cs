@@ -8,6 +8,8 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Nancy;
 
@@ -70,14 +72,14 @@ namespace Pomona.Nancy
         }
 
 
-        protected virtual PomonaResponse ProcessRequest()
+        protected virtual Task<PomonaResponse> ProcessRequest(CancellationToken cancellationToken)
         {
             var pomonaSession = this.sessionFactory.CreateSession(Container,
                                                                   new UriResolver(TypeMapper, new BaseUriProvider(Context, ModulePath)));
             Context.SetPomonaSession(pomonaSession);
             var pomonaEngine =
                 new PomonaEngine(pomonaSession);
-            return pomonaEngine.Handle(Context, ModulePath);
+            return pomonaEngine.Handle(Context, ModulePath, cancellationToken);
         }
 
 
@@ -167,7 +169,7 @@ namespace Pomona.Nancy
                 RegisterRoutesFor((ResourceType)route.ResultItemType);
 
             // For root resource links!
-            Register(Get, "/", x => ProcessRequest());
+            Register(Get, "/");
 
             Get[PomonaRouteMetadataProvider.JsonSchema, "/schemas"] = x => GetSchemas();
 
@@ -178,13 +180,13 @@ namespace Pomona.Nancy
         }
 
 
-        private void Register(RouteBuilder routeBuilder, string path, Func<dynamic, PomonaResponse> handler)
+        private void Register(RouteBuilder routeBuilder, string path)
         {
-            routeBuilder[path] = x =>
+            routeBuilder[path, true] = async (x, ct) =>
             {
                 try
                 {
-                    var pomonaResponse = (PomonaResponse)handler(x);
+                    var pomonaResponse = await ProcessRequest(ct);
 
                     if ((int)pomonaResponse.StatusCode >= 400)
                         SetErrorHandled();
@@ -221,13 +223,13 @@ namespace Pomona.Nancy
         private void RegisterRoutesFor(ResourceType type)
         {
             var path = "/" + type.UrlRelativePath;
-
-            Register(Get, path + "/{remaining*}", x => ProcessRequest());
-            Register(Get, path, x => ProcessRequest());
-            Register(Post, path, x => ProcessRequest());
-            Register(Patch, path + "/{remaining*}", x => ProcessRequest());
-            Register(Post, path + "/{remaining*}", x => ProcessRequest());
-            Register(Delete, path + "/{remaining*}", x => ProcessRequest());
+            var subPaths = path + "/{remaining*}";
+            Register(Get, subPaths);
+            Register(Get, path);
+            Register(Post, path);
+            Register(Patch, subPaths);
+            Register(Post, subPaths);
+            Register(Delete, subPaths);
         }
 
 

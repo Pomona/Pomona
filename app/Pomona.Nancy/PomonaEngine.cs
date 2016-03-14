@@ -8,6 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Nancy;
 
@@ -28,14 +30,16 @@ namespace Pomona.Nancy
         }
 
 
-        public PomonaResponse Handle(NancyContext context, string modulePath)
+        public Task<PomonaResponse> Handle(NancyContext context, string modulePath, CancellationToken cancellationToken)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
             if (modulePath == null)
                 throw new ArgumentNullException(nameof(modulePath));
 
-            HttpMethod httpMethod =
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var httpMethod =
                 (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);
 
             var moduleRelativePath = context.Request.Path.Substring(modulePath.Length);
@@ -44,7 +48,8 @@ namespace Pomona.Nancy
                                             ((IDictionary<string, object>)context.Request.Query).ToDictionary(x => x.Key,
                                                                                                               x => x.Value.ToString()));
 
-            return this.session.Dispatch(request);
+            // TODO: Spread async further in
+            return Task.FromResult(this.session.Dispatch(request));
         }
     }
 }
