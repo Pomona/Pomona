@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Serialization;
@@ -48,6 +49,7 @@ namespace Pomona
 
         public object CreateReference(IDeserializerNode node)
         {
+            // TODO: spread async everywhere
             return this.resourceResolver.ResolveUri(node.Uri);
         }
 

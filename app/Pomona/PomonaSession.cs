@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common.Linq.NonGeneric;
 using Pomona.Common.Serialization;
@@ -42,7 +43,7 @@ namespace Pomona
         private PomonaContext CurrentContext { get; set; }
 
 
-        private PomonaResponse DispatchInternal(PomonaContext context)
+        private async Task<PomonaResponse> DispatchInternal(PomonaContext context)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -52,7 +53,7 @@ namespace Pomona
             try
             {
                 CurrentContext = context;
-                var result = Factory.Pipeline.Process(context);
+                var result = await Factory.Pipeline.Process(context);
 
                 var resultEntity = result.Entity;
                 var resultAsQueryable = resultEntity as IQueryable;
@@ -114,18 +115,18 @@ namespace Pomona
         }
 
 
-        public virtual PomonaResponse Dispatch(PomonaRequest request)
+        public virtual Task<PomonaResponse> Dispatch(PomonaRequest request)
         {
             var finalSegmentMatch = new PomonaRouteResolver(Factory.Routes).Resolve(this, request);
             return Dispatch(new PomonaContext(finalSegmentMatch, request, executeQueryable : true));
         }
 
 
-        public virtual PomonaResponse Dispatch(PomonaContext context)
+        public virtual async Task<PomonaResponse> Dispatch(PomonaContext context)
         {
             try
             {
-                return DispatchInternal(context);
+                return await DispatchInternal(context);
             }
             catch (Exception ex)
             {
@@ -158,9 +159,9 @@ namespace Pomona
         }
 
 
-        public object ResolveUri(string uri)
+        object IResourceResolver.ResolveUri(string uri)
         {
-            var pomonaResponse = this.Get(uri);
+            var pomonaResponse = Task.Run(() => this.Get(uri)).Result;
 
             if ((int)pomonaResponse.StatusCode >= 400)
                 throw new ReferencedResourceNotFoundException(uri, pomonaResponse);

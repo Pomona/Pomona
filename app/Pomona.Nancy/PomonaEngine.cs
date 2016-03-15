@@ -30,7 +30,7 @@ namespace Pomona.Nancy
         }
 
 
-        public Task<PomonaResponse> Handle(NancyContext context, string modulePath, CancellationToken cancellationToken)
+        public async Task<PomonaResponse> Handle(NancyContext context, string modulePath, CancellationToken cancellationToken)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -49,7 +49,7 @@ namespace Pomona.Nancy
                                                                                                               x => x.Value.ToString()));
 
             // TODO: Spread async further in
-            return Task.FromResult(this.session.Dispatch(request));
+            return await this.session.Dispatch(request);
         }
     }
 }

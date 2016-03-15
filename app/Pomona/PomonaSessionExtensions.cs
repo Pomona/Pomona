@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Routing;
@@ -16,7 +17,7 @@ namespace Pomona
 {
     public static class PomonaSessionExtensions
     {
-        public static PomonaResponse Get(this IPomonaSession session, string url)
+        public static Task<PomonaResponse> Get(this IPomonaSession session, string url)
         {
             // TODO: Move this to some other class.
 
@@ -35,7 +36,7 @@ namespace Pomona
         }
 
 
-        internal static object Get(this IPomonaSession session,
+        internal static async Task<object> Get(this IPomonaSession session,
                                    UrlSegment urlSegment)
         {
             if (session == null)
@@ -44,11 +45,12 @@ namespace Pomona
                 throw new ArgumentNullException(nameof(urlSegment));
 
             var request = new PomonaContext(urlSegment, executeQueryable : true, handleException : false);
-            return session.Dispatch(request).Entity;
+            var pomonaResponse = await session.Dispatch(request);
+            return pomonaResponse.Entity;
         }
 
 
-        internal static IQueryable Query(this IPomonaSession session,
+        internal static async Task<IQueryable> Query(this IPomonaSession session,
                                          UrlSegment urlSegment)
         {
             if (session == null)
@@ -57,7 +59,8 @@ namespace Pomona
                 throw new ArgumentNullException(nameof(urlSegment));
 
             var request = new PomonaContext(urlSegment, acceptType : typeof(IQueryable), handleException : false);
-            return (IQueryable)session.Dispatch(request).Entity;
+            var response = await session.Dispatch(request);
+            return (IQueryable)response.Entity;
         }
 
 

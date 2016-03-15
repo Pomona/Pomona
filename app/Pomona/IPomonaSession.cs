@@ -6,6 +6,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -23,8 +24,8 @@ namespace Pomona
         ISerializationContextProvider SerializationContextProvider { get; }
         TypeMapper TypeResolver { get; }
         IUriResolver UriResolver { get; }
-        PomonaResponse Dispatch(PomonaContext context);
-        PomonaResponse Dispatch(PomonaRequest request);
+        Task<PomonaResponse> Dispatch(PomonaContext context);
+        Task<PomonaResponse> Dispatch(PomonaRequest request);
         IEnumerable<RouteAction> GetRouteActions(PomonaContext context);
     }
 }

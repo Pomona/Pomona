@@ -9,6 +9,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -77,9 +78,10 @@ namespace Pomona
 
                 if (Method == HttpMethod.Patch)
                 {
+                    // TODO: spread async further out
+                    var response = Task.Run(() => Node.Session.Dispatch(new PomonaContext(Node, executeQueryable : true))).Result;
                     patchedObject = patchedObject
-                                    ?? Node.Session.Dispatch(new PomonaContext(Node, executeQueryable : true))
-                                           .Entity;
+                                    ?? response.Entity;
                     if (patchedObject != null)
                         type = TypeMapper.FromType(patchedObject.GetType());
                 }

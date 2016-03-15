@@ -7,6 +7,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
@@ -71,13 +72,14 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public PomonaResponse Process(PomonaContext context)
+        public async Task<PomonaResponse> Process(PomonaContext context)
         {
             string ifMatch = null;
             if ((ifMatch = GetIfMatchFromRequest(context)) == null)
                 return null;
 
-            return ProcessPatch(context, ifMatch) ?? ProcessPostToChildResourceRepository(context, ifMatch);
+            var pomonaResponse = ProcessPatch(context, ifMatch) ?? ProcessPostToChildResourceRepository(context, ifMatch);
+            return pomonaResponse;
         }
     }
 }

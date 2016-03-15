@@ -14,6 +14,7 @@ namespace Pomona.Common.Serialization
     public class PropertyValueDeserializerNode : IDeserializerNode
     {
         private string expandPath;
+        private object value;
 
 
         public PropertyValueDeserializerNode(IDeserializerNode parent, PropertySpec property)
@@ -62,7 +63,11 @@ namespace Pomona.Common.Serialization
             get { return Parent ?? Context.TargetNode; }
         }
 
-        public object Value { get; set; }
+        public object Value
+        {
+            get { return this.value; }
+            set { this.value = value; }
+        }
 
         TypeSpec IResourceNode.ResultType
         {

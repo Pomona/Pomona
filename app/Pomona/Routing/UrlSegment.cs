@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
@@ -183,13 +184,15 @@ namespace Pomona.Routing
 
         public object Get()
         {
-            return Session.Get(this);
+            // TODO: Spread out async, return Task<object> instead
+            return Task.Run(() => Session.Get(this)).Result;
         }
 
 
         public IQueryable Query()
         {
-            return Session.Query(this);
+            // TODO: Spread out async, return Task<IQueryable> instead
+            return Task.Run(() => Session.Query(this)).Result;
         }
 
 

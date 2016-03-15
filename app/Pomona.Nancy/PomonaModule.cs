@@ -85,7 +85,7 @@ namespace Pomona.Nancy
 
         protected virtual Exception UnwrapException(Exception exception)
         {
-            if (exception is TargetInvocationException || exception is RequestExecutionException)
+            if (exception is TargetInvocationException || exception is RequestExecutionException || exception is AggregateException)
                 return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
 
             return exception;
