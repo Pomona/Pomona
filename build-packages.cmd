@@ -18,4 +18,3 @@ nuget pack -Prop Configuration=Release app\Pomona.Profiling.MiniProfiler\Pomona.
 nuget pack -Prop Configuration=Release app\Pomona.NHibernate3\Pomona.NHibernate3.csproj -OutputDirectory build
 nuget pack -Prop Configuration=Release app\Pomona.NHibernate4\Pomona.NHibernate4.csproj -OutputDirectory build
 nuget pack -Prop Configuration=Release tests\Pomona.TestHelpers\Pomona.TestHelpers.csproj -OutputDirectory build
-nuget pack -Prop Configuration=Release tests\Pomona.TestingClient\Pomona.TestingClient.csproj -OutputDirectory build
