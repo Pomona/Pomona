@@ -90,7 +90,7 @@ namespace Pomona.UnitTests
 
 
         [Test]
-        [Ignore]
+        [Ignore("TODO: Remove me")]
         public void WriteAssemblyToFileForDebugging()
         {
             var tb = new AnonymousTypeBuilder(new[] { "Foo", "Bar" });

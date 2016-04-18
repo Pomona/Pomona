@@ -27,7 +27,7 @@ namespace Pomona.UnitTests.Security.Authentication
         [TestCase("http://bahahaha?existingParam=something",
             "http://bahahaha/?existingParam=something&$token=XYZ")]
         [TestCase("http://bahahaha?$token=something-else", "http://bahahaha/?$token=XYZ")]
-        [TestCase("/relative", "/relative/?$token=XYZ", Ignore = true, Category = "TODO")]
+        [TestCase("/relative", "/relative/?$token=XYZ", Ignore = "TODO", Category = "TODO")]
         public void CreatePreAuthenticatedUrl_AppendsSerializedUrlTokenToUrl(string url, string expectedResult)
         {
             var preAuthUrl = this.uriProvider.CreatePreAuthenticatedUrl(url);
