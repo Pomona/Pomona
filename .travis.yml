@@ -1,0 +1,9 @@
+language: csharp
+solution: Pomona.sln
+sudo: false
+install:
+ - nuget restore Pomona.sln
+ - nuget install NUnit.Runners -Version 3.2.0 -OutputDirectory ./packages
+script:
+ - xbuild Pomona.sln /property:Configuration="Debug" /verbosity:detailed
+ - mono --debug --runtime=v4.0.30319 ./packages/NUnit.ConsoleRunner.3.2.0/tools/nunit3-console.exe ./tests/Pomona.UnitTests/bin/Debug/Pomona.UnitTests.dll ./tests/Pomona.SystemTests/bin/Debug/Pomona.SystemTests.dll --where "cat != TODO"
