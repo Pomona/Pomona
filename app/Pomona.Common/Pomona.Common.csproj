@@ -332,7 +332,6 @@
     <Compile Include="TypeSystem\RuntimePropertySpec.cs" />
     <Compile Include="TypeSystem\RuntimeTypeDetails.cs" />
     <Compile Include="TypeSystem\RuntimeTypeSpec.cs" />
-    <Compile Include="TypeSystem\SharedType.cs" />
     <Compile Include="TypeSystem\StructuredType.cs" />
     <Compile Include="TypeSystem\TypeResolver.cs" />
     <Compile Include="TypeSystem\TypeResolverExtensions.cs" />
