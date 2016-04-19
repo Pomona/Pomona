@@ -21,18 +21,12 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override ReadOnlyCollection<object> Children
-        {
-            get { return new ReadOnlyCollection<object>(new object[] { ServerExpression }); }
-        }
+        public override ReadOnlyCollection<object> Children => new ReadOnlyCollection<object>(new object[] { ServerExpression });
 
         public LambdaExpression ClientSideExpression { get; }
 
         public PomonaExtendedExpression ServerExpression { get; }
 
-        public override bool SupportedOnServer
-        {
-            get { return true; }
-        }
+        public override bool SupportedOnServer => true;
     }
 }

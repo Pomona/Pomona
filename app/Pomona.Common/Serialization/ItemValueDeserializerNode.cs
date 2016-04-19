@@ -38,17 +38,11 @@ namespace Pomona.Common.Serialization
 
         public string Uri { get; set; }
 
-        IResourceNode IResourceNode.Parent
-        {
-            get { return Parent ?? Context.TargetNode; }
-        }
+        IResourceNode IResourceNode.Parent => Parent ?? Context.TargetNode;
 
         public object Value { get; set; }
 
-        TypeSpec IResourceNode.ResultType
-        {
-            get { return ExpectedBaseType; }
-        }
+        TypeSpec IResourceNode.ResultType => ExpectedBaseType;
 
 
         public void CheckItemAccessRights(HttpMethod method)
@@ -58,10 +52,7 @@ namespace Pomona.Common.Serialization
 
         public IDeserializerNode Parent { get; }
 
-        public TypeSpec ValueType
-        {
-            get { return this.valueType; }
-        }
+        public TypeSpec ValueType => this.valueType;
 
         public DeserializerNodeOperation Operation { get; set; }
 

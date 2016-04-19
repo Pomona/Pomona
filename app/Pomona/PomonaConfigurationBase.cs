@@ -16,20 +16,11 @@ namespace Pomona
 {
     public abstract class PomonaConfigurationBase
     {
-        public virtual IEnumerable<Delegate> FluentRuleDelegates
-        {
-            get { return Enumerable.Empty<Delegate>(); }
-        }
+        public virtual IEnumerable<Delegate> FluentRuleDelegates => Enumerable.Empty<Delegate>();
 
-        public virtual IEnumerable<object> FluentRuleObjects
-        {
-            get { return Enumerable.Empty<object>(); }
-        }
+        public virtual IEnumerable<object> FluentRuleObjects => Enumerable.Empty<object>();
 
-        public virtual IEnumerable<Type> HandlerTypes
-        {
-            get { return Enumerable.Empty<Type>(); }
-        }
+        public virtual IEnumerable<Type> HandlerTypes => Enumerable.Empty<Type>();
 
         public virtual IEnumerable<IRouteActionResolver> RouteActionResolvers
         {
@@ -44,30 +35,15 @@ namespace Pomona
             }
         }
 
-        public virtual IEnumerable<Type> SourceTypes
-        {
-            get { return new Type[] { }; }
-        }
+        public virtual IEnumerable<Type> SourceTypes => new Type[] { };
 
-        public virtual ITypeMappingFilter TypeMappingFilter
-        {
-            get { return new DefaultTypeMappingFilter(SourceTypes); }
-        }
+        public virtual ITypeMappingFilter TypeMappingFilter => new DefaultTypeMappingFilter(SourceTypes);
 
-        protected virtual Type DataSource
-        {
-            get { return typeof(IPomonaDataSource); }
-        }
+        protected virtual Type DataSource => typeof(IPomonaDataSource);
 
-        protected virtual IRouteActionResolver DataSourceRouteActionResolver
-        {
-            get { return new DataSourceRouteActionResolver(); }
-        }
+        protected virtual IRouteActionResolver DataSourceRouteActionResolver => new DataSourceRouteActionResolver();
 
-        protected virtual IRouteActionResolver QueryGetActionResolver
-        {
-            get { return new QueryGetActionResolver(new DefaultQueryProviderCapabilityResolver()); }
-        }
+        protected virtual IRouteActionResolver QueryGetActionResolver => new QueryGetActionResolver(new DefaultQueryProviderCapabilityResolver());
 
 
         public IPomonaSessionFactory CreateSessionFactory()

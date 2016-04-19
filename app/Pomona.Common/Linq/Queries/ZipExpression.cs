@@ -38,20 +38,11 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new ZipFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new ZipFactory());
 
-        public LambdaExpression ResultSelector
-        {
-            get { return (LambdaExpression)((UnaryExpression)Arguments[2]).Operand; }
-        }
+        public LambdaExpression ResultSelector => (LambdaExpression)((UnaryExpression)Arguments[2]).Operand;
 
-        public QueryExpression Source2
-        {
-            get { return this.source2 ?? (this.source2 = Wrap(Arguments[1])); }
-        }
+        public QueryExpression Source2 => this.source2 ?? (this.source2 = Wrap(Arguments[1]));
 
 
         public static ZipExpression Create(QueryExpression source,

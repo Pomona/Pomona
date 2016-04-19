@@ -32,10 +32,7 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public new MethodCallExpression Node
-        {
-            get { return (MethodCallExpression)base.Node; }
-        }
+        public new MethodCallExpression Node => (MethodCallExpression)base.Node;
 
         public QueryExpression Source
         {
@@ -47,10 +44,7 @@ namespace Pomona.Common.Linq.Queries
             }
         }
 
-        protected ReadOnlyCollection<Expression> Arguments
-        {
-            get { return Node.Arguments; }
-        }
+        protected ReadOnlyCollection<Expression> Arguments => Node.Arguments;
 
 
         protected static Expression ConvertAndQuote(LambdaExpression origExpr, Type elementType)

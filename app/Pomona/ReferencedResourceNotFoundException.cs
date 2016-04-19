@@ -34,10 +34,7 @@ namespace Pomona
         }
 
 
-        public PomonaResponse InnerResponse
-        {
-            get { return this.innerResponse; }
-        }
+        public PomonaResponse InnerResponse => this.innerResponse;
 
         public string ResourceUrl { get; }
     }

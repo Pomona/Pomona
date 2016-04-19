@@ -22,10 +22,7 @@ namespace Pomona.Common.Linq.NonGeneric
         }
 
 
-        public override string Name
-        {
-            get { return this.name; }
-        }
+        public override string Name => this.name;
 
 
         protected override MethodInfo GetMethod(Type elementType)

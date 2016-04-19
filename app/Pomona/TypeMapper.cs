@@ -52,17 +52,11 @@ namespace Pomona
         }
 
 
-        public IEnumerable<EnumTypeSpec> EnumTypes
-        {
-            get { return TypeMap.Values.OfType<EnumTypeSpec>(); }
-        }
+        public IEnumerable<EnumTypeSpec> EnumTypes => TypeMap.Values.OfType<EnumTypeSpec>();
 
         public ITypeMappingFilter Filter { get; }
 
-        public IEnumerable<TypeSpec> SourceTypes
-        {
-            get { return this.sourceTypes.Select(FromType); }
-        }
+        public IEnumerable<TypeSpec> SourceTypes => this.sourceTypes.Select(FromType);
 
         internal IPomonaSessionFactory SessionFactory
         {

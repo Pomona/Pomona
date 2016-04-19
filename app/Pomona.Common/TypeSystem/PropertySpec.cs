@@ -42,47 +42,23 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual PropertySpec BaseDefinition
-        {
-            get { return this.baseDefinition.Value; }
-        }
+        public virtual PropertySpec BaseDefinition => this.baseDefinition.Value;
 
-        public virtual TypeSpec DeclaringType
-        {
-            get { return this.declaringType.Value; }
-        }
+        public virtual TypeSpec DeclaringType => this.declaringType.Value;
 
-        public virtual PropertyGetter Getter
-        {
-            get { return this.getter.Value; }
-        }
+        public virtual PropertyGetter Getter => this.getter.Value;
 
-        public virtual string JsonName
-        {
-            get { return Name.LowercaseFirstLetter(); }
-        }
+        public virtual string JsonName => Name.LowercaseFirstLetter();
 
-        public virtual PropertyInfo PropertyInfo
-        {
-            get { return (PropertyInfo)Member; }
-        }
+        public virtual PropertyInfo PropertyInfo => (PropertyInfo)Member;
 
-        public virtual TypeSpec PropertyType
-        {
-            get { return this.propertyType.Value; }
-        }
+        public virtual TypeSpec PropertyType => this.propertyType.Value;
 
         public virtual TypeSpec ReflectedType { get; }
 
-        public virtual PropertySetter Setter
-        {
-            get { return this.setter.Value; }
-        }
+        public virtual PropertySetter Setter => this.setter.Value;
 
-        private PropertyInfo NormalizedPropertyInfo
-        {
-            get { return PropertyInfo.NormalizeReflectedType(); }
-        }
+        private PropertyInfo NormalizedPropertyInfo => PropertyInfo.NormalizeReflectedType();
 
 
         public Expression CreateGetterExpression(Expression instance)
@@ -207,51 +183,23 @@ namespace Pomona.Common.TypeSystem
 
         #region PropertySpec implementation
 
-        public virtual HttpMethod AccessMode
-        {
-            get { return 0; }
-        }
+        public virtual HttpMethod AccessMode => 0;
 
-        public virtual bool IsSerialized
-        {
-            get { return true; }
-        }
+        public virtual bool IsSerialized => true;
 
-        public virtual HttpMethod ItemAccessMode
-        {
-            get
-            {
-                // Only for collections..
-                return 0;
-            }
-        }
+        public virtual HttpMethod ItemAccessMode => 0;
 
         public PropertyFlags Flags { get; }
 
-        public bool IsReadable
-        {
-            get { return Flags.HasFlag(PropertyFlags.IsReadable); }
-        }
+        public bool IsReadable => Flags.HasFlag(PropertyFlags.IsReadable);
 
-        public bool IsRequiredForConstructor
-        {
-            get { return this.isRequiredForConstructor.Value; }
-        }
+        public bool IsRequiredForConstructor => this.isRequiredForConstructor.Value;
 
-        public bool IsWritable
-        {
-            get { return Flags.HasFlag(PropertyFlags.IsWritable); }
-        }
+        public bool IsWritable => Flags.HasFlag(PropertyFlags.IsWritable);
 
-        public string LowerCaseName
-        {
-            get { return Name.ToLowerInvariant(); }
-        }
+        public string LowerCaseName => Name.ToLowerInvariant();
 
-        public virtual ExpandMode ExpandMode
-        {
-            get { return ExpandMode.Default; }
-        }
+        public virtual ExpandMode ExpandMode => ExpandMode.Default;
 
         #endregion
     }

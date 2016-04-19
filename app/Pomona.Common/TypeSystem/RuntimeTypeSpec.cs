@@ -38,15 +38,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override ConstructorSpec Constructor
-        {
-            get { return this.constructor.Value; }
-        }
+        public override ConstructorSpec Constructor => this.constructor.Value;
 
-        public virtual IEnumerable<TypeSpec> GenericArguments
-        {
-            get { return this.genericArguments.Value; }
-        }
+        public virtual IEnumerable<TypeSpec> GenericArguments => this.genericArguments.Value;
 
         public override IEnumerable<Attribute> InheritedAttributes
         {
@@ -58,20 +52,11 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public override IEnumerable<TypeSpec> Interfaces
-        {
-            get { return this.interfaces.Value; }
-        }
+        public override IEnumerable<TypeSpec> Interfaces => this.interfaces.Value;
 
-        public override bool IsAbstract
-        {
-            get { return Type.IsAbstract; }
-        }
+        public override bool IsAbstract => Type.IsAbstract;
 
-        public override bool IsNullable
-        {
-            get { return Type.IsNullable(); }
-        }
+        public override bool IsNullable => Type.IsNullable();
 
         public override string NameWithGenericArguments
         {
@@ -83,25 +68,13 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public override IEnumerable<PropertySpec> Properties
-        {
-            get { return this.properties.Value; }
-        }
+        public override IEnumerable<PropertySpec> Properties => this.properties.Value;
 
-        public override IEnumerable<PropertySpec> RequiredProperties
-        {
-            get { return TypeResolver.LoadRequiredProperties(this); }
-        }
+        public override IEnumerable<PropertySpec> RequiredProperties => TypeResolver.LoadRequiredProperties(this);
 
-        public override TypeSerializationMode SerializationMode
-        {
-            get { return RuntimeTypeDetails.SerializationMode; }
-        }
+        public override TypeSerializationMode SerializationMode => RuntimeTypeDetails.SerializationMode;
 
-        protected RuntimeTypeDetails RuntimeTypeDetails
-        {
-            get { return this.runtimeTypeDetails.Value; }
-        }
+        protected RuntimeTypeDetails RuntimeTypeDetails => this.runtimeTypeDetails.Value;
 
 
         public static ITypeFactory GetFactory()
@@ -185,10 +158,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public int Priority
-            {
-                get { return 200; }
-            }
+            public int Priority => 200;
         }
 
         #endregion

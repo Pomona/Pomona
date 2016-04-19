@@ -24,19 +24,10 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual bool ExposedAsRepository
-        {
-            get { return ResourcePropertyDetails.ExposedAsRepository; }
-        }
+        public virtual bool ExposedAsRepository => ResourcePropertyDetails.ExposedAsRepository;
 
-        public string UriName
-        {
-            get { return ResourcePropertyDetails.UriName; }
-        }
+        public string UriName => ResourcePropertyDetails.UriName;
 
-        protected virtual ResourcePropertyDetails ResourcePropertyDetails
-        {
-            get { return this.resourcePropertyDetails.Value; }
-        }
+        protected virtual ResourcePropertyDetails ResourcePropertyDetails => this.resourcePropertyDetails.Value;
     }
 }

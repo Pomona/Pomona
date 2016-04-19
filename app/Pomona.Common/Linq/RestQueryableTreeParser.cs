@@ -84,10 +84,7 @@ namespace Pomona.Common.Linq
 
         public Type ElementType { get; private set; }
 
-        public string ExpandedPaths
-        {
-            get { return this.expandedPaths.ToString(); }
-        }
+        public string ExpandedPaths => this.expandedPaths.ToString();
 
         public LambdaExpression GroupByKeySelector { get; private set; }
         public bool IncludeTotalCount { get; private set; }
@@ -96,10 +93,7 @@ namespace Pomona.Common.Linq
 
         public QueryProjection Projection { get; private set; }
 
-        public string RepositoryUri
-        {
-            get { return this.queryRoot.Uri; }
-        }
+        public string RepositoryUri => this.queryRoot.Uri;
 
         public List<Action<IRequestOptions>> RequestOptionActions { get; }
 

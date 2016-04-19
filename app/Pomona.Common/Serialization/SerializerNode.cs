@@ -39,10 +39,7 @@ namespace Pomona.Common.Serialization
 
         public bool SerializeAsReference { get; set; }
 
-        public virtual string Uri
-        {
-            get { return Context.GetUri(Value); }
-        }
+        public virtual string Uri => Context.GetUri(Value);
 
         public abstract object Value { get; }
 

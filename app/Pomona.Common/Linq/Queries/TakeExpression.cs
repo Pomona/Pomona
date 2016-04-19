@@ -28,15 +28,9 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public int Count
-        {
-            get { return (int)((ConstantExpression)Arguments[1]).Value; }
-        }
+        public int Count => (int)((ConstantExpression)Arguments[1]).Value;
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new TakeFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new TakeFactory());
 
 
         public static TakeExpression Create(QueryExpression source, int count)

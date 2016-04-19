@@ -56,10 +56,7 @@ namespace Pomona.Common.Expressions
         private static readonly IEnumerable<Type> visitedTypes =
             new ReadOnlyCollection<Type>(new[] { typeof(TExpression) });
 
-        public override IEnumerable<Type> VisitedTypes
-        {
-            get { return visitedTypes; }
-        }
+        public override IEnumerable<Type> VisitedTypes => visitedTypes;
 
         public abstract Expression Visit(IRewriteContext context, TExpression node);
 

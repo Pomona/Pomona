@@ -67,23 +67,14 @@ namespace Pomona.UnitTests.Routing
                 get { yield return new Rules(); }
             }
 
-            public override IEnumerable<Type> SourceTypes
+            public override IEnumerable<Type> SourceTypes => new[]
             {
-                get
-                {
-                    return new[]
-                    {
-                        typeof(Root), typeof(Peon), typeof(Animal), typeof(Pig), typeof(Cow), typeof(Bacon), typeof(PigTail),
-                        typeof(CowTail),
-                        typeof(CowTailEnd), typeof(PigTailEnd)
-                    };
-                }
-            }
+                typeof(Root), typeof(Peon), typeof(Animal), typeof(Pig), typeof(Cow), typeof(Bacon), typeof(PigTail),
+                typeof(CowTail),
+                typeof(CowTailEnd), typeof(PigTailEnd)
+            };
 
-            public override ITypeMappingFilter TypeMappingFilter
-            {
-                get { return new DefaultTypeMappingFilter(SourceTypes); }
-            }
+            public override ITypeMappingFilter TypeMappingFilter => new DefaultTypeMappingFilter(SourceTypes);
         }
 
         public class Cow : Animal

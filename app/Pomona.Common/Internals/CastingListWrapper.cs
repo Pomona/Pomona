@@ -39,15 +39,9 @@ namespace Pomona.Common.Internals
 
         #region Implementation of ICollection<TOuter>
 
-        public int Count
-        {
-            get { return this.inner.Count; }
-        }
+        public int Count => this.inner.Count;
 
-        public bool IsReadOnly
-        {
-            get { return this.inner.IsReadOnly; }
-        }
+        public bool IsReadOnly => this.inner.IsReadOnly;
 
 
         public void Add(TOuter item)

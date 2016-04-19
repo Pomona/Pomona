@@ -229,10 +229,7 @@ namespace Pomona.Common.Internals
         }
 
 
-        internal override Type[] InArgs
-        {
-            get { return inArgs.ToArray(); }
-        }
+        internal override Type[] InArgs => inArgs.ToArray();
 
 
         public static Expression<T> CreateCallWrapper(MethodInfo method, IEnumerable<Type> inArgs, Type returnType)

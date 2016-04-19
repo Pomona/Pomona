@@ -59,10 +59,7 @@ namespace Pomona.FluentMapping
         public Type PostResponseType { get; private set; }
         public string UrlRelativePath { get; private set; }
 
-        public ICollection<VirtualPropertyInfo> VirtualProperties
-        {
-            get { return this.virtualProperties; }
-        }
+        public ICollection<VirtualPropertyInfo> VirtualProperties => this.virtualProperties;
 
         internal string Name { get; private set; }
 

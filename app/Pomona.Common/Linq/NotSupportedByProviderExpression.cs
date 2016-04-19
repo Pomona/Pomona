@@ -23,29 +23,17 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override ReadOnlyCollection<object> Children
-        {
-            get { return new ReadOnlyCollection<object>(new object[] { }); }
-        }
+        public override ReadOnlyCollection<object> Children => new ReadOnlyCollection<object>(new object[] { });
 
         public Exception Exception { get; }
 
         public Expression Expression { get; }
 
-        public override bool LocalExecutionPreferred
-        {
-            get { return true; }
-        }
+        public override bool LocalExecutionPreferred => true;
 
-        public override ExpressionType NodeType
-        {
-            get { return ExpressionType.Extension; }
-        }
+        public override ExpressionType NodeType => ExpressionType.Extension;
 
-        public override bool SupportedOnServer
-        {
-            get { return false; }
-        }
+        public override bool SupportedOnServer => false;
 
 
         public override string ToString()

@@ -28,10 +28,7 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new DefaultIfEmptyFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new DefaultIfEmptyFactory());
 
 
         public static DefaultIfEmptyExpression Create(QueryExpression source)

@@ -47,10 +47,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public int Priority
-            {
-                get { return 0; }
-            }
+            public int Priority => 0;
         }
     }
 }

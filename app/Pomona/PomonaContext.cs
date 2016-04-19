@@ -51,44 +51,23 @@ namespace Pomona
 
         public bool HandleException { get; }
 
-        public RequestHeaders Headers
-        {
-            get { return Request.Headers; }
-        }
+        public RequestHeaders Headers => Request.Headers;
 
-        public HttpMethod Method
-        {
-            get { return Request.Method; }
-        }
+        public HttpMethod Method => Request.Method;
 
         public UrlSegment Node { get; set; }
 
-        public dynamic Query
-        {
-            get { return Request.Query; }
-        }
+        public dynamic Query => Request.Query;
 
         public PomonaRequest Request { get; private set; }
 
-        public Route Route
-        {
-            get { return Node.Route; }
-        }
+        public Route Route => Node.Route;
 
-        public IPomonaSession Session
-        {
-            get { return Node.Session; }
-        }
+        public IPomonaSession Session => Node.Session;
 
-        public TypeMapper TypeMapper
-        {
-            get { return Node.Session.TypeMapper; }
-        }
+        public TypeMapper TypeMapper => Node.Session.TypeMapper;
 
-        public string Url
-        {
-            get { return Request.Url; }
-        }
+        public string Url => Request.Url;
 
 
         public object Bind(TypeSpec type = null, object patchedObject = null)

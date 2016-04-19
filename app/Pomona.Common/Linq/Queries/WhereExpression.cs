@@ -28,15 +28,9 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new WhereFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new WhereFactory());
 
-        public LambdaExpression Predicate
-        {
-            get { return (LambdaExpression)((UnaryExpression)Arguments[1]).Operand; }
-        }
+        public LambdaExpression Predicate => (LambdaExpression)((UnaryExpression)Arguments[1]).Operand;
 
 
         public static WhereExpression Create(QueryExpression source, LambdaExpression predicate)

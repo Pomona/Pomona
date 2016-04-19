@@ -46,10 +46,7 @@ namespace Pomona.Common.Serialization
             }
         }
 
-        public TypeSpec ExpectedBaseType
-        {
-            get { return Property.PropertyType; }
-        }
+        public TypeSpec ExpectedBaseType => Property.PropertyType;
 
         public DeserializerNodeOperation Operation { get; set; }
 
@@ -57,17 +54,11 @@ namespace Pomona.Common.Serialization
 
         public string Uri { get; set; }
 
-        IResourceNode IResourceNode.Parent
-        {
-            get { return Parent ?? Context.TargetNode; }
-        }
+        IResourceNode IResourceNode.Parent => Parent ?? Context.TargetNode;
 
         public object Value { get; set; }
 
-        TypeSpec IResourceNode.ResultType
-        {
-            get { return ExpectedBaseType; }
-        }
+        TypeSpec IResourceNode.ResultType => ExpectedBaseType;
 
         public TypeSpec ValueType { get; private set; }
 

@@ -50,10 +50,7 @@ namespace Pomona.Example.Models
         public Farm Farm { get; set; }
         public Guid Guid { get; set; }
 
-        public int HandledGeneratedProperty
-        {
-            get { return Id % 6; }
-        }
+        public int HandledGeneratedProperty => Id % 6;
 
         /// <summary>
         /// Something to put on its head to make it look silly.
@@ -70,10 +67,7 @@ namespace Pomona.Example.Models
         /// <summary>
         /// This is a <see cref="System.String"/>
         /// </summary>
-        public string IsNotAllowedInFilters
-        {
-            get { return "bah bah"; }
-        }
+        public string IsNotAllowedInFilters => "bah bah";
 
         /// <summary>
         /// Name of the critter!
@@ -100,10 +94,7 @@ namespace Pomona.Example.Models
         }
 
         [NotKnownToDataSource]
-        public string UnhandledGeneratedProperty
-        {
-            get { return Hat != null ? Hat.HatType : null; }
-        }
+        public string UnhandledGeneratedProperty => Hat != null ? Hat.HatType : null;
 
         public IList<Weapon> Weapons { get; protected set; }
 

@@ -88,15 +88,9 @@ namespace Pomona.TestingClient
         }
 
 
-        public Type ElementType
-        {
-            get { return typeof(TResource); }
-        }
+        public Type ElementType => typeof(TResource);
 
-        public Expression Expression
-        {
-            get { return Expression.Constant(Client.Query<TResource>()); }
-        }
+        public Expression Expression => Expression.Constant(Client.Query<TResource>());
 
 
         public IEnumerator<TResource> GetEnumerator()
@@ -199,10 +193,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public IQueryProvider Provider
-        {
-            get { return Client.Query<TResource>().Provider; }
-        }
+        public IQueryProvider Provider => Client.Query<TResource>().Provider;
 
 
         public virtual IQueryable<TResource> Query()

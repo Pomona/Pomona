@@ -72,10 +72,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public int Count
-        {
-            get { return this.wrapped.Count; }
-        }
+        public int Count => this.wrapped.Count;
 
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
@@ -84,10 +81,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public bool IsReadOnly
-        {
-            get { return this.wrapped.IsReadOnly; }
-        }
+        public bool IsReadOnly => this.wrapped.IsReadOnly;
 
         public TValue this[TKey key]
         {
@@ -99,10 +93,7 @@ namespace Pomona.Common.Proxies
             }
         }
 
-        public ICollection<TKey> Keys
-        {
-            get { return this.wrapped.Keys; }
-        }
+        public ICollection<TKey> Keys => this.wrapped.Keys;
 
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -125,10 +116,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public ICollection<TValue> Values
-        {
-            get { return this.wrapped.Values; }
-        }
+        public ICollection<TValue> Values => this.wrapped.Values;
 
 
         IEnumerator IEnumerable.GetEnumerator()

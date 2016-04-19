@@ -21,10 +21,7 @@ namespace Pomona.Example.Models
         }
 
 
-        public ISet<HandledChild> Children
-        {
-            get { return this.children; }
-        }
+        public ISet<HandledChild> Children => this.children;
 
         public string ETag { get; private set; } = Guid.NewGuid().ToString();
 

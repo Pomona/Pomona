@@ -11,10 +11,7 @@ namespace Pomona.Example.Models.Existence
 {
     public class Galaxy : CelestialObject
     {
-        public GalaxyInfo Info
-        {
-            get { return new GalaxyInfo(this); }
-        }
+        public GalaxyInfo Info => new GalaxyInfo(this);
 
         public ICollection<PlanetarySystem> PlanetarySystems { get; } = new List<PlanetarySystem>();
     }

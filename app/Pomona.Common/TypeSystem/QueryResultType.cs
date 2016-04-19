@@ -51,10 +51,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override TypeSerializationMode SerializationMode
-        {
-            get { return TypeSerializationMode.Structured; }
-        }
+        public override TypeSerializationMode SerializationMode => TypeSerializationMode.Structured;
 
 
         public new static ITypeFactory GetFactory()
@@ -90,10 +87,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public override ExpandMode ExpandMode
-            {
-                get { return ExpandMode.Full; }
-            }
+            public override ExpandMode ExpandMode => ExpandMode.Full;
         }
 
         #region Nested type: QueryResultTypeFactory
@@ -137,10 +131,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public int Priority
-            {
-                get { return 0; }
-            }
+            public int Priority => 0;
         }
 
         #endregion

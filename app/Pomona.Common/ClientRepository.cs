@@ -61,15 +61,9 @@ namespace Pomona.Common
         }
 
 
-        public Type ElementType
-        {
-            get { return typeof(TResource); }
-        }
+        public Type ElementType => typeof(TResource);
 
-        public Expression Expression
-        {
-            get { return Expression.Constant(Query()); }
-        }
+        public Expression Expression => Expression.Constant(Query());
 
 
         public TResource Get(TId id)
@@ -184,10 +178,7 @@ namespace Pomona.Common
         }
 
 
-        public IQueryProvider Provider
-        {
-            get { return new RestQueryProvider(Client); }
-        }
+        public IQueryProvider Provider => new RestQueryProvider(Client);
 
 
         public IQueryable<TSubResource> Query<TSubResource>()

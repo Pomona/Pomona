@@ -26,10 +26,7 @@ namespace Pomona.UnitTests
     {
         private TypeMapper typeMapper;
 
-        private TypeMapper TypeMapper
-        {
-            get { return this.typeMapper ?? (this.typeMapper = new TypeMapper(new CritterPomonaConfiguration())); }
-        }
+        private TypeMapper TypeMapper => this.typeMapper ?? (this.typeMapper = new TypeMapper(new CritterPomonaConfiguration()));
 
 
         [Test]

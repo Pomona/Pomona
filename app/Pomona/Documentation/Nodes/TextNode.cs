@@ -28,9 +28,6 @@ namespace Pomona.Documentation.Nodes
         }
 
 
-        public string Value
-        {
-            get { return Text; }
-        }
+        public string Value => Text;
     }
 }

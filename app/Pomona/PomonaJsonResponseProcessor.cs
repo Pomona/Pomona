@@ -33,15 +33,9 @@ namespace Pomona
         /// Gets a set of mappings that map a given extension (such as .json)
         /// to a media range that can be sent to the client in a vary header.
         /// </summary>
-        public override IEnumerable<Tuple<string, MediaRange>> ExtensionMappings
-        {
-            get { return extensionMappings; }
-        }
+        public override IEnumerable<Tuple<string, MediaRange>> ExtensionMappings => extensionMappings;
 
-        protected override string ContentType
-        {
-            get { return "application/json; charset=utf-8"; }
-        }
+        protected override string ContentType => "application/json; charset=utf-8";
 
 
         /// <summary>

@@ -9,10 +9,7 @@ namespace Pomona.Common
 {
     public class ResourceBase : IHasSettableResourceUri
     {
-        public string Uri
-        {
-            get { return ((IHasSettableResourceUri)this).Uri; }
-        }
+        public string Uri => ((IHasSettableResourceUri)this).Uri;
 
         string IHasSettableResourceUri.Uri { get; set; }
     }

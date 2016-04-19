@@ -17,9 +17,6 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public new XElement Node
-        {
-            get { return (XElement)base.Node; }
-        }
+        public new XElement Node => (XElement)base.Node;
     }
 }

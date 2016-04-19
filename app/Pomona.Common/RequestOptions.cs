@@ -47,10 +47,7 @@ namespace Pomona.Common
         }
 
 
-        public string ExpandedPaths
-        {
-            get { return this.expandedPaths.ToString(); }
-        }
+        public string ExpandedPaths => this.expandedPaths.ToString();
 
         public Type ExpectedResponseType { get; set; }
         internal IResourceLoader ResourceLoader { get; set; }

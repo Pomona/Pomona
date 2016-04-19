@@ -27,10 +27,7 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public new XElement Node
-        {
-            get { return (XElement)base.Node; }
-        }
+        public new XElement Node => (XElement)base.Node;
 
 
         private IEnumerable<XDocContentNode> WrapAll()
@@ -65,10 +62,7 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public int Count
-        {
-            get { return Node.Nodes().Count(); }
-        }
+        public int Count => Node.Nodes().Count();
 
 
         public IEnumerator<XDocContentNode> GetEnumerator()
@@ -94,10 +88,7 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly => false;
 
         public XDocContentNode this[int index]
         {

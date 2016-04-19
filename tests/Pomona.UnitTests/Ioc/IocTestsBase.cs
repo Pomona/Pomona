@@ -18,10 +18,7 @@ namespace Pomona.UnitTests.Ioc
     {
         private T container;
 
-        protected virtual T Container
-        {
-            get { return this.container; }
-        }
+        protected virtual T Container => this.container;
 
 
         [SetUp]

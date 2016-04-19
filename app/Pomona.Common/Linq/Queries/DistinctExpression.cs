@@ -28,10 +28,7 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new DistinctFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new DistinctFactory());
 
 
         public static DistinctExpression Create(QueryExpression source)

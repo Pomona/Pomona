@@ -111,10 +111,7 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public int Count
-        {
-            get { return Original.Keys.Concat(this.replaced.Keys).Except(this.removed).Distinct().Count(); }
-        }
+        public int Count => Original.Keys.Concat(this.replaced.Keys).Except(this.removed).Distinct().Count();
 
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
@@ -126,10 +123,7 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly => false;
 
         public TValue this[TKey key]
         {
@@ -157,15 +151,9 @@ namespace Pomona.Common.Serialization.Patch
             get { return this.Select(x => x.Key).ToList(); }
         }
 
-        public IEnumerable<KeyValuePair<TKey, TValue>> ModifiedItems
-        {
-            get { return this.replaced; }
-        }
+        public IEnumerable<KeyValuePair<TKey, TValue>> ModifiedItems => this.replaced;
 
-        public new TDictionary Original
-        {
-            get { return (TDictionary)base.Original; }
-        }
+        public new TDictionary Original => (TDictionary)base.Original;
 
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -211,10 +199,7 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public IEnumerable<TKey> RemovedKeys
-        {
-            get { return this.removed; }
-        }
+        public IEnumerable<TKey> RemovedKeys => this.removed;
 
 
         public bool TryGetValue(TKey key, out TValue value)
@@ -238,9 +223,6 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        IDictionary<TKey, TValue> IDictionaryDelta<TKey, TValue>.Original
-        {
-            get { return Original; }
-        }
+        IDictionary<TKey, TValue> IDictionaryDelta<TKey, TValue>.Original => Original;
     }
 }

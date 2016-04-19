@@ -40,10 +40,7 @@ namespace Pomona
 
         public Stream Body { get; internal set; }
 
-        public RequestHeaders Headers
-        {
-            get { return this.headers ?? (this.headers = new RequestHeaders(new Dictionary<string, IEnumerable<string>>())); }
-        }
+        public RequestHeaders Headers => this.headers ?? (this.headers = new RequestHeaders(new Dictionary<string, IEnumerable<string>>()));
 
         public HttpMethod Method { get; }
 

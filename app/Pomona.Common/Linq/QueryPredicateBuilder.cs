@@ -70,14 +70,8 @@ namespace Pomona.Common.Linq
 
         protected LambdaExpression RootLambda { get; private set; }
 
-        protected ParameterExpression ThisParameter
-        {
-            get
-            {
-                return this.thisParameter
-                       ?? (RootLambda != null ? RootLambda.Parameters.FirstOrDefault() : null);
-            }
-        }
+        protected ParameterExpression ThisParameter => this.thisParameter
+                                                       ?? (RootLambda != null ? RootLambda.Parameters.FirstOrDefault() : null);
 
 
         public override Expression Visit(Expression node)

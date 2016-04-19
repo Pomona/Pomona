@@ -25,15 +25,9 @@ namespace Pomona.Common.Linq
 
         protected IQueryable<TElement> InnerQueryable { get; }
 
-        public Type ElementType
-        {
-            get { return InnerQueryable.ElementType; }
-        }
+        public Type ElementType => InnerQueryable.ElementType;
 
-        public Expression Expression
-        {
-            get { return InnerQueryable.Expression; }
-        }
+        public Expression Expression => InnerQueryable.Expression;
 
 
         public IEnumerator<TElement> GetEnumerator()
@@ -42,10 +36,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        public IQueryProvider Provider
-        {
-            get { return InnerQueryable.Provider; }
-        }
+        public IQueryProvider Provider => InnerQueryable.Provider;
 
 
         IEnumerator IEnumerable.GetEnumerator()

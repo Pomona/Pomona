@@ -64,10 +64,7 @@ namespace Pomona.UnitTests.Queries
             public Dummy Friend { get; set; }
             public Guid Guid { get; set; }
 
-            public string IsNotAllowedInQueries
-            {
-                get { return "bah"; }
-            }
+            public string IsNotAllowedInQueries => "bah";
 
             public IList<int> ListOfDateTimes { get; set; }
 
@@ -106,10 +103,7 @@ namespace Pomona.UnitTests.Queries
                 }
             }
 
-            public override ITypeMappingFilter TypeMappingFilter
-            {
-                get { return new PomonaTestTypeMappingFilter(SourceTypes); }
-            }
+            public override ITypeMappingFilter TypeMappingFilter => new PomonaTestTypeMappingFilter(SourceTypes);
         }
 
         #endregion
