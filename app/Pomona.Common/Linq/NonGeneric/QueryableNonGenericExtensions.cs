@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -40,9 +19,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static object Execute(this IQueryable source, QueryProjection projection)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (projection == null)
-                throw new ArgumentNullException("projection");
+                throw new ArgumentNullException(nameof(projection));
 
             return projection.Execute(source);
         }
@@ -51,9 +30,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable GroupBy(this IQueryable source, LambdaExpression keySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
             return source.Provider.CreateQuery(
                 Expression.Call(
                     null,
@@ -66,9 +45,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable OfType(this IQueryable source, Type resultType)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (resultType == null)
-                throw new ArgumentNullException("resultType");
+                throw new ArgumentNullException(nameof(resultType));
 
             return source.Provider.CreateQuery(
                 Expression.Call(
@@ -82,9 +61,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable OfTypeIfRequired(this IQueryable source, Type resultType)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (resultType == null)
-                throw new ArgumentNullException("resultType");
+                throw new ArgumentNullException(nameof(resultType));
             if (source.ElementType == resultType)
                 return source;
 
@@ -95,9 +74,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IOrderedQueryable OrderBy(this IQueryable source, LambdaExpression keySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
 
             return (IOrderedQueryable)source.Provider.CreateQuery(
                 Expression.Call(
@@ -113,9 +92,9 @@ namespace Pomona.Common.Linq.NonGeneric
                                                 SortOrder sortOrder)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
 
             return sortOrder == SortOrder.Descending
                 ? source.OrderByDescending(keySelector)
@@ -126,9 +105,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IOrderedQueryable OrderByDescending(this IQueryable source, LambdaExpression keySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
 
             return (IOrderedQueryable)source.Provider.CreateQuery(
                 Expression.Call(
@@ -142,9 +121,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable Select(this IQueryable source, LambdaExpression selector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (selector == null)
-                throw new ArgumentNullException("selector");
+                throw new ArgumentNullException(nameof(selector));
             return source.Provider.CreateQuery(
                 Expression.Call(
                     null,
@@ -157,12 +136,12 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable SelectMany(this IQueryable source, LambdaExpression selector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (selector == null)
-                throw new ArgumentNullException("selector");
+                throw new ArgumentNullException(nameof(selector));
             Type selectorItemType;
             if (!selector.ReturnType.TryGetEnumerableElementType(out selectorItemType))
-                throw new ArgumentException("The return type of selector is not an IEnumerable<T>", "selector");
+                throw new ArgumentException("The return type of selector is not an IEnumerable<T>", nameof(selector));
             return source.Provider.CreateQuery(
                 Expression.Call(
                     null,
@@ -175,7 +154,7 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable Skip(this IQueryable source, int count)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             return source.Provider.CreateQuery(
                 Expression.Call(
                     null,
@@ -188,7 +167,7 @@ namespace Pomona.Common.Linq.NonGeneric
         public static object Sum(this IQueryable source)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
 
             var iqType = typeof(IQueryable<>).MakeGenericType(source.ElementType);
             var method = typeof(Queryable).GetMethod("Sum",
@@ -205,7 +184,7 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable Take(this IQueryable source, int count)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             return source.Provider.CreateQuery(
                 Expression.Call(
                     null,
@@ -218,9 +197,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IOrderedQueryable ThenBy(this IOrderedQueryable source, LambdaExpression keySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
 
             return (IOrderedQueryable)source.Provider.CreateQuery(
                 Expression.Call(
@@ -236,9 +215,9 @@ namespace Pomona.Common.Linq.NonGeneric
                                                SortOrder sortOrder)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
 
             return sortOrder == SortOrder.Descending ? source.ThenByDescending(keySelector) : source.ThenBy(keySelector);
         }
@@ -247,9 +226,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IOrderedQueryable ThenByDescending(this IOrderedQueryable source, LambdaExpression keySelector)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (keySelector == null)
-                throw new ArgumentNullException("keySelector");
+                throw new ArgumentNullException(nameof(keySelector));
 
             return (IOrderedQueryable)source.Provider.CreateQuery(
                 Expression.Call(
@@ -263,9 +242,9 @@ namespace Pomona.Common.Linq.NonGeneric
         public static IQueryable Where(this IQueryable source, LambdaExpression predicate)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (predicate == null)
-                throw new ArgumentNullException("predicate");
+                throw new ArgumentNullException(nameof(predicate));
             return source.Provider.CreateQuery(
                 Expression.Call(
                     null,

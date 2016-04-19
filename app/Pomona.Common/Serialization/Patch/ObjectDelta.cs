@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -36,9 +15,6 @@ namespace Pomona.Common.Serialization.Patch
 {
     public class ObjectDelta : Delta
     {
-        private Dictionary<string, object> trackedProperties = new Dictionary<string, object>();
-
-
         protected ObjectDelta()
         {
         }
@@ -62,10 +38,7 @@ namespace Pomona.Common.Serialization.Patch
             }
         }
 
-        protected Dictionary<string, object> TrackedProperties
-        {
-            get { return this.trackedProperties; }
-        }
+        protected Dictionary<string, object> TrackedProperties { get; private set; } = new Dictionary<string, object>();
 
 
         public override void Apply()
@@ -90,7 +63,7 @@ namespace Pomona.Common.Serialization.Patch
         public object GetPropertyValue(string propertyName)
         {
             object value;
-            if (this.trackedProperties.TryGetValue(propertyName, out value))
+            if (TrackedProperties.TryGetValue(propertyName, out value))
                 return value;
 
             PropertySpec prop;
@@ -119,8 +92,8 @@ namespace Pomona.Common.Serialization.Patch
                 return;
 
             // Only keep nested deltas, and reset these
-            this.trackedProperties = TrackedProperties.Where(x => x.Value is Delta).ToDictionary(x => x.Key, x => x.Value);
-            foreach (var nestedDelta in this.trackedProperties.Values.Cast<Delta>())
+            TrackedProperties = TrackedProperties.Where(x => x.Value is Delta).ToDictionary(x => x.Key, x => x.Value);
+            foreach (var nestedDelta in TrackedProperties.Values.Cast<Delta>())
                 nestedDelta.Reset();
             base.Reset();
         }
@@ -136,12 +109,12 @@ namespace Pomona.Common.Serialization.Patch
             {
                 object oldValue = prop.GetValue(Original);
                 if ((value != null && value.Equals(oldValue)) || (value == null && oldValue == null))
-                    this.trackedProperties.Remove(propertyName);
+                    TrackedProperties.Remove(propertyName);
                 else
-                    this.trackedProperties[propertyName] = value;
+                    TrackedProperties[propertyName] = value;
             }
             else
-                this.trackedProperties[propertyName] = value;
+                TrackedProperties[propertyName] = value;
 
             SetDirty();
         }

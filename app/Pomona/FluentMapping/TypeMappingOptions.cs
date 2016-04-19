@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -42,44 +21,29 @@ namespace Pomona.FluentMapping
         private static readonly MethodInfo getConfiguratorGenericMethod =
             ReflectionHelper.GetMethodDefinition<TypeMappingOptions>(x => x.GetConfigurator<object>());
 
-        private readonly Type declaringType;
-        private readonly List<Type> handlerTypes = new List<Type>();
-
         private readonly ConcurrentDictionary<string, PropertyMappingOptions> propertyOptions =
             new ConcurrentDictionary<string, PropertyMappingOptions>();
 
         private readonly List<VirtualPropertyInfo> virtualProperties = new List<VirtualPropertyInfo>();
 
-        private DefaultPropertyInclusionMode defaultPropertyInclusionMode =
-            DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
-
 
         public TypeMappingOptions(Type declaringType)
         {
-            this.declaringType = declaringType;
+            DeclaringType = declaringType;
         }
 
 
         public PropertyInfo ChildToParentProperty { get; set; }
         public ConstructorSpec Constructor { get; private set; }
 
-        public Type DeclaringType
-        {
-            get { return this.declaringType; }
-        }
+        public Type DeclaringType { get; }
 
-        public DefaultPropertyInclusionMode DefaultPropertyInclusionMode
-        {
-            get { return this.defaultPropertyInclusionMode; }
-            set { this.defaultPropertyInclusionMode = value; }
-        }
+        public DefaultPropertyInclusionMode DefaultPropertyInclusionMode { get; set; } =
+            DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
 
         public bool? DeleteAllowed { get; private set; }
 
-        public List<Type> HandlerTypes
-        {
-            get { return this.handlerTypes; }
-        }
+        public List<Type> HandlerTypes { get; } = new List<Type>();
 
         public bool? IsAbstract { get; private set; }
         public bool? IsExposedAsRepository { get; private set; }
@@ -106,7 +70,7 @@ namespace Pomona.FluentMapping
         internal object GetConfigurator(Type exposedAsType)
         {
             if (exposedAsType == null)
-                throw new ArgumentNullException("exposedAsType");
+                throw new ArgumentNullException(nameof(exposedAsType));
             return getConfiguratorGenericMethod.MakeGenericMethod(exposedAsType).Invoke(this, null);
         }
 
@@ -137,7 +101,7 @@ namespace Pomona.FluentMapping
         private PropertyMappingOptions GetPropertyOptions(Expression propertyExpr)
         {
             if (propertyExpr == null)
-                throw new ArgumentNullException("propertyExpr");
+                throw new ArgumentNullException(nameof(propertyExpr));
             var propInfo = propertyExpr.ExtractPropertyInfo();
             var propOptions = this.propertyOptions.GetOrAdd(
                 propInfo.Name,
@@ -160,21 +124,21 @@ namespace Pomona.FluentMapping
 
             public override ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreExcludedByDefault()
             {
-                this.owner.defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault;
+                this.owner.DefaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreExcludedByDefault;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> AllPropertiesAreIncludedByDefault()
             {
-                this.owner.defaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
+                this.owner.DefaultPropertyInclusionMode = DefaultPropertyInclusionMode.AllPropertiesAreIncludedByDefault;
                 return this;
             }
 
 
             public override ITypeMappingConfigurator<TDeclaringType> AllPropertiesRequiresExplicitMapping()
             {
-                this.owner.defaultPropertyInclusionMode =
+                this.owner.DefaultPropertyInclusionMode =
                     DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping;
                 return this;
             }
@@ -192,9 +156,9 @@ namespace Pomona.FluentMapping
                 Expression<Func<TParent, IEnumerable<TDeclaringType>>> collectionProperty)
             {
                 if (parentProperty == null)
-                    throw new ArgumentNullException("parentProperty");
+                    throw new ArgumentNullException(nameof(parentProperty));
                 if (collectionProperty == null)
-                    throw new ArgumentNullException("collectionProperty");
+                    throw new ArgumentNullException(nameof(collectionProperty));
                 this.owner.ChildToParentProperty = parentProperty.ExtractPropertyInfo();
                 this.owner.ParentToChildProperty = collectionProperty.ExtractPropertyInfo();
                 return this;
@@ -206,9 +170,9 @@ namespace Pomona.FluentMapping
                 Expression<Func<TParent, TDeclaringType>> childProperty)
             {
                 if (parentProperty == null)
-                    throw new ArgumentNullException("parentProperty");
+                    throw new ArgumentNullException(nameof(parentProperty));
                 if (childProperty == null)
-                    throw new ArgumentNullException("childProperty");
+                    throw new ArgumentNullException(nameof(childProperty));
                 this.owner.ChildToParentProperty = parentProperty.ExtractPropertyInfo();
                 this.owner.ParentToChildProperty = childProperty.ExtractPropertyInfo();
                 return this;
@@ -297,7 +261,7 @@ namespace Pomona.FluentMapping
                 Expression<Func<TDeclaringType, object>> property)
             {
                 if (property == null)
-                    throw new ArgumentNullException("property");
+                    throw new ArgumentNullException(nameof(property));
                 var propOptions = this.owner.GetPropertyOptions(property);
                 propOptions.InclusionMode = PropertyInclusionMode.Excluded;
                 return this;
@@ -334,7 +298,7 @@ namespace Pomona.FluentMapping
                                                                                                 <TDeclaringType, TPropertyType>> options)
             {
                 if (name == null)
-                    throw new ArgumentNullException("name");
+                    throw new ArgumentNullException(nameof(name));
                 var propInfo = VirtualPropertyInfo.Create(name, typeof(TDeclaringType), this.owner.DeclaringType,
                                                           typeof(TPropertyType), PropertyAttributes.None, true, false);
                 this.owner.VirtualProperties.Add(propInfo);
@@ -349,7 +313,7 @@ namespace Pomona.FluentMapping
                     IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
             {
                 if (property == null)
-                    throw new ArgumentNullException("property");
+                    throw new ArgumentNullException(nameof(property));
                 var propInfo = property.ExtractPropertyInfo();
                 return Include(propInfo, options, propInfo.PropertyType);
             }
@@ -362,7 +326,7 @@ namespace Pomona.FluentMapping
                     IPropertyOptionsBuilder<TDeclaringType, TPropertyType>> options = null)
             {
                 if (property == null)
-                    throw new ArgumentNullException("property");
+                    throw new ArgumentNullException(nameof(property));
                 var propInfo = property.ExtractPropertyInfo();
                 return Include(propInfo, options);
             }
@@ -378,7 +342,7 @@ namespace Pomona.FluentMapping
             public override ITypeMappingConfigurator<TDeclaringType> OnDeserialized(Action<TDeclaringType> action)
             {
                 if (action == null)
-                    throw new ArgumentNullException("action");
+                    throw new ArgumentNullException(nameof(action));
                 this.owner.OnDeserialized = x => action((TDeclaringType)x);
                 return this;
             }
@@ -476,7 +440,7 @@ namespace Pomona.FluentMapping
 
             private bool IsMappingSubclass()
             {
-                return !this.owner.declaringType.IsAssignableFrom(typeof(TDeclaringType));
+                return !this.owner.DeclaringType.IsAssignableFrom(typeof(TDeclaringType));
             }
         }
 

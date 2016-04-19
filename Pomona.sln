@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona", "app\Pomona\Pomona.csproj", "{EE396A59-956E-4DEE-B222-991F2274ED67}"
 EndProject
@@ -30,6 +30,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1FB04DDF-0A84-4B2A-808D-F4BC25D9C68A}"
 	ProjectSection(SolutionItems) = preProject
 		docs\json-patch-format.md = docs\json-patch-format.md
+		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -64,6 +65,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		build-packages.cmd = build-packages.cmd
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.SystemTests.ClientCompatibility", "tests\Pomona.SystemTests.ClientCompatibility\Pomona.SystemTests.ClientCompatibility.csproj", "{92824A85-488A-4C5D-966E-3BB94C39B334}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -143,6 +146,10 @@ Global
 		{156EF2B3-61E8-413A-8885-7655556559E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{156EF2B3-61E8-413A-8885-7655556559E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{156EF2B3-61E8-413A-8885-7655556559E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92824A85-488A-4C5D-966E-3BB94C39B334}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92824A85-488A-4C5D-966E-3BB94C39B334}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92824A85-488A-4C5D-966E-3BB94C39B334}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92824A85-488A-4C5D-966E-3BB94C39B334}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -166,6 +173,7 @@ Global
 		{7820ED76-DF9E-47E3-B122-D2D286603762} = {2D1608D0-94AF-42D1-818F-26D647FB340B}
 		{628D590E-ACAE-4D7C-9F15-5C74A4EAD4F0} = {5B5B9445-7105-4C81-B3BD-039FBCD52034}
 		{156EF2B3-61E8-413A-8885-7655556559E5} = {2D1608D0-94AF-42D1-818F-26D647FB340B}
+		{92824A85-488A-4C5D-966E-3BB94C39B334} = {5B5B9445-7105-4C81-B3BD-039FBCD52034}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0

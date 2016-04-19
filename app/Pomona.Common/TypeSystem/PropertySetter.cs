@@ -1,4 +1,11 @@
-﻿using System;
+﻿#region License
+
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
+
+#endregion
+
+using System;
 
 namespace Pomona.Common.TypeSystem
 {
@@ -21,18 +28,20 @@ namespace Pomona.Common.TypeSystem
             this.del(target, value, container);
         }
 
-        public static implicit operator PropertySetter(Action<object, object, IContainer> del)
-        {
-            if (del == null)
-                return null;
-            return new PropertySetter(del);
-        }
 
         public static explicit operator Action<object, object, IContainer>(PropertySetter propertySetter)
         {
             if (propertySetter == null)
                 throw new ArgumentNullException(nameof(propertySetter));
             return propertySetter.del;
+        }
+
+
+        public static implicit operator PropertySetter(Action<object, object, IContainer> del)
+        {
+            if (del == null)
+                return null;
+            return new PropertySetter(del);
         }
     }
 }

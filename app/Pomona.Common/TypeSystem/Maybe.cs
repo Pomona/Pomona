@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -32,33 +11,25 @@ namespace Pomona.Common.TypeSystem
 {
     public struct Maybe<T>
     {
-        private static readonly Maybe<T> empty = new Maybe<T>();
-        private readonly bool hasValue;
         private readonly T value;
 
 
         internal Maybe(T value)
         {
-            this.hasValue = true;
+            HasValue = true;
             this.value = value;
         }
 
 
-        public static Maybe<T> Empty
-        {
-            get { return empty; }
-        }
+        public static Maybe<T> Empty { get; } = new Maybe<T>();
 
-        public bool HasValue
-        {
-            get { return this.hasValue; }
-        }
+        public bool HasValue { get; }
 
         public T Value
         {
             get
             {
-                if (!this.hasValue)
+                if (!HasValue)
                     throw new InvalidOperationException("Maybe has no value.");
                 return this.value;
             }
@@ -73,9 +44,9 @@ namespace Pomona.Common.TypeSystem
             if (obj is Maybe<T>)
             {
                 var other = (Maybe<T>)obj;
-                if (this.hasValue && other.hasValue)
+                if (HasValue && other.HasValue)
                     return this.value.Equals(other.value);
-                return this.hasValue == other.hasValue;
+                return HasValue == other.HasValue;
             }
 
             return false;
@@ -84,13 +55,13 @@ namespace Pomona.Common.TypeSystem
 
         public override int GetHashCode()
         {
-            return !this.hasValue ? 0 : this.value.GetHashCode();
+            return !HasValue ? 0 : this.value.GetHashCode();
         }
 
 
         public Maybe<TCast> OfType<TCast>()
         {
-            if (this.hasValue && this.value is TCast)
+            if (HasValue && this.value is TCast)
                 return new Maybe<TCast>((TCast)((object)this.value));
             return Maybe<TCast>.Empty;
         }
@@ -98,7 +69,7 @@ namespace Pomona.Common.TypeSystem
 
         public T OrDefault(T defaultValue)
         {
-            if (this.hasValue)
+            if (HasValue)
                 return this.value;
             return defaultValue;
         }
@@ -106,7 +77,7 @@ namespace Pomona.Common.TypeSystem
 
         public T OrDefault(Func<T> defaultFactory = null)
         {
-            if (this.hasValue)
+            if (HasValue)
                 return this.value;
             return defaultFactory == null ? default(T) : defaultFactory();
         }
@@ -115,7 +86,7 @@ namespace Pomona.Common.TypeSystem
         public Maybe<TRet> Select<TRet>(Func<T, TRet?> op)
             where TRet : struct
         {
-            if (!this.hasValue)
+            if (!HasValue)
                 return Maybe<TRet>.Empty;
             var result = op(this.value);
             return Create(result);
@@ -124,7 +95,7 @@ namespace Pomona.Common.TypeSystem
 
         public Maybe<TRet> Select<TRet>(Func<T, TRet> op)
         {
-            if (!this.hasValue)
+            if (!HasValue)
                 return Maybe<TRet>.Empty;
             var result = op(this.value);
             return Create(result);
@@ -134,8 +105,8 @@ namespace Pomona.Common.TypeSystem
         public Maybe<TRet> Switch<TRet>(Func<ITypeSwitch, ITypeSwitch<TRet>> cases)
         {
             if (cases == null)
-                throw new ArgumentNullException("cases");
-            if (!this.hasValue)
+                throw new ArgumentNullException(nameof(cases));
+            if (!HasValue)
                 return Maybe<TRet>.Empty;
             return cases(Switch()).EndSwitch();
         }
@@ -149,7 +120,7 @@ namespace Pomona.Common.TypeSystem
 
         public ITypeSwitch<TRet> Switch<TRet>()
         {
-            if (this.hasValue)
+            if (HasValue)
                 return new TypeSwitch<TRet>(this.value);
             return new FinishedTypeSwitch<TRet>(Maybe<TRet>.Empty);
         }
@@ -158,8 +129,8 @@ namespace Pomona.Common.TypeSystem
         public Maybe<T> Where(Func<T, bool> predicate)
         {
             if (predicate == null)
-                throw new ArgumentNullException("predicate");
-            if (this.hasValue && predicate(this.value))
+                throw new ArgumentNullException(nameof(predicate));
+            if (HasValue && predicate(this.value))
                 return this;
             return Empty;
         }
@@ -281,7 +252,7 @@ namespace Pomona.Common.TypeSystem
 
         public static Maybe<bool> operator ==(Maybe<T> a, Maybe<T> b)
         {
-            if (a.hasValue && b.hasValue)
+            if (a.HasValue && b.HasValue)
             {
                 bool result;
                 if (Calculator<T>.TryEquals(a.Value, b.Value, out result))
@@ -383,7 +354,7 @@ namespace Pomona.Common.TypeSystem
             public ITypeSwitch<TRet> Then<TRet>(Func<TIn, TRet> thenFunc)
             {
                 if (thenFunc == null)
-                    throw new ArgumentNullException("thenFunc");
+                    throw new ArgumentNullException(nameof(thenFunc));
                 return new FinishedTypeSwitch<TRet>(this.value.Select(thenFunc));
             }
         }
@@ -402,7 +373,7 @@ namespace Pomona.Common.TypeSystem
             public ITypeSwitch<TRet> Then(Func<TIn, TRet> thenFunc)
             {
                 if (thenFunc == null)
-                    throw new ArgumentNullException("thenFunc");
+                    throw new ArgumentNullException(nameof(thenFunc));
                 return new FinishedTypeSwitch<TRet>(new Maybe<TRet>(thenFunc(this.value)));
             }
         }
@@ -431,7 +402,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<TCast> Case<TCast>(Func<TCast, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (!this.value.HasValue)
                     return new MatchingCaseThen<TCast>(Maybe<TCast>.Empty);
                 if (this.value.Value is TCast)
@@ -447,7 +418,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<T> Case(Func<T, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (!this.value.HasValue || predicate(this.value.Value))
                     return new MatchingCaseThen<T>(this.value);
                 return new NonMatchingCaseThen<T>(this.value);
@@ -468,7 +439,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<TCast, TRet> Case<TCast>(Func<TCast, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (this.value is TCast)
                 {
                     var castValue = (TCast)((object)this.value);
@@ -488,7 +459,7 @@ namespace Pomona.Common.TypeSystem
             public ICaseThen<T, TRet> Case(Func<T, bool> predicate)
             {
                 if (predicate == null)
-                    throw new ArgumentNullException("predicate");
+                    throw new ArgumentNullException(nameof(predicate));
                 if (predicate(this.value))
                     return new MatchingCaseThen<T, TRet>(this.value);
                 return new PassthroughCaseThen<T, TRet>(this);

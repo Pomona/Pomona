@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -32,8 +11,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
-using Pomona.Common.Internals;
 using Pomona.Common.Linq;
 using Pomona.Common.Proxies;
 
@@ -48,38 +27,39 @@ namespace Pomona.Common
         where TResource : class, IClientResource
         where TPostResponseResource : IClientResource
     {
-        private readonly IPomonaClient client;
         private readonly IEnumerable<TResource> results;
-        private readonly string uri;
 
 
         public ClientRepository(IPomonaClient client, string uri, IEnumerable results, IClientResource parent)
         {
             if (client == null)
-                throw new ArgumentNullException("client");
-            this.client = client;
-            this.uri = uri;
+                throw new ArgumentNullException(nameof(client));
+            Client = client;
+            Uri = uri;
             this.results = results as IEnumerable<TResource> ?? (results != null ? results.Cast<TResource>() : null);
         }
 
 
-        internal IPomonaClient Client
-        {
-            get { return this.client; }
-        }
+        internal IPomonaClient Client { get; }
 
 
         private string GetResourceUri(object id)
         {
             return string.Format("{0}/{1}",
-                                 this.uri,
+                                 Uri,
                                  HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
         }
 
 
-        public void Delete(TResource resource)
+        public virtual void Delete(TResource resource)
         {
-            this.client.Delete(resource, null);
+            Client.Delete(resource, null);
+        }
+
+
+        public virtual Task DeleteAsync(TResource resource)
+        {
+            return Client.DeleteAsync(resource, null);
         }
 
 
@@ -96,7 +76,7 @@ namespace Pomona.Common
 
         public TResource Get(TId id)
         {
-            return this.client.Get<TResource>(GetResourceUri(id));
+            return Client.Get<TResource>(GetResourceUri(id));
         }
 
 
@@ -108,7 +88,7 @@ namespace Pomona.Common
 
         public TResource GetLazy(TId id)
         {
-            return this.client.GetLazy<TResource>(GetResourceUri(id));
+            return Client.GetLazy<TResource>(GetResourceUri(id));
         }
 
 
@@ -116,7 +96,7 @@ namespace Pomona.Common
                                                 Action<TSubResource> patchAction,
                                                 Action<IRequestOptions<TSubResource>> options) where TSubResource : class, TResource
         {
-            return this.client.Patch(resource, patchAction, options);
+            return Client.Patch(resource, patchAction, options);
         }
 
 
@@ -127,16 +107,25 @@ namespace Pomona.Common
         }
 
 
+        public Task<TSubResource> PatchAsync<TSubResource>(TSubResource resource,
+                                                           Action<TSubResource> patchAction,
+                                                           Action<IRequestOptions<TSubResource>> options)
+            where TSubResource : class, TResource
+        {
+            return Client.PatchAsync(resource, patchAction, options);
+        }
+
+
         public virtual TPostResponseResource Post(IPostForm form)
         {
-            return (TPostResponseResource)this.client.Post(Uri, (TResource)((object)form), null);
+            return (TPostResponseResource)Client.Post(Uri, (TResource)((object)form), null);
         }
 
 
         public virtual TPostResponseResource Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            return (TPostResponseResource)this.client.Post<TSubResource>(Uri, postAction, null);
+            return (TPostResponseResource)Client.Post<TSubResource>(Uri, postAction, null);
         }
 
 
@@ -146,7 +135,7 @@ namespace Pomona.Common
             where TSubResponseResource : TPostResponseResource
         {
             var requestOptions = RequestOptions.Create(options, typeof(TSubResponseResource));
-            return (TSubResponseResource)this.client.Post<TSubResource>(Uri, postAction, requestOptions);
+            return (TSubResponseResource)Client.Post<TSubResource>(Uri, postAction, requestOptions);
         }
 
 
@@ -156,13 +145,13 @@ namespace Pomona.Common
         {
             return
                 (TPostResponseResource)
-                    this.client.Post<TSubResource>(Uri, postAction, RequestOptions.Create(options));
+                    Client.Post<TSubResource>(Uri, postAction, RequestOptions.Create(options));
         }
 
 
         public virtual TPostResponseResource Post(Action<TResource> postAction)
         {
-            return (TPostResponseResource)this.client.Post<TResource>(Uri, postAction, null);
+            return (TPostResponseResource)Client.Post<TResource>(Uri, postAction, null);
         }
 
 
@@ -178,42 +167,50 @@ namespace Pomona.Common
             where TPostForm : class, IPostForm, IClientResource
         {
             if (resource == null)
-                throw new ArgumentNullException("resource");
+                throw new ArgumentNullException(nameof(resource));
             if (form == null)
-                throw new ArgumentNullException("form");
+                throw new ArgumentNullException(nameof(form));
 
-            return this.client.Post(((IHasResourceUri)resource).Uri, form, null);
+            return Client.Post(((IHasResourceUri)resource).Uri, form, null);
+        }
+
+
+        public virtual async Task<TSubResponseResource> PostAsync<TSubResource, TSubResponseResource>(Action<TSubResource> postAction,
+                                                                                                      Action
+                                                                                                          <
+                                                                                                          IRequestOptions
+                                                                                                          <TSubResponseResource>> options)
+            where TSubResource : class, TResource where TSubResponseResource : TPostResponseResource
+        {
+            return (TSubResponseResource)await Client.PostAsync(Uri, postAction, RequestOptions.Create(options));
         }
 
 
         public IQueryProvider Provider
         {
-            get { return new RestQueryProvider(this.client); }
+            get { return new RestQueryProvider(Client); }
         }
 
 
         public IQueryable<TSubResource> Query<TSubResource>()
             where TSubResource : TResource
         {
-            return this.client.Query<TSubResource>(this.uri);
+            return Client.Query<TSubResource>(Uri);
         }
 
 
         public IQueryable<TResource> Query()
         {
-            return this.client.Query<TResource>(this.uri);
+            return Client.Query<TResource>(Uri);
         }
 
 
-        public string Uri
-        {
-            get { return this.uri; }
-        }
+        public string Uri { get; }
 
 
         void IDeletableByIdRepository<TId>.Delete(TId id)
         {
-            this.client.Delete(GetLazy(id), null);
+            Client.Delete(GetLazy(id), null);
         }
 
 

@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -69,11 +48,6 @@ namespace Pomona
     public class PomonaResponse
     {
         internal static readonly object NoBodyEntity;
-        private readonly object entity;
-        private readonly string expandedPaths;
-        private readonly List<KeyValuePair<string, string>> responseHeaders;
-        private readonly TypeSpec resultType;
-        private readonly HttpStatusCode statusCode;
 
 
         static PomonaResponse()
@@ -105,52 +79,37 @@ namespace Pomona
                               TypeSpec resultType = null,
                               IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
         {
-            this.entity = entity;
-            this.statusCode = statusCode;
-            this.expandedPaths = expandedPaths;
-            this.resultType = resultType;
+            Entity = entity;
+            StatusCode = statusCode;
+            ExpandedPaths = expandedPaths;
+            ResultType = resultType;
 
             if (responseHeaders != null)
-                this.responseHeaders = responseHeaders.ToList();
+                ResponseHeaders = responseHeaders.ToList();
         }
 
 
         public PomonaResponse(PomonaQuery query, object entity, HttpStatusCode statusCode)
         {
             if (query == null)
-                throw new ArgumentNullException("query");
+                throw new ArgumentNullException(nameof(query));
 
-            this.entity = entity;
-            this.statusCode = statusCode;
-            this.expandedPaths = query.ExpandedPaths;
-            this.resultType = query.ResultType;
+            Entity = entity;
+            StatusCode = statusCode;
+            ExpandedPaths = query.ExpandedPaths;
+            ResultType = query.ResultType;
         }
 
 
-        public object Entity
-        {
-            get { return this.entity; }
-        }
+        public object Entity { get; }
 
-        public string ExpandedPaths
-        {
-            get { return this.expandedPaths; }
-        }
+        public string ExpandedPaths { get; }
 
-        public List<KeyValuePair<string, string>> ResponseHeaders
-        {
-            get { return this.responseHeaders; }
-        }
+        public List<KeyValuePair<string, string>> ResponseHeaders { get; }
 
-        public TypeSpec ResultType
-        {
-            get { return this.resultType; }
-        }
+        public TypeSpec ResultType { get; }
 
-        public HttpStatusCode StatusCode
-        {
-            get { return this.statusCode; }
-        }
+        public HttpStatusCode StatusCode { get; }
 
 
         private static string GetExpandedPaths(PomonaContext context, string expandedPaths)

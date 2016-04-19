@@ -1,30 +1,33 @@
-#region License
-
-// ----------------------------------------------------------------------------
-// Pomona source code
+﻿// System.Web.HttpUtility
+//
+// Authors:
+//   Patrik Torstensson (Patrik.Torstensson@labs2.com)
+//   Wictor Wilén (decode/encode functions) (wictor@ibizkit.se)
+//   Tim Coleman (tim@timcoleman.com)
+//   Gonzalo Paniagua Javier (gonzalo@ximian.com)
+//   Karsten N. Strand (minor modifications)\
+//
+// Copyright (C) 2005-2010 Novell, Inc (http://www.novell.com)
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
 // 
-// Copyright � 2015 Karsten Nikolai Strand
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
 // 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
-
-#endregion
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
 
 using System;
 using System.Collections;
@@ -248,13 +251,13 @@ namespace Pomona.Common
                 return String.Empty;
 
             if (bytes == null)
-                throw new ArgumentNullException("bytes");
+                throw new ArgumentNullException(nameof(bytes));
 
             if (offset < 0 || offset > bytes.Length)
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
 
             if (count < 0 || offset + count > bytes.Length)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             var output = new StringBuilder();
             var acc = new MemoryStream();
@@ -329,7 +332,7 @@ namespace Pomona.Common
                 return null;
 
             if (e == null)
-                throw new ArgumentNullException("e");
+                throw new ArgumentNullException(nameof(e));
 
             return UrlDecodeToBytes(e.GetBytes(str));
         }
@@ -344,10 +347,10 @@ namespace Pomona.Common
 
             var len = bytes.Length;
             if (offset < 0 || offset >= len)
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
 
             if (count < 0 || offset > len - count)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             var result = new MemoryStream();
             var end = offset + count;
@@ -706,9 +709,9 @@ namespace Pomona.Common
         public static void UrlPathSegmentEncode(StringBuilder stringBuilder, string s)
         {
             if (stringBuilder == null)
-                throw new ArgumentNullException("stringBuilder");
+                throw new ArgumentNullException(nameof(stringBuilder));
             if (s == null)
-                throw new ArgumentNullException("s");
+                throw new ArgumentNullException(nameof(s));
 
             if (s == ".")
                 stringBuilder.Append("%2E");
@@ -735,9 +738,9 @@ namespace Pomona.Common
         public static NameValueCollection ParseQueryString(string query, Encoding encoding)
         {
             if (query == null)
-                throw new ArgumentNullException("query");
+                throw new ArgumentNullException(nameof(query));
             if (encoding == null)
-                throw new ArgumentNullException("encoding");
+                throw new ArgumentNullException(nameof(encoding));
             if (query.Length == 0 || (query.Length == 1 && query[0] == '?'))
                 return new HttpQSCollection();
             if (query[0] == '?')

@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -37,14 +16,11 @@ namespace Pomona
     internal class ServerSerializationContext : ISerializationContext
     {
         private readonly IContainer container;
-        private readonly bool debugMode;
-        private readonly HashSet<string> expandedPaths;
-        private readonly ITypeResolver typeMapper;
         private readonly IUriResolver uriResolver;
 
 
         public ServerSerializationContext(
-            TypeMapper typeMapper,
+            ITypeResolver typeMapper,
             string expandedPaths,
             bool debugMode,
             IUriResolver uriResolver,
@@ -52,35 +28,26 @@ namespace Pomona
             )
         {
             if (typeMapper == null)
-                throw new ArgumentNullException("typeMapper");
+                throw new ArgumentNullException(nameof(typeMapper));
             if (expandedPaths == null)
-                throw new ArgumentNullException("expandedPaths");
+                throw new ArgumentNullException(nameof(expandedPaths));
             if (uriResolver == null)
-                throw new ArgumentNullException("uriResolver");
+                throw new ArgumentNullException(nameof(uriResolver));
             if (container == null)
-                throw new ArgumentNullException("container");
-            this.typeMapper = typeMapper;
-            this.debugMode = debugMode;
+                throw new ArgumentNullException(nameof(container));
+            TypeMapper = typeMapper;
+            DebugMode = debugMode;
             this.uriResolver = uriResolver;
             this.container = container;
-            this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
+            ExpandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
         }
 
 
-        public bool DebugMode
-        {
-            get { return this.debugMode; }
-        }
+        public bool DebugMode { get; }
 
-        public ITypeResolver TypeMapper
-        {
-            get { return this.typeMapper; }
-        }
+        public ITypeResolver TypeMapper { get; }
 
-        internal HashSet<string> ExpandedPaths
-        {
-            get { return this.expandedPaths; }
-        }
+        internal HashSet<string> ExpandedPaths { get; }
 
 
         private ExpandMode GetPropertyExpandMode(ISerializerNode node)
@@ -101,7 +68,7 @@ namespace Pomona
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return this.typeMapper.FromType(type);
+            return TypeMapper.FromType(type);
         }
 
 
@@ -128,18 +95,20 @@ namespace Pomona
             if (path == string.Empty)
                 return true;
 
-            return this.expandedPaths.Contains(path.ToLower());
+            return ExpandedPaths.Contains(path.ToLower());
         }
 
 
         public void Serialize(ISerializerNode node, Action<ISerializerNode> nodeSerializerAction)
         {
-            var isExpanded = (node.ExpectedBaseType != typeof(object) && node.ExpectedBaseType != null && node.ExpectedBaseType.IsAlwaysExpanded)
+            var isExpanded = (node.ExpectedBaseType != typeof(object) && node.ExpectedBaseType != null
+                              && node.ExpectedBaseType.IsAlwaysExpanded)
                              || PathToBeExpanded(node.ExpandPath)
-                             || (node.ExpectedBaseType != null && node.ExpectedBaseType.IsCollection && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
+                             || (node.ExpectedBaseType != null && node.ExpectedBaseType.IsCollection
+                                 && node.Context.PathToBeExpanded(node.ExpandPath + "!"))
                              || (GetPropertyExpandMode(node) != ExpandMode.Default)
                              || (node.Value != null && node.ValueType != null && node.ValueType.IsAlwaysExpanded);
-            
+
             node.SerializeAsReference = !isExpanded;
 
             nodeSerializerAction(node);

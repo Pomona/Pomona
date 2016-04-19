@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -40,6 +19,8 @@ using System.Xml.XPath;
 using NUnit.Framework;
 
 using Pomona.Common.Internals;
+
+using Ude;
 
 namespace Pomona.TestHelpers
 {
@@ -62,10 +43,10 @@ namespace Pomona.TestHelpers
         public static string FindProjectPathOf(Assembly assembly)
         {
             if (assembly == null)
-                throw new ArgumentNullException("assembly");
+                throw new ArgumentNullException(nameof(assembly));
 
             if (String.IsNullOrEmpty(assembly.CodeBase))
-                throw new ArgumentException(String.Format("The assembly '{0}' has no code base.", assembly), "assembly");
+                throw new ArgumentException(String.Format("The assembly '{0}' has no code base.", assembly), nameof(assembly));
 
             UriBuilder uri = new UriBuilder(assembly.CodeBase);
             string unescapeDataString = Uri.UnescapeDataString(uri.Path);
@@ -137,7 +118,7 @@ namespace Pomona.TestHelpers
         public static string FindSolutionPathOf(object @object)
         {
             if (@object == null)
-                throw new ArgumentNullException("object");
+                throw new ArgumentNullException(nameof(@object));
 
             return FindSolutionPathOf(@object.GetType());
         }
@@ -153,7 +134,7 @@ namespace Pomona.TestHelpers
         public static string FindSolutionPathOf(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return FindSolutionPathOf(type.Assembly);
         }
@@ -200,6 +181,62 @@ namespace Pomona.TestHelpers
                                                            SearchOption.AllDirectories)
                                            .Where(x => !IsIgnoredPath(Path.GetDirectoryName(x)));
             return sourceCodeFiles;
+        }
+
+
+        /// <summary>
+        /// Fix UTF-8 encoding in all source code files found that does not got ASCII or UTF-8 encoding.
+        /// </summary>
+        /// <param name="solutionDirectory">The directory to scan.</param>
+        /// <param name="excludeFilter">Exclude filter, by default this excludes files in **\obj\ and **\bin\ directory.</param>
+        /// <param name="fileSearchPatterns">File patterns to search. By default we search *.cs, *.csproj, *.config and *.xml</param>
+        public static void FixSourceCodeUtf8Encoding(string solutionDirectory,
+                                                     Func<string, bool> excludeFilter = null,
+                                                     string[] fileSearchPatterns = null)
+        {
+            StringBuilder fixLog = new StringBuilder();
+            foreach (var filePath in GetSourceCodeFilesThatShouldHaveUtf8Encoding(solutionDirectory, excludeFilter, fileSearchPatterns))
+            {
+                string charset;
+                var isValidUtf8 = FileIsValidUtf8(out charset, filePath);
+                if (isValidUtf8)
+                    continue;
+                var currentEncoding = Encoding.GetEncoding(charset);
+                var text = File.ReadAllText(filePath, currentEncoding);
+                File.WriteAllText(filePath, text, Encoding.UTF8);
+                fixLog.AppendFormat("File \"{0}\" converted from {1}, to UTF-8\r\n", filePath, charset);
+            }
+            if (fixLog.Length > 0)
+                Console.WriteLine(fixLog);
+        }
+
+
+        /// <summary>
+        /// Check that all source code files has UTF-8 encoding
+        /// </summary>
+        /// <param name="solutionDirectory">The directory to scan.</param>
+        /// <param name="excludeFilter">Exclude filter, by default this excludes files in **\obj\ and **\bin\ directory.</param>
+        /// <param name="fileSearchPatterns">File patterns to search. By default we search *.cs, *.csproj, *.config and *.xml</param>
+        public static void ValidateSourceCodeUtf8Encoding(string solutionDirectory,
+                                                          Func<string, bool> excludeFilter = null,
+                                                          string[] fileSearchPatterns = null)
+        {
+            StringBuilder errorLog = new StringBuilder();
+            var wrongEncodings = new HashSet<string>();
+            foreach (var filePath in GetSourceCodeFilesThatShouldHaveUtf8Encoding(solutionDirectory, excludeFilter, fileSearchPatterns))
+            {
+                string charset;
+                var isValidUtf8 = FileIsValidUtf8(out charset, filePath);
+                if (isValidUtf8)
+                    continue;
+                errorLog.AppendFormat("Charset of \"{0}\" is {1}, not UTF-8\r\n", filePath, charset);
+                wrongEncodings.Add(charset);
+            }
+            if (errorLog.Length > 0)
+            {
+                Console.WriteLine(errorLog);
+                Assert.Fail("One or more files in source code is not encoded as UTF-8 (" + string.Join(", ", wrongEncodings) + ")");
+            }
         }
 
 
@@ -284,6 +321,49 @@ namespace Pomona.TestHelpers
         }
 
 
+        private static string DetectFileCharset(string filePath)
+        {
+            string charset;
+            using (var fs = File.OpenRead(filePath))
+            {
+                var charsetDetector = new CharsetDetector();
+                charsetDetector.Feed(fs);
+                charsetDetector.DataEnd();
+                charset = charsetDetector.Charset;
+            }
+            return charset;
+        }
+
+
+        private static bool FileIsValidUtf8(out string charset, string filePath)
+        {
+            charset = DetectFileCharset(filePath);
+            var isValidUtf8 = charset == "UTF-8" || charset == "ASCII" || charset == null;
+            return isValidUtf8;
+        }
+
+
+        private static IEnumerable<string> GetSourceCodeFiles(string solutionDirectory,
+                                                              Func<string, bool> excludeFilter = null,
+                                                              string[] fileSearchPatterns = null)
+        {
+            fileSearchPatterns = fileSearchPatterns ?? new[] { "*.cs", "*.csproj", "*.config", "*.xml" };
+            excludeFilter = excludeFilter ?? IsIgnoredPath;
+            return
+                fileSearchPatterns.SelectMany(x => Directory.EnumerateFiles(solutionDirectory, x, SearchOption.AllDirectories)).Where(
+                    x => !excludeFilter(x));
+        }
+
+
+        private static IEnumerable<string> GetSourceCodeFilesThatShouldHaveUtf8Encoding(string solutionDirectory,
+                                                                                        Func<string, bool> excludeFilter = null,
+                                                                                        string[] fileSearchPatterns = null)
+        {
+            // Keeping this method in case we don't want certain files to be UTF-8
+            return GetSourceCodeFiles(solutionDirectory, excludeFilter, fileSearchPatterns);
+        }
+
+
         private static bool IsIgnoredPath(string directoryName)
         {
             return directoryName.Contains("\\obj\\") || directoryName.Contains("\\bin\\");
@@ -303,10 +383,8 @@ namespace Pomona.TestHelpers
         {
             private static readonly string[] knownFrameworkVersions = { "net451", "net45", "net40", "net35", "net20" };
             private static readonly string[] preferredFrameworkVersions = { "net45", "net40", "net35", "net20" };
-            private readonly string id;
             private readonly string projectFile;
             private readonly string solutionDirectoy;
-            private readonly string version;
             private string[] availableFrameworkVersions;
             private string fullPackagePath;
             private XDocument projectXmlDocument;
@@ -320,14 +398,14 @@ namespace Pomona.TestHelpers
                 this.projectFile = project;
                 this.solutionDirectoy = solutionDirectoy;
                 this.projectXmlDocument = projectXmlDocument;
-                this.id = packagesConfigElement.Attribute("id").Value;
-                this.version = packagesConfigElement.Attribute("version").Value;
+                Id = packagesConfigElement.Attribute("id").Value;
+                Version = packagesConfigElement.Attribute("version").Value;
             }
 
 
             public string AssumedPackagePath
             {
-                get { return AssumedPackagePathStart + this.version; }
+                get { return AssumedPackagePathStart + Version; }
             }
 
             public string AssumedPackagePathStart
@@ -335,10 +413,7 @@ namespace Pomona.TestHelpers
                 get { return Path.Combine(RelativePackagesPath, Id + "."); }
             }
 
-            public string Id
-            {
-                get { return this.id; }
-            }
+            public string Id { get; }
 
             public string PreferredFrameworkVersion
             {
@@ -369,10 +444,7 @@ namespace Pomona.TestHelpers
                 }
             }
 
-            public string Version
-            {
-                get { return this.version; }
-            }
+            public string Version { get; }
 
             private string[] AvailableFrameworkVersions
             {
@@ -536,10 +608,7 @@ namespace Pomona.TestHelpers
 
             private class LibReference
             {
-                private readonly string hintPath;
                 private readonly NugetPackageElement parent;
-                private readonly string pathVersionPart;
-                private readonly string targetFrameworkVersion;
 
 
                 public LibReference(NugetPackageElement parent,
@@ -549,17 +618,17 @@ namespace Pomona.TestHelpers
                 {
                     this.parent = parent;
                     var hintPathElement = element.Descendants(ns + "HintPath").First();
-                    this.hintPath = hintPathElement.Value;
-                    this.pathVersionPart = this.hintPath.Substring(hintPathBeforePrefix.Length,
-                                                                   this.hintPath.IndexOfAny(new char[] { '\\', '/' },
-                                                                                            hintPathBeforePrefix.Length)
-                                                                   - hintPathBeforePrefix.Length);
-                    var packageRelativePath = this.hintPath.Substring(hintPathBeforePrefix.Length + this.pathVersionPart.Length + 1);
+                    HintPath = hintPathElement.Value;
+                    PathVersionPart = HintPath.Substring(hintPathBeforePrefix.Length,
+                                                         HintPath.IndexOfAny(new char[] { '\\', '/' },
+                                                                             hintPathBeforePrefix.Length)
+                                                         - hintPathBeforePrefix.Length);
+                    var packageRelativePath = HintPath.Substring(hintPathBeforePrefix.Length + PathVersionPart.Length + 1);
 
                     var pathSegments = packageRelativePath.Split(Path.DirectorySeparatorChar);
                     if (pathSegments[0] == "lib")
                     {
-                        this.targetFrameworkVersion =
+                        TargetFrameworkVersion =
                             pathSegments
                                 .Skip(1)
                                 .Take(1)
@@ -570,20 +639,11 @@ namespace Pomona.TestHelpers
                 }
 
 
-                public string HintPath
-                {
-                    get { return this.hintPath; }
-                }
+                public string HintPath { get; }
 
-                public string PathVersionPart
-                {
-                    get { return this.pathVersionPart; }
-                }
+                public string PathVersionPart { get; }
 
-                public string TargetFrameworkVersion
-                {
-                    get { return this.targetFrameworkVersion; }
-                }
+                public string TargetFrameworkVersion { get; }
             }
 
             #endregion

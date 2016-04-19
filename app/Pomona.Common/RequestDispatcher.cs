@@ -1,39 +1,20 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
 using System;
-using System.Linq;
-using System.Text;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
 
 using Pomona.Common.ExtendedResources;
-using Pomona.Common.Internals;
 using Pomona.Common.Proxies;
 using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
@@ -44,7 +25,7 @@ namespace Pomona.Common
 {
     public class RequestDispatcher : IRequestDispatcher
     {
-        private readonly HttpHeaders defaultHeaders;
+        private readonly IEnumerable<KeyValuePair<string, IEnumerable<string>>> defaultHeaders;
         private readonly ITextSerializerFactory serializerFactory;
         private readonly ClientTypeMapper typeMapper;
 
@@ -52,22 +33,28 @@ namespace Pomona.Common
         public RequestDispatcher(ClientTypeMapper typeMapper,
                                  IWebClient webClient,
                                  ITextSerializerFactory serializerFactory,
-                                 HttpHeaders defaultHeaders = null)
+                                 IEnumerable<KeyValuePair<string, IEnumerable<string>>> defaultHeaders = null)
         {
             this.defaultHeaders = defaultHeaders;
             if (typeMapper != null)
                 this.typeMapper = typeMapper;
             if (webClient != null)
-                this.WebClient = webClient;
+                WebClient = webClient;
             if (serializerFactory != null)
                 this.serializerFactory = serializerFactory;
         }
 
 
-        private void AddDefaultHeaders(HttpRequest request)
+        private void AddDefaultHeaders(HttpRequestMessage request)
         {
             if (this.defaultHeaders != null)
-                this.defaultHeaders.Where(x => !request.Headers.ContainsKey(x.Key)).ToList().AddTo(request.Headers);
+            {
+                foreach (var header in this.defaultHeaders)
+                {
+                    if (!request.Headers.Contains(header.Key))
+                        request.Headers.Add(header.Key, header.Value);
+                }
+            }
         }
 
 
@@ -87,15 +74,15 @@ namespace Pomona.Common
         }
 
 
-        private string SendHttpRequest(ISerializationContextProvider serializationContextProvider,
-                                       string uri,
-                                       string httpMethod,
-                                       object requestBodyEntity,
-                                       TypeSpec requestBodyBaseType,
-                                       RequestOptions options)
+        private async Task<string> SendHttpRequestAsync(ISerializationContextProvider serializationContextProvider,
+                                                        string uri,
+                                                        string httpMethod,
+                                                        object requestBodyEntity,
+                                                        TypeSpec requestBodyBaseType,
+                                                        RequestOptions options)
         {
             byte[] requestBytes = null;
-            HttpResponse response = null;
+            HttpResponseMessage response = null;
             if (requestBodyEntity != null)
             {
                 requestBytes = this.serializerFactory
@@ -105,7 +92,7 @@ namespace Pomona.Common
                                        ExpectedBaseType = requestBodyBaseType
                                    });
             }
-            var request = new HttpRequest(uri, requestBytes, httpMethod);
+            var request = new HttpRequestMessage(new System.Net.Http.HttpMethod(httpMethod), uri);
 
             string responseString = null;
             Exception thrownException = null;
@@ -119,20 +106,27 @@ namespace Pomona.Common
                 const string jsonContentType = "application/json; charset=utf-8";
                 request.Headers.Add("Accept", jsonContentType);
                 if (requestBytes != null)
-                    request.Headers.ContentType = jsonContentType;
-
-                using (Profiler.Step("client: " + request.Method + " " + request.Uri))
                 {
-                    response = this.WebClient.Send(request);
+                    var requestContent = new ByteArrayContent(requestBytes);
+                    requestContent.Headers.ContentType = MediaTypeHeaderValue.Parse(jsonContentType);
+                    request.Content = requestContent;
                 }
 
-                responseString = (response.Body != null && response.Body.Length > 0)
-                    ? Encoding.UTF8.GetString(response.Body)
-                    : null;
+                using (Profiler.Step("client: " + request.Method + " " + request.RequestUri))
+                {
+                    response = await WebClient.SendAsync(request, CancellationToken.None);
+                }
+
+                if (response.Content != null)
+                {
+                    responseString = await response.Content.ReadAsStringAsync();
+                    if (responseString.Length == 0)
+                        responseString = null;
+                }
 
                 if ((int)response.StatusCode >= 400)
                 {
-                    var gotJsonResponseBody = responseString != null && response.Headers.MediaType == "application/json";
+                    var gotJsonResponseBody = responseString != null && response.Content.Headers.ContentType.MediaType == "application/json";
 
                     var responseObject = gotJsonResponseBody
                         ? Deserialize(responseString, null, serializationContextProvider)
@@ -150,32 +144,41 @@ namespace Pomona.Common
             {
                 var eh = RequestCompleted;
                 if (eh != null)
+                {
+                    // Since request content has been disposed at this point we recreate it..
+                    if (request.Content != null)
+                    {
+                        var nonDisposedContent = new ByteArrayContent(requestBytes);
+                        nonDisposedContent.Headers.CopyHeadersFrom(request.Content.Headers);
+                        request.Content = nonDisposedContent;
+                    }
                     eh(this, new ClientRequestLogEventArgs(request, response, thrownException));
+                }
             }
 
             return responseString;
         }
 
 
-        private object SendRequestInner(string uri,
-                                        string httpMethod,
-                                        object body,
-                                        ISerializationContextProvider provider,
-                                        RequestOptions options)
+        private async Task<object> SendRequestInnerAsync(string uri,
+                                                         string httpMethod,
+                                                         object body,
+                                                         ISerializationContextProvider provider,
+                                                         RequestOptions options)
         {
             if (provider == null)
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (httpMethod == null)
-                throw new ArgumentNullException("httpMethod");
+                throw new ArgumentNullException(nameof(httpMethod));
             if (options == null)
                 options = new RequestOptions();
 
             if (body is IExtendedResourceProxy)
                 throw new ArgumentException("SendRequestInner should never get a body of type IExtendedResourceProxy");
 
-            var response = SendHttpRequest(provider, uri, httpMethod, body, null, options);
+            var response = await SendHttpRequestAsync(provider, uri, httpMethod, body, null, options);
             return response != null ? Deserialize(response, options.ExpectedResponseType, provider) : null;
         }
 
@@ -189,12 +192,22 @@ namespace Pomona.Common
                                   ISerializationContextProvider provider,
                                   RequestOptions options = null)
         {
+            return SendRequestAsync(uri, httpMethod, body, provider, options).ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+
+        public async Task<object> SendRequestAsync(string uri,
+                                                   string httpMethod,
+                                                   object body,
+                                                   ISerializationContextProvider provider,
+                                                   RequestOptions options = null)
+        {
             if (provider == null)
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             if (uri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException(nameof(uri));
             if (httpMethod == null)
-                throw new ArgumentNullException("httpMethod");
+                throw new ArgumentNullException(nameof(httpMethod));
             if (options == null)
                 options = new RequestOptions();
 
@@ -217,7 +230,7 @@ namespace Pomona.Common
                 }
             }
 
-            var innerResult = SendRequestInner(uri, httpMethod, innerBody, provider, innerOptions);
+            var innerResult = await SendRequestInnerAsync(uri, httpMethod, innerBody, provider, innerOptions);
             if (innerResponseType == null && proxyBody != null && innerResult != null)
             {
                 // Special case: No response type specified, but response has same type as posted body,

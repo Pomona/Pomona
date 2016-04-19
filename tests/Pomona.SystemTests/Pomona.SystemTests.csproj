@@ -87,6 +87,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -97,6 +98,10 @@
     <Compile Include="..\..\app\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AsyncDeleteTests.cs" />
+    <Compile Include="AsyncPatchTests.cs" />
+    <Compile Include="AsyncPostTests.cs" />
+    <Compile Include="AsyncQueryTests.cs" />
     <Compile Include="ChildResourceTests.cs" />
     <Compile Include="CodeGen\ClientGeneratedTypeTests.cs" />
     <Compile Include="CodeGen\StringEnumTests.cs" />

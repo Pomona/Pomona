@@ -1,0 +1,16 @@
+install:
+  - choco install gitversion.portable -pre -y
+
+before_build:
+  - nuget restore
+  - ps: gitversion /l console /output buildserver 
+
+build:
+  project: Pomona.sln
+
+test:
+  assemblies:
+    - 'tests/**/bin/*/*Tests.dll'
+  categories:
+    except:
+      - TODO

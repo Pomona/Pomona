@@ -1,33 +1,14 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
 using System;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -45,8 +26,8 @@ namespace Pomona.Common.Web
         }
 
 
-        internal WebClientException(HttpRequest request,
-                                    HttpResponse response,
+        internal WebClientException(HttpRequestMessage request,
+                                    HttpResponseMessage response,
                                     TBody body = default(TBody),
                                     Exception innerException = null)
             : base(request, response, body, innerException)
@@ -64,9 +45,6 @@ namespace Pomona.Common.Web
     public class WebClientException : Exception
     {
         private static readonly MethodInfo createGenericMethod;
-        private readonly object body;
-        private readonly HttpStatusCode statusCode;
-        private readonly string uri;
 
 
         static WebClientException()
@@ -76,17 +54,17 @@ namespace Pomona.Common.Web
         }
 
 
-        protected WebClientException(HttpRequest request,
-                                     HttpResponse response,
+        protected WebClientException(HttpRequestMessage request,
+                                     HttpResponseMessage response,
                                      object body = null,
                                      Exception innerException = null)
             : base(CreateMessage(request, response, body), innerException)
         {
-            this.body = body;
-            this.statusCode = response != null
+            Body = body;
+            StatusCode = response != null
                 ? response.StatusCode
-                : HttpStatusCode.EmptyResponse;
-            this.uri = GetUri(request, response);
+                : HttpStatusCode.NoContent;
+            Uri = GetUri(request);
         }
 
 
@@ -96,35 +74,26 @@ namespace Pomona.Common.Web
         }
 
 
-        public object Body
-        {
-            get { return this.body; }
-        }
+        public object Body { get; }
 
         public bool HasBody
         {
-            get { return this.body != null; }
+            get { return Body != null; }
         }
 
-        public HttpStatusCode StatusCode
-        {
-            get { return this.statusCode; }
-        }
+        public HttpStatusCode StatusCode { get; }
 
-        public string Uri
-        {
-            get { return this.uri; }
-        }
+        public string Uri { get; }
 
 
         public static WebClientException Create(IClientTypeResolver client,
-                                                HttpRequest request,
-                                                HttpResponse response,
+                                                HttpRequestMessage request,
+                                                HttpResponseMessage response,
                                                 object bodyObject,
                                                 Exception innerException)
         {
             if (request == null)
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
 
             // String body doesn't create a generic exception, it just puts the string in the message
             if (bodyObject != null && !(bodyObject is string))
@@ -139,7 +108,7 @@ namespace Pomona.Common.Web
                     .Invoke(null, new[] { request, response, bodyObject, innerException });
             }
 
-            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            var statusCode = response != null ? response.StatusCode : HttpStatusCode.NoContent;
             switch (statusCode)
             {
                 case HttpStatusCode.BadRequest:
@@ -154,12 +123,12 @@ namespace Pomona.Common.Web
         }
 
 
-        private static WebClientException CreateGeneric<TBody>(HttpRequest request,
-                                                               HttpResponse response,
+        private static WebClientException CreateGeneric<TBody>(HttpRequestMessage request,
+                                                               HttpResponseMessage response,
                                                                TBody bodyObject,
                                                                Exception innerException)
         {
-            var statusCode = response != null ? response.StatusCode : HttpStatusCode.EmptyResponse;
+            var statusCode = response != null ? response.StatusCode : HttpStatusCode.NoContent;
             switch (statusCode)
             {
                 case HttpStatusCode.BadRequest:
@@ -174,18 +143,18 @@ namespace Pomona.Common.Web
         }
 
 
-        private static string CreateMessage(HttpRequest request,
-                                            HttpResponse response,
+        private static string CreateMessage(HttpRequestMessage request,
+                                            HttpResponseMessage response,
                                             object body)
         {
             StringBuilder message = new StringBuilder("The ");
 
-            if (request != null && !String.IsNullOrWhiteSpace(request.Method))
+            if (request != null)
                 message.AppendFormat("{0} ", request.Method);
 
             message.Append("request ");
 
-            string uri = GetUri(request, response);
+            string uri = GetUri(request);
 
             if (!String.IsNullOrWhiteSpace(uri))
                 message.AppendFormat("to <{0}> ", uri);
@@ -221,17 +190,17 @@ namespace Pomona.Common.Web
         }
 
 
-        private static object GetBody(object body, HttpResponse response)
+        private static object GetBody(object body, HttpResponseMessage response)
         {
             if (body != null)
                 return body;
 
-            if (response == null || response.Body == null || response.Body.Length == 0)
+            if (response == null || response.Content == null)
                 return null;
 
             try
             {
-                return Encoding.UTF8.GetString(response.Body);
+                return response.Content.ReadAsStringAsync();
             }
             catch (Exception exception)
             {
@@ -241,9 +210,9 @@ namespace Pomona.Common.Web
         }
 
 
-        private static string GetUri(HttpRequest request, HttpResponse response)
+        private static string GetUri(HttpRequestMessage request)
         {
-            return (request != null ? request.Uri : null);
+            return (request != null ? (request.RequestUri != null ? request.RequestUri.ToString() : null) : null);
         }
     }
 }

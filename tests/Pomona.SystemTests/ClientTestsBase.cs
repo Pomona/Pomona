@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -31,11 +10,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
+using System.Net.Http;
 
 using Critters.Client;
-
-using Nancy.Testing;
 
 using NUnit.Framework;
 
@@ -50,12 +27,7 @@ namespace Pomona.SystemTests
 {
     public class ClientTestsBase : CritterServiceTestsBase<CritterClient>
     {
-        private readonly List<ClientRequestLogEventArgs> requestLog = new List<ClientRequestLogEventArgs>();
-
-        protected List<ClientRequestLogEventArgs> RequestLog
-        {
-            get { return this.requestLog; }
-        }
+        protected List<ClientRequestLogEventArgs> RequestLog { get; } = new List<ClientRequestLogEventArgs>();
 
         protected IWebClient WebClient
         {
@@ -66,22 +38,22 @@ namespace Pomona.SystemTests
         public override CritterClient CreateHttpTestingClient(string baseUri)
         {
             return new CritterClient(baseUri,
-                                     new HttpWebRequestClient(new HttpHeaders() { { "MongoHeader", "lalaal" } }));
+                                     new HttpWebClient(new HttpClient() { DefaultRequestHeaders = { { "MongoHeader", "lalaal" } } }));
         }
 
 
         public override CritterClient CreateInMemoryTestingClient(string baseUri,
                                                                   CritterBootstrapper critterBootstrapper)
         {
-            var nancyTestingWebClient = new NancyTestingWebClient(new Browser(critterBootstrapper));
-            return new CritterClient(baseUri, nancyTestingWebClient);
+            var nancyTestingWebClient = new NancyTestingHttpMessageHandler(critterBootstrapper.GetEngine());
+            return new CritterClient(baseUri, new HttpWebClient(nancyTestingWebClient));
         }
 
 
         public override void SetUp()
         {
             base.SetUp();
-            this.requestLog.Clear();
+            RequestLog.Clear();
         }
 
 
@@ -139,12 +111,12 @@ namespace Pomona.SystemTests
 
         private void ClientOnRequestCompleted(object sender, ClientRequestLogEventArgs e)
         {
-            this.requestLog.Add(e);
+            RequestLog.Add(e);
             if (RequestTraceEnabled)
             {
                 Console.WriteLine("Sent:\r\n{0}\r\nReceived:\r\n{1}\r\n",
-                                  e.Request,
-                                  (object)e.Response ?? "(nothing received)");
+                                  e.Request.ToStringWithContent(),
+                                  e.Response?.ToStringWithContent() ?? "(nothing received)");
             }
         }
 

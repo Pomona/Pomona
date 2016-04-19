@@ -43,6 +43,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
@@ -51,6 +53,7 @@
     <Compile Include="AllowedMethodsAttribute.cs" />
     <Compile Include="ChildResourceRepository.cs" />
     <Compile Include="ClientRepository.cs" />
+    <Compile Include="ClientRepositoryExtensions.cs" />
     <Compile Include="ClientRequestLogEventArgs.cs" />
     <Compile Include="ClientResourceExtensions.cs" />
     <Compile Include="ClientSettings.cs" />
@@ -341,22 +344,18 @@
     <Compile Include="UniqueMemberToken.cs" />
     <Compile Include="UriQueryBuilder.cs" />
     <Compile Include="Web\BadRequestException.cs" />
-    <Compile Include="Web\HttpHeaders.cs" />
-    <Compile Include="Web\HttpHeadersConverter.cs" />
-    <Compile Include="Web\HttpStatusCode.cs" />
+    <Compile Include="Web\HttpMessageContentWriter.cs" />
+    <Compile Include="Web\HttpMessageExtensions.cs" />
+    <Compile Include="Web\HttpRequestMessageConverter.cs" />
+    <Compile Include="Web\HttpResponseMessageConverter.cs" />
+    <Compile Include="Web\HttpWebClient.cs" />
     <Compile Include="Web\IWebClient.cs" />
     <Compile Include="Web\IWebClientException.cs" />
     <Compile Include="Web\PreconditionFailedException.cs" />
     <Compile Include="Web\ResourceNotFoundException.cs" />
-    <Compile Include="Web\HttpRequest.cs" />
-    <Compile Include="Web\HttpRequestConverter.cs" />
     <Compile Include="Web\HttpMessageConverterBase.cs" />
-    <Compile Include="Web\HttpResponse.cs" />
     <Compile Include="Web\WebClientException.cs" />
-    <Compile Include="Web\HttpWebRequestClient.cs" />
-    <Compile Include="Web\HttpResponseConverter.cs" />
-    <Compile Include="Web\WebClientRequestMessage.cs" />
-    <Compile Include="Web\WebClientResponseMessage.cs" />
+    <Compile Include="Web\WebClientExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

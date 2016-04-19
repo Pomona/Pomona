@@ -1,62 +1,41 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Text;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Loading;
-using Pomona.Common.Web;
 
 namespace Pomona.Common
 {
     public class RequestOptions : IRequestOptions
     {
         private readonly StringBuilder expandedPaths;
-        private readonly List<Action<HttpRequest>> requestModifyActions;
+        private readonly List<Action<HttpRequestMessage>> requestModifyActions;
 
 
         public RequestOptions()
         {
             this.expandedPaths = new StringBuilder();
-            this.requestModifyActions = new List<Action<HttpRequest>>();
+            this.requestModifyActions = new List<Action<HttpRequestMessage>>();
         }
 
 
         public RequestOptions(RequestOptions clonedOptions)
         {
             if (clonedOptions == null)
-                throw new ArgumentNullException("clonedOptions");
+                throw new ArgumentNullException(nameof(clonedOptions));
             ExpectedResponseType = clonedOptions.ExpectedResponseType;
             this.expandedPaths = new StringBuilder(clonedOptions.expandedPaths.ToString());
-            this.requestModifyActions = new List<Action<HttpRequest>>(clonedOptions.requestModifyActions);
+            this.requestModifyActions = new List<Action<HttpRequestMessage>>(clonedOptions.requestModifyActions);
             ResourceLoader = clonedOptions.ResourceLoader;
         }
 
@@ -77,7 +56,7 @@ namespace Pomona.Common
         internal IResourceLoader ResourceLoader { get; set; }
 
 
-        public void ApplyRequestModifications(HttpRequest request)
+        public void ApplyRequestModifications(HttpRequestMessage request)
         {
             foreach (var action in this.requestModifyActions)
                 action(request);
@@ -121,7 +100,7 @@ namespace Pomona.Common
         }
 
 
-        public IRequestOptions ModifyRequest(Action<HttpRequest> action)
+        public IRequestOptions ModifyRequest(Action<HttpRequestMessage> action)
         {
             this.requestModifyActions.Add(action);
             return this;
@@ -143,7 +122,7 @@ namespace Pomona.Common
         }
 
 
-        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<HttpRequest> action)
+        IRequestOptions<T> IRequestOptions<T>.ModifyRequest(Action<HttpRequestMessage> action)
         {
             ModifyRequest(action);
             return this;

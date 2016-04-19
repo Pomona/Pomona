@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2016 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -30,14 +9,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Critters.Client;
 
 using Mono.Cecil;
-
-using NSubstitute;
 
 using NUnit.Framework;
 
@@ -45,12 +25,28 @@ using Pomona.Common;
 using Pomona.Common.Web;
 using Pomona.UnitTests;
 
+using HttpMethod = Pomona.Common.HttpMethod;
+
 namespace Pomona.SystemTests.CodeGen
 {
     [TestFixture]
     public class ClientGeneratedTypeTests
     {
-        private static Assembly ClientAssembly => typeof(CritterClient).Assembly;
+        private static readonly HashSet<Assembly> allowedAssemblies =
+            new HashSet<Assembly>(new[]
+            {
+                typeof(object),
+                typeof(ICritter),
+                typeof(PomonaClient),
+                typeof(IQueryProvider),
+                typeof(Uri),
+                typeof(HttpClient)
+            }.Select(x => x.Assembly));
+
+        private static Assembly ClientAssembly
+        {
+            get { return typeof(CritterClient).Assembly; }
+        }
 
 
         [Test]
@@ -126,7 +122,7 @@ namespace Pomona.SystemTests.CodeGen
         {
             var foundError = false;
             var errors = new StringBuilder();
-            var client = new CritterClient("http://test", Substitute.For<IWebClient>());
+            var client = new CritterClient("http://test", new HttpWebClient(new HttpClient()));
             foreach (
                 var prop in
                     typeof(CritterClient).GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(
@@ -162,7 +158,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void ConstructorOfInheritedClientDoesNotThrowException()
         {
-            Assert.DoesNotThrow(() => new InheritedClient("http://test/", Substitute.For<IWebClient>()));
+            Assert.DoesNotThrow(() => new InheritedClient("http://test/", new HttpWebClient(new NoopHttpMessageHandler())));
         }
 
 
@@ -250,7 +246,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PeVerify_ClientWithEmbeddedPomonaCommon_HasExitCode0()
         {
-            var origDllPath = ClientAssembly.Location;
+            var origDllPath = ClientAssembly.CodeBaseAbsolutePath();
             var dllDir = Path.GetDirectoryName(origDllPath);
             var clientWithEmbeddedStuffName = Path.Combine(dllDir, "../../../../lib/IndependentCritters.dll");
             var newDllPath = Path.Combine(dllDir, "TempCopiedIndependentCrittersDll.tmp");
@@ -263,7 +259,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PeVerify_HasExitCode0()
         {
-            PeVerify(typeof(ICritter).Assembly.Location);
+            PeVerify(typeof(ICritter).Assembly.CodeBaseAbsolutePath());
         }
 
 
@@ -271,7 +267,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test(Description = "This test has been added since more errors are discovered when dll has been renamed.")]
         public void PeVerify_RenamedToAnotherDllName_StillHasExitCode0()
         {
-            var origDllPath = ClientAssembly.Location;
+            var origDllPath = ClientAssembly.CodeBaseAbsolutePath();
             Console.WriteLine(Path.GetDirectoryName(origDllPath));
             var newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.tmp");
             File.Copy(origDllPath, newDllPath, true);
@@ -284,7 +280,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PomonaCommonHaveZeroReferencesToEmitNamespace()
         {
-            var assembly = AssemblyDefinition.ReadAssembly(ClientAssembly.Location);
+            var assembly = AssemblyDefinition.ReadAssembly(ClientAssembly.CodeBaseAbsolutePath());
             var trefs =
                 assembly.MainModule.GetTypeReferences().Where(x => x.Namespace == "System.Reflection.Emit").ToList();
             Assert.That(trefs, Is.Empty);
@@ -406,11 +402,7 @@ namespace Pomona.SystemTests.CodeGen
 
         private bool IsAllowedClientReferencedAssembly(Assembly assembly)
         {
-            return assembly == typeof(object).Assembly ||
-                   assembly == typeof(ICritter).Assembly ||
-                   assembly == typeof(PomonaClient).Assembly ||
-                   assembly == typeof(IQueryProvider).Assembly ||
-                   assembly == typeof(Uri).Assembly;
+            return allowedAssemblies.Contains(assembly);
         }
 
 
@@ -425,6 +417,14 @@ namespace Pomona.SystemTests.CodeGen
             public InheritedClient(string baseUri, IWebClient webClient)
                 : base(baseUri, webClient)
             {
+            }
+        }
+
+        private class NoopHttpMessageHandler : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
             }
         }
     }

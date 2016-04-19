@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -45,7 +24,6 @@ namespace Pomona.Fetcher
         private static readonly MethodInfo expandCollectionBatchedMethod;
         private static readonly MethodInfo expandManyToOneMethod;
         private static readonly Action<Type, BatchFetcher, object, string> expandMethod;
-        private readonly int batchFetchCount;
         private readonly IBatchFetchDriver driver;
         private readonly HashSet<string> expandedPaths;
         private readonly FetchEntitiesByIdInBatches fetchEntitiesByIdInBatches;
@@ -78,14 +56,11 @@ namespace Pomona.Fetcher
 
             this.expandedPaths = ExpandPathsUtils.GetExpandedPaths(expandedPaths);
             this.driver = driver;
-            this.batchFetchCount = batchFetchCount;
+            BatchFetchCount = batchFetchCount;
         }
 
 
-        public int BatchFetchCount
-        {
-            get { return this.batchFetchCount; }
-        }
+        public int BatchFetchCount { get; }
 
 
         public void Expand(object entitiesUncast, Type entityType)
@@ -225,7 +200,7 @@ namespace Pomona.Fetcher
         {
             PropertyInfo parentIdProp;
             var getParentIdExpr = CreateIdGetExpression<TParentEntity, TParentId>(out parentIdProp).Compile();
-            Partition(entities.Distinct().OrderBy(getParentIdExpr), this.batchFetchCount)
+            Partition(entities.Distinct().OrderBy(getParentIdExpr), BatchFetchCount)
                 .ToList()
                 .ForEach(x => ExpandCollection<TParentEntity, TCollectionElement, TParentId>(x,
                                                                                              path,
@@ -238,7 +213,7 @@ namespace Pomona.Fetcher
         protected virtual IEnumerable<TEntity> FetchEntitiesById<TEntity, TId>(TId[] ids, PropertyInfo idProp)
         {
             if (idProp == null)
-                throw new ArgumentNullException("idProp");
+                throw new ArgumentNullException(nameof(idProp));
             var fetchPredicateParam = Expression.Parameter(typeof(TEntity), "x");
             var fetchPredicate = Expression.Lambda<Func<TEntity, bool>>(
                 Expression.Call(
@@ -320,7 +295,7 @@ namespace Pomona.Fetcher
         private IEnumerable FetchEntitiesByIdInBatches<TEntity, TId>(object[] ids, PropertyInfo idProp)
         {
             return
-                Partition(ids.Cast<TId>().OrderBy(x => x), this.batchFetchCount).SelectMany(
+                Partition(ids.Cast<TId>().OrderBy(x => x), BatchFetchCount).SelectMany(
                     x => FetchEntitiesById<TEntity, TId>(x, idProp));
         }
 
@@ -357,9 +332,9 @@ namespace Pomona.Fetcher
         private static IEnumerable<T[]> Partition<T>(IEnumerable<T> source, int partLength)
         {
             if (source == null)
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             if (partLength < 1)
-                throw new ArgumentOutOfRangeException("partLength", "Can't divide sequence in parts less than length 1");
+                throw new ArgumentOutOfRangeException(nameof(partLength), "Can't divide sequence in parts less than length 1");
             T[] part = null;
             var offset = 0;
             foreach (var item in source)

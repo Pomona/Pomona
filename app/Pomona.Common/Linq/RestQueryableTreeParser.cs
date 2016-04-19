@@ -1,28 +1,7 @@
 ﻿#region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -55,7 +34,8 @@ namespace Pomona.Common.Linq
             Sum,
             Count,
             Last,
-            LastOrDefault
+            LastOrDefault,
+            ToQueryResult
         }
 
         #endregion
@@ -69,12 +49,9 @@ namespace Pomona.Common.Linq
 
         private static readonly Dictionary<UniqueMemberToken, MethodInfo> queryableMethodToVisitMethodDictionary;
         private readonly StringBuilder expandedPaths;
-        private readonly List<Tuple<LambdaExpression, SortOrder>> orderKeySelectors;
-        private readonly List<Action<IRequestOptions>> requestOptionActions;
         private readonly IList<LambdaExpression> whereExpressions;
         private Type aggregateReturnType;
         private IRestQueryRoot queryRoot;
-        private ResultModeType resultMode = ResultModeType.Deserialized;
 
 
         static RestQueryableTreeParser()
@@ -98,8 +75,8 @@ namespace Pomona.Common.Linq
         public RestQueryableTreeParser()
         {
             this.expandedPaths = new StringBuilder();
-            this.orderKeySelectors = new List<Tuple<LambdaExpression, SortOrder>>();
-            this.requestOptionActions = new List<Action<IRequestOptions>>();
+            OrderKeySelectors = new List<Tuple<LambdaExpression, SortOrder>>();
+            RequestOptionActions = new List<Action<IRequestOptions>>();
             this.whereExpressions = new List<LambdaExpression>();
             Projection = QueryProjection.Enumerable;
         }
@@ -115,10 +92,7 @@ namespace Pomona.Common.Linq
         public LambdaExpression GroupByKeySelector { get; private set; }
         public bool IncludeTotalCount { get; private set; }
 
-        public List<Tuple<LambdaExpression, SortOrder>> OrderKeySelectors
-        {
-            get { return this.orderKeySelectors; }
-        }
+        public List<Tuple<LambdaExpression, SortOrder>> OrderKeySelectors { get; }
 
         public QueryProjection Projection { get; private set; }
 
@@ -127,15 +101,9 @@ namespace Pomona.Common.Linq
             get { return this.queryRoot.Uri; }
         }
 
-        public List<Action<IRequestOptions>> RequestOptionActions
-        {
-            get { return this.requestOptionActions; }
-        }
+        public List<Action<IRequestOptions>> RequestOptionActions { get; }
 
-        public ResultModeType ResultMode
-        {
-            get { return this.resultMode; }
-        }
+        public ResultModeType ResultMode { get; private set; } = ResultModeType.Deserialized;
 
         public LambdaExpression SelectExpression { get; private set; }
 
@@ -295,7 +263,7 @@ namespace Pomona.Common.Linq
             if (GroupByKeySelector != null)
                 throw new NotSupportedException("Pomona LINQ provider does not support multiple chained GroupBy()");
 
-            if (this.orderKeySelectors.Any())
+            if (OrderKeySelectors.Any())
                 throw new NotSupportedException("Pomona LINQ provider does not support calling OrderBy before GroupBy()");
 
             GroupByKeySelector = keySelector;
@@ -512,20 +480,20 @@ namespace Pomona.Common.Linq
         internal void QToJson()
         {
             Projection = QueryProjection.Enumerable;
-            this.resultMode = ResultModeType.ToJson;
+            ResultMode = ResultModeType.ToJson;
         }
 
 
         internal void QToQueryResult<TSource>()
         {
-            Projection = QueryProjection.Enumerable;
+            Projection = QueryProjection.ToQueryResult;
         }
 
 
         internal void QToUri<TSource>()
         {
             Projection = QueryProjection.Enumerable;
-            this.resultMode = ResultModeType.ToUri;
+            ResultMode = ResultModeType.ToUri;
         }
 
 
@@ -556,7 +524,7 @@ namespace Pomona.Common.Linq
 
         internal void QWithOptions<TSource>(Action<IRequestOptions> options)
         {
-            this.requestOptionActions.Add(options);
+            RequestOptionActions.Add(options);
         }
 
 
@@ -614,16 +582,16 @@ namespace Pomona.Common.Linq
             }
 
             if (!thenBy)
-                this.orderKeySelectors.Clear();
+                OrderKeySelectors.Clear();
 
             if (SelectExpression != null && GroupByKeySelector == null)
             {
                 // Support order by after select (not when using GroupBy)
-                this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(MergeWhereAfterSelect(keySelector),
-                                                                                  sortOrder));
+                OrderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(MergeWhereAfterSelect(keySelector),
+                                                                             sortOrder));
             }
             else
-                this.orderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(keySelector, sortOrder));
+                OrderKeySelectors.Add(new Tuple<LambdaExpression, SortOrder>(keySelector, sortOrder));
         }
 
 

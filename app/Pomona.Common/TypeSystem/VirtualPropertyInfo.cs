@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -40,14 +19,7 @@ namespace Pomona.Common.TypeSystem
         private static readonly ConcurrentDictionary<string, VirtualPropertyInfo> internalizedCache =
             new ConcurrentDictionary<string, VirtualPropertyInfo>();
 
-        private readonly PropertyAttributes attributes;
-        private readonly PropertyInfo baseDefinition;
-        private readonly Type declaringType;
         private readonly VirtualMethodInfo getMethod;
-        private readonly int metadataToken;
-        private readonly string name;
-        private readonly Type propertyType;
-        private readonly Type reflectedType;
         private readonly VirtualMethodInfo setMethod;
 
 
@@ -61,29 +33,26 @@ namespace Pomona.Common.TypeSystem
                                      VirtualPropertyInfo baseDefinition)
         {
             if (declaringType == null)
-                throw new ArgumentNullException("declaringType");
+                throw new ArgumentNullException(nameof(declaringType));
             if (reflectedType == null)
-                throw new ArgumentNullException("reflectedType");
+                throw new ArgumentNullException(nameof(reflectedType));
             if (propertyType == null)
-                throw new ArgumentNullException("propertyType");
+                throw new ArgumentNullException(nameof(propertyType));
             if (name == null)
-                throw new ArgumentNullException("name");
-            this.declaringType = declaringType;
-            this.reflectedType = reflectedType;
-            this.propertyType = propertyType;
+                throw new ArgumentNullException(nameof(name));
+            DeclaringType = declaringType;
+            ReflectedType = reflectedType;
+            PropertyType = propertyType;
             this.getMethod = getMethod;
             this.setMethod = setMethod;
-            this.name = name;
-            this.attributes = attributes;
-            this.baseDefinition = baseDefinition ?? this;
-            this.metadataToken = VirtualMemberMetadataTokenAllocator.AllocateToken();
+            Name = name;
+            Attributes = attributes;
+            BaseDefinition = baseDefinition ?? this;
+            MetadataToken = VirtualMemberMetadataTokenAllocator.AllocateToken();
         }
 
 
-        public override PropertyAttributes Attributes
-        {
-            get { return this.attributes; }
-        }
+        public override PropertyAttributes Attributes { get; }
 
         public override bool CanRead
         {
@@ -95,40 +64,22 @@ namespace Pomona.Common.TypeSystem
             get { return this.setMethod != null; }
         }
 
-        public override Type DeclaringType
-        {
-            get { return this.declaringType; }
-        }
+        public override Type DeclaringType { get; }
 
-        public override int MetadataToken
-        {
-            get { return this.metadataToken; }
-        }
+        public override int MetadataToken { get; }
 
         public override Module Module
         {
             get { return GetType().Module; }
         }
 
-        public override string Name
-        {
-            get { return this.name; }
-        }
+        public override string Name { get; }
 
-        public override Type PropertyType
-        {
-            get { return this.propertyType; }
-        }
+        public override Type PropertyType { get; }
 
-        public override Type ReflectedType
-        {
-            get { return this.reflectedType; }
-        }
+        public override Type ReflectedType { get; }
 
-        internal PropertyInfo BaseDefinition
-        {
-            get { return this.baseDefinition; }
-        }
+        internal PropertyInfo BaseDefinition { get; }
 
 
         public static VirtualPropertyInfo Create(string name,

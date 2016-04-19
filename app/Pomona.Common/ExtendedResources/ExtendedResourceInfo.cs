@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -38,48 +17,32 @@ namespace Pomona.Common.ExtendedResources
 {
     public class ExtendedResourceInfo
     {
-        private readonly PropertyInfo dictProperty;
-        private readonly Type dictValueType;
         private readonly Lazy<ReadOnlyCollection<ExtendedProperty>> extendedProperties;
-        private readonly Type extendedType;
         private readonly ExtendedResourceMapper mapper;
-        private readonly Type serverType;
 
 
         internal ExtendedResourceInfo(Type extendedType, Type serverType, PropertyInfo dictProperty, ExtendedResourceMapper mapper)
         {
-            this.extendedType = extendedType;
-            this.serverType = serverType;
-            this.dictProperty = dictProperty;
+            ExtendedType = extendedType;
+            ServerType = serverType;
+            DictProperty = dictProperty;
             this.mapper = mapper;
             Type[] dictTypeArgs;
             if (dictProperty != null
                 && dictProperty.PropertyType.TryExtractTypeArguments(typeof(IDictionary<,>), out dictTypeArgs))
-                this.dictValueType = dictTypeArgs[1];
+                DictValueType = dictTypeArgs[1];
             this.extendedProperties =
                 new Lazy<ReadOnlyCollection<ExtendedProperty>>(() => InitializeExtendedProperties().ToList().AsReadOnly());
         }
 
 
-        public PropertyInfo DictProperty
-        {
-            get { return this.dictProperty; }
-        }
+        public PropertyInfo DictProperty { get; }
 
-        public Type ExtendedType
-        {
-            get { return this.extendedType; }
-        }
+        public Type ExtendedType { get; }
 
-        public Type ServerType
-        {
-            get { return this.serverType; }
-        }
+        public Type ServerType { get; }
 
-        internal Type DictValueType
-        {
-            get { return this.dictValueType; }
-        }
+        internal Type DictValueType { get; }
 
         internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties
         {
@@ -96,11 +59,11 @@ namespace Pomona.Common.ExtendedResources
 
         private IEnumerable<PropertyInfo> GetAllExtendedPropertiesFromType()
         {
-            return this.extendedType
-                       .WrapAsEnumerable()
-                       .Concat(this.extendedType.GetInterfaces().Where(x => !x.IsAssignableFrom(this.serverType)))
-                       .SelectMany(x => x.GetProperties())
-                       .Distinct();
+            return ExtendedType
+                .WrapAsEnumerable()
+                .Concat(ExtendedType.GetInterfaces().Where(x => !x.IsAssignableFrom(ServerType)))
+                .SelectMany(x => x.GetProperties())
+                .Distinct();
         }
 
 
@@ -112,7 +75,7 @@ namespace Pomona.Common.ExtendedResources
 
         private ExtendedProperty InitializeProperty(PropertyInfo extendedProp)
         {
-            var serverProp = this.serverType.GetPropertySearchInheritedInterfaces(extendedProp.Name);
+            var serverProp = ServerType.GetPropertySearchInheritedInterfaces(extendedProp.Name);
             var extPropType = extendedProp.PropertyType;
             if (serverProp != null)
             {
@@ -130,7 +93,7 @@ namespace Pomona.Common.ExtendedResources
                     && serverPropElementType == propExtInfo.ServerType)
                     return new ExtendedCollectionOverlayProperty(extendedProp, serverProp, propExtInfo);
             }
-            else if (this.dictProperty != null)
+            else if (DictProperty != null)
             {
                 if (!extPropType.IsValueType || extPropType.IsNullable())
                     return ExtendedAttributeProperty.Create(extendedProp, this);
@@ -138,13 +101,13 @@ namespace Pomona.Common.ExtendedResources
                 {
                     var message = string.Format(
                         "Unable to map property {0} of type {1} to underlying dictionary property {2} of {3}. Only nullable value types can be mapped to a dictionary.",
-                        extendedProp.Name, this.extendedType.FullName, this.dictProperty.Name, this.serverType.FullName);
+                        extendedProp.Name, ExtendedType.FullName, DictProperty.Name, ServerType.FullName);
                     return new InvalidExtendedProperty(extendedProp, message);
                 }
             }
             return new InvalidExtendedProperty(extendedProp, string.Format(
                 "Unable to map property {0} of type {1} to any underlying dictionary property having a [ResourceAttributesProperty] on {2}.",
-                extendedProp.Name, this.extendedType.FullName, this.serverType.FullName));
+                extendedProp.Name, ExtendedType.FullName, ServerType.FullName));
         }
     }
 }

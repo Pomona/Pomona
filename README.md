@@ -10,6 +10,8 @@ domain model objects is exposed as HTTP resources.
 Pomona was born out of frustrations with the difficulties of exposing a complex business domain model
 as a RESTful web service.
 
+[![Build status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046?svg=true)](https://ci.appveyor.com/project/Pomona/pomona)
+
 ## Highlights
 
 * Customizable conventions
@@ -57,6 +59,8 @@ You can also `POST` to `http://localhost:2211/critter` create a new critter enti
 * [Homepage](http://pomona.io)
 * [GitHub page](https://github.com/okb/pomona)
 * [Bug reporting](https://github.com/okb/pomona/issues)
+* [![Join the chat at https://gitter.im/Pomona/Pomona](https://badges.gitter.im/Pomona/Pomona.svg)](https://gitter.im/Pomona/Pomona?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 ## Further reading
 

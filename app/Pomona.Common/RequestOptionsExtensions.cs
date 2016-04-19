@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -39,11 +18,11 @@ namespace Pomona.Common
             where TRequestOptions : IRequestOptions
         {
             if ((object)requestOptions == null)
-                throw new ArgumentNullException("requestOptions");
+                throw new ArgumentNullException(nameof(requestOptions));
             if (key == null)
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             if (value == null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             return requestOptions.RewriteUrl(u => string.Format(CultureInfo.InvariantCulture,
                                                                 "{0}{1}{2}={3}",
@@ -59,11 +38,11 @@ namespace Pomona.Common
             where TRequestOptions : IRequestOptions
         {
             if ((object)requestOptions == null)
-                throw new ArgumentNullException("requestOptions");
+                throw new ArgumentNullException(nameof(requestOptions));
             if (urlRewriter == null)
-                throw new ArgumentNullException("urlRewriter");
+                throw new ArgumentNullException(nameof(urlRewriter));
 
-            return (TRequestOptions)requestOptions.ModifyRequest(x => x.Uri = urlRewriter(x.Uri));
+            return (TRequestOptions)requestOptions.ModifyRequest(x => x.RequestUri = new Uri(urlRewriter(x.RequestUri.ToString())));
         }
     }
 }

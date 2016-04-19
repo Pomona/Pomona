@@ -1,28 +1,7 @@
 #region License
 
-// ----------------------------------------------------------------------------
-// Pomona source code
-// 
-// Copyright © 2015 Karsten Nikolai Strand
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
-// ----------------------------------------------------------------------------
+// Pomona is open source software released under the terms of the LICENSE specified in the
+// project's repository, or alternatively at http://pomona.io/
 
 #endregion
 
@@ -37,7 +16,6 @@ namespace Pomona.Common.Linq.Queries
     public abstract class QueryExpression : Expression
     {
         private static readonly Lazy<QueryExpressionFactory[]> factories;
-        private readonly Expression node;
 
 
         static QueryExpression()
@@ -51,8 +29,8 @@ namespace Pomona.Common.Linq.Queries
         public QueryExpression(Expression node)
         {
             if (node == null)
-                throw new ArgumentNullException("node");
-            this.node = node;
+                throw new ArgumentNullException(nameof(node));
+            Node = node;
         }
 
 
@@ -72,10 +50,7 @@ namespace Pomona.Common.Linq.Queries
             }
         }
 
-        public Expression Node
-        {
-            get { return this.node; }
-        }
+        public Expression Node { get; }
 
         public override ExpressionType NodeType
         {
@@ -84,7 +59,7 @@ namespace Pomona.Common.Linq.Queries
 
         public override Type Type
         {
-            get { return this.node.Type; }
+            get { return Node.Type; }
         }
 
         private static List<Type> QueryExpressionTypes
@@ -107,7 +82,7 @@ namespace Pomona.Common.Linq.Queries
 
         public override string ToString()
         {
-            return this.node.ToString();
+            return Node.ToString();
         }
 
 
@@ -130,7 +105,7 @@ namespace Pomona.Common.Linq.Queries
         {
             var qn = WrapOrNull(expression);
             if (qn == null)
-                throw new ArgumentException("Expression not recognized as queryable extension method", "expression");
+                throw new ArgumentException("Expression not recognized as queryable extension method", nameof(expression));
             return qn;
         }
 
