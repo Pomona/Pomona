@@ -57,7 +57,7 @@ namespace Pomona.TestHelpers
 
 
         
-        protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var nancyRequest = await MapNancyRequest(request);
 
