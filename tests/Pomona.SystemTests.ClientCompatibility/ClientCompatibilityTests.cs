@@ -34,24 +34,30 @@ namespace Pomona.SystemTests.ClientCompatibility
             var exceptions = new List<AssertionException>();
             try
             {
+                const string pomonaCommonAssemblyName = "Pomona.Common";
                 var clientAssembly = AssemblyDefinition.ReadAssembly(typeof(CritterClient).Assembly.CodeBaseAbsolutePath());
                 var pomonaCommonModule = AssemblyDefinition.ReadAssembly(typeof(IPomonaClient).Assembly.CodeBaseAbsolutePath()).MainModule;
 
-                var pomonaCommonAssemblyName = "Pomona.Common";
-                foreach (
-                    var typeReference in clientAssembly.MainModule.GetTypeReferences().Where(x => x.Scope.Name == pomonaCommonAssemblyName))
+                var typeReferences = clientAssembly.MainModule
+                                                   .GetTypeReferences()
+                                                   .Where(x => x.Scope.Name == pomonaCommonAssemblyName);
+
+                var memberReferences = clientAssembly.MainModule
+                                                     .GetMemberReferences()
+                                                     .Where(x => x.DeclaringType.Scope.Name == pomonaCommonAssemblyName);
+
+                foreach (var typeReference in typeReferences)
                 {
                     var resolved = pomonaCommonModule.MetadataResolver.Resolve(typeReference);
                     Assert.That(resolved, Is.Not.Null,
                                 $"Required type {typeReference} needed for backwards compatibility is missing from {pomonaCommonAssemblyName}.");
                 }
 
-                foreach (
-                    var memberReference in
-                        clientAssembly.MainModule.GetMemberReferences().Where(x => x.DeclaringType.Scope.Name == pomonaCommonAssemblyName))
+                foreach (var memberReference in memberReferences)
                 {
                     var methodReference = memberReference as MethodReference;
                     var fieldReference = memberReference as FieldReference;
+
                     if (methodReference != null)
                     {
                         var resolved = pomonaCommonModule.MetadataResolver.Resolve(methodReference);
