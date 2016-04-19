@@ -10,7 +10,7 @@ build:
 
 test:
   assemblies:
-    - 'tests/**/bin/*Tests.dll'
+    - 'tests/**/bin/*/*Tests.dll'
   categories:
     except:
       - TODO
