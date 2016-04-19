@@ -259,7 +259,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PeVerify_HasExitCode0()
         {
-            PeVerify(typeof(ICritter).Assembly.Location);
+            PeVerify(typeof(ICritter).Assembly.CodeBaseAbsolutePath());
         }
 
 
