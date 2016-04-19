@@ -56,11 +56,7 @@ namespace Pomona.TestHelpers
         public NetworkCredential Credentials { get; set; }
 
 
-        public void Dispose()
-        {
-        }
-
-
+        
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var nancyRequest = await MapNancyRequest(request);
