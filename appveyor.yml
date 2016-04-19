@@ -6,4 +6,4 @@ before_build:
   - ps: gitversion /l console /output buildserver 
 
 build:
-  project: <your sln file>
+  project: Pomona.sln
