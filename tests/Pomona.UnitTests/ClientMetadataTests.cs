@@ -70,6 +70,7 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        [Category("WindowsRequired")]
         public void Constructor_InvalidClientInterfaceName_ThrowsArgumentException()
         {
             TestDelegate throwing = () => new TestableClientMetadata(interfaceName : "My.Awesome.Client");
@@ -83,6 +84,7 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        [Category("WindowsRequired")]
         public void Constructor_InvalidClientName_ThrowsArgumentException()
         {
             TestDelegate throwing = () => new TestableClientMetadata(name : "My.Awesome.Client");
@@ -96,6 +98,7 @@ namespace Pomona.UnitTests
 
 
         [Test]
+        [Category("WindowsRequired")]
         public void Constructor_InvalidClientNamespace_ThrowsArgumentException()
         {
             TestDelegate throwing = () => new TestableClientMetadata(@namespace : "My#Awesome#Client");

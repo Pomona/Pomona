@@ -20,6 +20,7 @@ namespace Pomona.UnitTests.CodeGen
     public class TypeDefinitionClonerTests
     {
         [Test]
+        [Category("WindowsRequired")]
         public void Cloned_Type_Passes_PeVerify()
         {
             var fn = "Copycat.dll";
