@@ -5,6 +5,7 @@
 
 #endregion
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -43,12 +44,16 @@ namespace Pomona.UnitTests.Documentation
         }
 
 
-        private static XDoc LoadXmlDoc()
+        private XDoc LoadXmlDoc()
         {
-            var fileName = "Pomona.Example.xml";
-            Assert.That(File.Exists(fileName), fileName + " does not exist");
+            var uri = new UriBuilder(GetType().Assembly.CodeBase);
+            var unescapeDataString = Uri.UnescapeDataString(uri.Path);
+            var assemblyPath = Path.GetFullPath(unescapeDataString);
+            var assemblyFile = new FileInfo(assemblyPath);
+            var xmlFilePath = Path.Combine(assemblyFile.DirectoryName, "Pomona.Example.xml");
+            Assert.That(File.Exists(xmlFilePath), xmlFilePath + " does not exist");
             XDoc xdoc;
-            using (var stream = File.OpenRead(fileName))
+            using (var stream = File.OpenRead(xmlFilePath))
             {
                 xdoc = new XDoc(XDocument.Load(stream).Root);
             }

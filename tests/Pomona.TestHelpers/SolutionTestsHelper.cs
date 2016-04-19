@@ -50,7 +50,7 @@ namespace Pomona.TestHelpers
 
             UriBuilder uri = new UriBuilder(assembly.CodeBase);
             string unescapeDataString = Uri.UnescapeDataString(uri.Path);
-            string assemblyPath = Path.GetFileName(unescapeDataString);
+            string assemblyPath = Path.GetFullPath(unescapeDataString);
 
             if (String.IsNullOrEmpty(assemblyPath))
             {
