@@ -45,7 +45,7 @@ namespace Pomona.SystemTests
             }));
 
             Assert.That(exception.Message,
-                        Contains.Substring("Cannot create an abstract class."),
+                        Contains.Substring("Cannot create an abstract class"),
                         "Pomona should warn about posting an abstract class");
         }
 
