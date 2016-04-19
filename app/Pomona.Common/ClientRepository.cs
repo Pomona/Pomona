@@ -45,9 +45,7 @@ namespace Pomona.Common
 
         private string GetResourceUri(object id)
         {
-            return string.Format("{0}/{1}",
-                                 Uri,
-                                 HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture)));
+            return $"{Uri}/{HttpUtility.UrlPathSegmentEncode(Convert.ToString(id, CultureInfo.InvariantCulture))}";
         }
 
 

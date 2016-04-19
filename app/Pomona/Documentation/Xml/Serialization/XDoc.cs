@@ -71,7 +71,7 @@ namespace Pomona.Documentation.Xml.Serialization
                 default:
                     throw new NotImplementedException("Do not support member type " + memberInfo.MemberType);
             }
-            return string.Format("{0}:{1}", memberTypePrefix, GetMemberPath(memberInfo));
+            return $"{memberTypePrefix}:{GetMemberPath(memberInfo)}";
         }
 
 
@@ -80,7 +80,7 @@ namespace Pomona.Documentation.Xml.Serialization
             switch (memberInfo.MemberType)
             {
                 case MemberTypes.Property:
-                    return string.Format("{0}.{1}", GetMemberPath(memberInfo.DeclaringType), memberInfo.Name);
+                    return $"{GetMemberPath(memberInfo.DeclaringType)}.{memberInfo.Name}";
                 case MemberTypes.TypeInfo:
                     return ((Type)memberInfo).FullName;
                 default:

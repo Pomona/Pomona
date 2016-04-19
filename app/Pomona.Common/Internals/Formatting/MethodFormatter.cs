@@ -33,11 +33,8 @@ namespace Pomona.Common.Internals.Formatting
             var parameters = this.method.GetParameters().Select(x => new TypeFormatter(x.ParameterType));
             var parameterString = String.Join(", ", parameters);
 
-            return String.Format("{0} {1}.{2}({3})",
-                                 new TypeFormatter(this.method.ReturnType),
-                                 new TypeFormatter(this.method.DeclaringType),
-                                 base.ToString(),
-                                 parameterString);
+            return
+                $"{new TypeFormatter(this.method.ReturnType)} {new TypeFormatter(this.method.DeclaringType)}.{base.ToString()}({parameterString})";
         }
 
 

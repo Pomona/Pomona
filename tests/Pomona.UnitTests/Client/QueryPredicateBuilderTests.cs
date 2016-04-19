@@ -350,7 +350,7 @@ namespace Pomona.UnitTests.Client
         {
             var guidString = "6dd20569-5c87-46f9-8665-9f413d9e7c47";
             var guid = new Guid(guidString);
-            AssertBuild(x => x.Guid == guid, string.Format("guid eq guid'{0}'", guidString));
+            AssertBuild(x => x.Guid == guid, $"guid eq guid'{guidString}'");
         }
 
 

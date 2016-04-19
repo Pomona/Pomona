@@ -106,9 +106,7 @@ namespace Pomona
         public void OnMissingRequiredPropertyError(IDeserializerNode node, PropertySpec targetProp)
         {
             throw new ResourceValidationException(
-                string.Format("Property {0} is required when creating resource {1}",
-                              targetProp.Name,
-                              node.ValueType.Name),
+                $"Property {targetProp.Name} is required when creating resource {node.ValueType.Name}",
                 targetProp.Name,
                 node.ValueType.Name,
                 null);
@@ -130,9 +128,7 @@ namespace Pomona
                     ? property.Name
                     : targetNode.ExpandPath + "." + property.Name;
                 throw new ResourceValidationException(
-                    string.Format("Property {0} of resource {1} is not writable.",
-                                  property.Name,
-                                  targetNode.ValueType.Name),
+                    $"Property {property.Name} of resource {targetNode.ValueType.Name} is not writable.",
                     propPath,
                     targetNode.ValueType.Name,
                     null);

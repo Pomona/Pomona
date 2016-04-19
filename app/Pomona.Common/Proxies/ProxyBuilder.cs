@@ -167,7 +167,7 @@ namespace Pomona.Common.Proxies
             if (overridedGetMethod != null)
             {
                 var proxyPropGetter = declaringType.DefineMethod(
-                    string.Format("{0}get_{1}", explicitPrefix, name),
+                    $"{explicitPrefix}get_{name}",
                     methodAttributes,
                     propertyType,
                     Type.EmptyTypes);
@@ -181,7 +181,7 @@ namespace Pomona.Common.Proxies
             if (overridedSetMethod != null)
             {
                 var proxyPropSetter = declaringType.DefineMethod(
-                    string.Format("{0}set_{1}", explicitPrefix, name),
+                    $"{explicitPrefix}set_{name}",
                     methodAttributes,
                     null,
                     new[] { propertyType });
@@ -330,7 +330,7 @@ namespace Pomona.Common.Proxies
                 var genArgMapping = new Dictionary<Type, Type>();
 
                 if (targetMethod.DeclaringType == null)
-                    throw new InvalidOperationException(String.Format("{0} has no declaring type.", targetMethod));
+                    throw new InvalidOperationException($"{targetMethod} has no declaring type.");
 
                 if (targetMethod.DeclaringType.IsGenericType)
                 {
@@ -366,9 +366,7 @@ namespace Pomona.Common.Proxies
                 if (proxyOnGetMethod == null)
                 {
                     var message =
-                        String.Format("Unable to generate proxy for {0} because {1}.OnInvokeMethod() is missing.",
-                                      targetMethod.GetFullNameWithSignature(),
-                                      baseDef.FullName);
+                        $"Unable to generate proxy for {targetMethod.GetFullNameWithSignature()} because {baseDef.FullName}.OnInvokeMethod() is missing.";
                     throw new MissingMethodException(message);
                 }
 

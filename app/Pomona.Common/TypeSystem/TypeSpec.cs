@@ -59,7 +59,7 @@ namespace Pomona.Common.TypeSystem
 
         public string FullName
         {
-            get { return string.Format("{0}.{1}", Namespace, Name); }
+            get { return $"{Namespace}.{Name}"; }
         }
 
         public abstract IEnumerable<TypeSpec> Interfaces { get; }

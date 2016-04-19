@@ -126,7 +126,7 @@ namespace Pomona.UnitTests.Queries
         {
             var dateTimeString = "2000-12-12T12:00";
             var expectedTime = DateTime.Parse(dateTimeString);
-            var expr = this.parser.Parse<Dummy>(string.Format("Time eq datetime'{0}'", dateTimeString));
+            var expr = this.parser.Parse<Dummy>($"Time eq datetime'{dateTimeString}'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftTimeConstant = AssertIsConstant<DateTime>(binExpr.Right);
             Assert.That(leftTimeConstant, Is.EqualTo(expectedTime));
@@ -177,7 +177,7 @@ name eo 'blah'".Replace("\r", "")));
         public void Parse_GuidConstant_CreatesCorrectExpression()
         {
             var guid = Guid.NewGuid();
-            var expr = this.parser.Parse<Dummy>(string.Format("Guid eq guid'{0}'", guid));
+            var expr = this.parser.Parse<Dummy>($"Guid eq guid'{guid}'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftGuidConstant = AssertIsConstant<Guid>(binExpr.Right);
             Assert.That(leftGuidConstant, Is.EqualTo(guid));

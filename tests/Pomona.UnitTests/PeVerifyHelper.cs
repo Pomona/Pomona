@@ -26,7 +26,7 @@ namespace Pomona.UnitTests
             if (!File.Exists(peverifyPath))
                 Assert.Inconclusive("Unable to run peverify test, need to have Microsoft sdk installed.");
 
-            var peVerifyArguments = string.Format("\"{0}\" /md /il", dllPath.Replace("\"", "\\\""));
+            var peVerifyArguments = $"\"{dllPath.Replace("\"", "\\\"")}\" /md /il";
 
             var proc = new Process
             {

@@ -189,11 +189,11 @@ namespace Pomona
                 {
                     var typeMember = codeObject as CodeTypeMember;
                     if (typeMember != null)
-                        throw new ArgumentException(String.Format("'{0}' is not a valid type name.", typeMember.Name), kvp.Key);
+                        throw new ArgumentException($"'{typeMember.Name}' is not a valid type name.", kvp.Key);
 
                     var ns = codeObject as CodeNamespace;
                     if (ns != null)
-                        throw new ArgumentException(String.Format("'{0}' is not a valid namespace.", ns.Name), kvp.Key);
+                        throw new ArgumentException($"'{ns.Name}' is not a valid namespace.", kvp.Key);
 
                     throw new ArgumentException(exception.Message, kvp.Key);
                 }

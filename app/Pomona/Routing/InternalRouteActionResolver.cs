@@ -73,7 +73,7 @@ namespace Pomona.Routing
             var allowHeader = new KeyValuePair<string, string>("Allow", allowedMethodsString);
 
             throw new PomonaServerException(
-                string.Format("Method {0} not allowed!", requestMethod.ToString().ToUpper()),
+                $"Method {requestMethod.ToString().ToUpper()} not allowed!",
                 null,
                 HttpStatusCode.MethodNotAllowed,
                 allowHeader.WrapAsEnumerable());

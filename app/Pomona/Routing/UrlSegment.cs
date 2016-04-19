@@ -201,10 +201,7 @@ namespace Pomona.Routing
             return string.Join("/",
                                this.AscendantsAndSelf().Select(
                                    x =>
-                                       string.Format("{0}{1}({2})",
-                                                     x.GetPrefix(),
-                                                     x.PathSegment,
-                                                     x.GetTypeStringOfRoute())).Reverse());
+                                       $"{x.GetPrefix()}{x.PathSegment}({x.GetTypeStringOfRoute()})").Reverse());
         }
 
 
@@ -234,10 +231,7 @@ namespace Pomona.Routing
 
         private string GetTypeStringOfRoute()
         {
-            return string.Format("{0}=>{1}{2}",
-                                 Route.InputType != null ? Route.InputType.Name : "void",
-                                 Route.ResultItemType.Name,
-                                 Route.IsSingle ? "?" : "*");
+            return $"{(Route.InputType != null ? Route.InputType.Name : "void")}=>{Route.ResultItemType.Name}{(Route.IsSingle ? "?" : "*")}";
         }
 
 

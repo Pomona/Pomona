@@ -26,8 +26,7 @@ namespace Pomona.Routing
 
             if (!dataSourceInterface.IsAssignableFrom(dataSource))
             {
-                throw new ArgumentException(string.Format("dataSourceType must be castable to {0}",
-                                                          dataSourceInterface.FullName));
+                throw new ArgumentException($"dataSourceType must be castable to {dataSourceInterface.FullName}");
             }
 
             TypeMapper = typeMapper;

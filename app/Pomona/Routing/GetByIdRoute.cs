@@ -62,7 +62,7 @@ namespace Pomona.Routing
 
         protected override string PathSegmentToString()
         {
-            return string.Format("{{{0}}}", IdProperty.JsonName);
+            return $"{{{IdProperty.JsonName}}}";
         }
     }
 }

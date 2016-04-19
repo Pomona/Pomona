@@ -80,7 +80,7 @@ namespace Pomona.CodeGen
 
             this.definition = new TypeDefinition(
                 "",
-                string.Format("<>f__AnonymousType{0}`{1}", AllocateUniqueAnonymousClassNumber(), PropCount),
+                $"<>f__AnonymousType{AllocateUniqueAnonymousClassNumber()}`{PropCount}",
                 TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit, this.module.TypeSystem.Object);
 
             AddGenericParams();
@@ -259,8 +259,7 @@ namespace Pomona.CodeGen
         private void AddDebuggerDisplayAttribute()
         {
             // \{ Foo = {Foo}, Bar = {Bar} }
-            var attrValue = string.Format(
-                "\\{{ {0} }}", string.Join(", ", this.properties.Select(x => string.Format("{0} = {{{0}}}", x.Name))));
+            var attrValue = $"\\{{ {string.Join(", ", this.properties.Select(x => string.Format("{0} = {{{0}}}", x.Name)))} }}";
             var attrType = this.module.Import(typeof(DebuggerDisplayAttribute));
             var methodDefinition = this.module.Import(attrType.Resolve().Methods.First(x => x.IsConstructor && x.Parameters.Count == 1));
             var attr =
@@ -348,7 +347,7 @@ namespace Pomona.CodeGen
 
             foreach (var prop in this.properties)
             {
-                prop.GenericParameter = new GenericParameter(string.Format("<{0}>j__TPar", prop.Name), this.definition);
+                prop.GenericParameter = new GenericParameter($"<{prop.Name}>j__TPar", this.definition);
                 this.definition.GenericParameters.Add(prop.GenericParameter);
                 this.ilFieldDeclaringType.GenericArguments.Add(prop.GenericParameter);
             }
@@ -417,7 +416,7 @@ namespace Pomona.CodeGen
         private void AddProperty(Property prop)
         {
             prop.Field = new FieldDefinition(
-                string.Format("<{0}>i__Field", prop.Name),
+                $"<{prop.Name}>i__Field",
                 FieldAttributes.InitOnly | FieldAttributes.Private,
                 prop.GenericParameter);
             this.definition.Fields.Add(prop.Field);
@@ -427,7 +426,7 @@ namespace Pomona.CodeGen
             this.definition.Properties.Add(prop.Definition);
 
             prop.GetMethod = new MethodDefinition(
-                string.Format("get_{0}", prop.Name),
+                $"get_{prop.Name}",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
                 prop.GenericParameter);
 
@@ -521,7 +520,7 @@ namespace Pomona.CodeGen
             //IL_0006: ldloc.0
             il.Emit(OpCodes.Ldloc, stringBuilderVar);
             //IL_0007: ldstr "{ Target = "
-            il.Emit(OpCodes.Ldstr, string.Format("{{ {0} = ", this.properties[0].Name));
+            il.Emit(OpCodes.Ldstr, $"{{ {this.properties[0].Name} = ");
             //IL_000c: callvirt instance class [mscorlib]System.Text.StringBuilder [mscorlib]System.Text.StringBuilder::Append(string)
             il.Emit(OpCodes.Callvirt, appendStringMethod);
             //IL_0011: pop
@@ -544,7 +543,7 @@ namespace Pomona.CodeGen
                 //IL_0024: ldloc.0
                 il.Emit(OpCodes.Ldloc, stringBuilderVar);
                 //IL_0025: ldstr ", Elements = "
-                il.Emit(OpCodes.Ldstr, string.Format(", {0} = ", prop.Name));
+                il.Emit(OpCodes.Ldstr, $", {prop.Name} = ");
                 //IL_002a: callvirt instance class [mscorlib]System.Text.StringBuilder [mscorlib]System.Text.StringBuilder::Append(string)
                 il.Emit(OpCodes.Callvirt, appendStringMethod);
                 //IL_002f: pop

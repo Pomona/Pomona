@@ -35,7 +35,7 @@ namespace Pomona.Common
             var resource = client.Get(uri, type, requestOptions);
 
             if (resource == null && type.IsValueType && !type.IsNullable())
-                throw new InvalidCastException(String.Format("The response from {0} was null, which can't be cast to {1}.", uri, type));
+                throw new InvalidCastException($"The response from {uri} was null, which can't be cast to {type}.");
 
             return (T)resource;
         }
@@ -58,7 +58,7 @@ namespace Pomona.Common
             var resource = await client.GetAsync(uri, type, requestOptions);
 
             if (resource == null && type.IsValueType && !type.IsNullable())
-                throw new InvalidCastException(String.Format("The response from {0} was null, which can't be cast to {1}.", uri, type));
+                throw new InvalidCastException($"The response from {uri} was null, which can't be cast to {type}.");
 
             return (T)resource;
         }

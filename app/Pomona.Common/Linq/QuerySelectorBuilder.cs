@@ -36,7 +36,7 @@ namespace Pomona.Common.Linq
 
             var readOnlyCollection = node.Members != null
                 ? node.Members.Select(x => x.Name)
-                : node.Arguments.Select((x, i) => string.Format("Item{0}", i + 1));
+                : node.Arguments.Select((x, i) => $"Item{i + 1}");
 
             var selectList = node.Arguments.Zip(
                 readOnlyCollection,

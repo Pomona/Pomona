@@ -80,7 +80,7 @@ namespace Pomona.Common
             if (parentResourceInfo.HasEtagProperty)
             {
                 var etag = parentResourceInfo.EtagProperty.GetValue(this.parent, null);
-                options.ModifyRequest(r => r.Headers.Add("If-Match", string.Format("\"{0}\"", etag)));
+                options.ModifyRequest(r => r.Headers.Add("If-Match", $"\"{etag}\""));
             }
         }
     }

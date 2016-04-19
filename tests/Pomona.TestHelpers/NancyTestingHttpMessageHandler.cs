@@ -85,7 +85,7 @@ namespace Pomona.TestHelpers
             if (Credentials != null)
             {
                 string encodedCredentials =
-                    Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Format("{0}:{1}", Credentials.UserName, Credentials.Password)));
+                    Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Credentials.UserName}:{Credentials.Password}"));
                 headersToCopy =
                     headersToCopy.Append(new KeyValuePair<string, IEnumerable<string>>("Authorization",
                                                                                        new[] { "Basic " + encodedCredentials }));

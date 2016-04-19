@@ -201,9 +201,8 @@ namespace Pomona.Common.TypeSystem
                                            string name,
                                            PropertyAttributes attributes)
         {
-            return string.Format("{0}:{1}:{2}:{3}:{4}:{5}:{6}", declaringType.AssemblyQualifiedName,
-                                 reflectedType.AssemblyQualifiedName, propertyType.AssemblyQualifiedName, readable,
-                                 writable, name, attributes);
+            return
+                $"{declaringType.AssemblyQualifiedName}:{reflectedType.AssemblyQualifiedName}:{propertyType.AssemblyQualifiedName}:{readable}:{writable}:{name}:{attributes}";
         }
     }
 }
