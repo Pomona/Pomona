@@ -34,8 +34,8 @@ namespace Pomona.SystemTests.ClientCompatibility
             var exceptions = new List<AssertionException>();
             try
             {
-                var clientAssembly = AssemblyDefinition.ReadAssembly(typeof(CritterClient).Assembly.Location);
-                var pomonaCommonModule = AssemblyDefinition.ReadAssembly(typeof(IPomonaClient).Assembly.Location).MainModule;
+                var clientAssembly = AssemblyDefinition.ReadAssembly(typeof(CritterClient).Assembly.CodeBaseAbsolutePath());
+                var pomonaCommonModule = AssemblyDefinition.ReadAssembly(typeof(IPomonaClient).Assembly.CodeBaseAbsolutePath()).MainModule;
 
                 var pomonaCommonAssemblyName = "Pomona.Common";
                 foreach (
