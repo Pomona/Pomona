@@ -359,7 +359,9 @@ namespace Pomona.TestHelpers
 
         private static bool IsIgnoredPath(string directoryName)
         {
-            return directoryName.Contains("\\obj\\") || directoryName.Contains("\\bin\\");
+            var slash = Path.DirectorySeparatorChar;
+            return directoryName.Contains(slash + "obj" + slash)
+                || directoryName.Contains(slash + "bin" + slash);
         }
 
 
