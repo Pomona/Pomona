@@ -150,7 +150,7 @@ namespace Pomona.Common.Linq
             if (!queryableMethodToVisitMethodDictionary.ContainsKey(token))
             {
                 var methodName = node.Method.GetFullNameWithSignature();
-                throw new NotImplementedException(String.Format("{0} is not implemented.", methodName));
+                throw new NotImplementedException($"{methodName} is not implemented.");
             }
 
             var visitMethod = queryableMethodToVisitMethodDictionary[token];

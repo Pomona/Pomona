@@ -24,7 +24,7 @@ namespace Pomona.Queries
 
         public override string ToString()
         {
-            return String.Format("{0} '{1}'", base.ToString(), Value);
+            return $"{base.ToString()} '{Value}'";
         }
 
 

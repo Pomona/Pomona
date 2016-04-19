@@ -641,10 +641,7 @@ namespace Pomona.Queries
                 if (methodParameters.Length != reorderedArgs.Count - argArrayOffset)
                 {
                     var message =
-                        string.Format(
-                            "Number parameters count ({0}) for method {1}.{2} does not match provided argument count ({3})",
-                            methodParameters.Length, method.DeclaringType.FullName, method.Name,
-                            (reorderedArgs.Count - argArrayOffset));
+                        $"Number parameters count ({methodParameters.Length}) for method {method.DeclaringType.FullName}.{method.Name} does not match provided argument count ({(reorderedArgs.Count - argArrayOffset)})";
                     throw CreateParseException(node, message);
                 }
 

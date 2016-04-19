@@ -31,7 +31,7 @@ namespace Pomona.Common.Proxies
                                     .FirstOrDefault(t => t != null);
 
             if (PropertyInfo == null)
-                throw new MissingMemberException(String.Format("Could not wrap property {0}.", propertyName));
+                throw new MissingMemberException($"Could not wrap property {propertyName}.");
         }
 
 
@@ -106,7 +106,7 @@ namespace Pomona.Common.Proxies
 
         public override string ToString()
         {
-            return String.Format("{0}.{1}", PropertyInfo.DeclaringType, Name);
+            return $"{PropertyInfo.DeclaringType}.{Name}";
         }
     }
 }

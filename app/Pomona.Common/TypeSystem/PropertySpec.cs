@@ -122,7 +122,7 @@ namespace Pomona.Common.TypeSystem
 
         public override string ToString()
         {
-            return string.Format("{0}::{1}", ReflectedType, Name);
+            return $"{ReflectedType}::{Name}";
         }
 
 

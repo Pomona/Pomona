@@ -78,8 +78,7 @@ namespace Pomona.Common.TypeSystem
             get
             {
                 return IsGenericType
-                    ? string.Format("{0}<{1}>", Name.Split('`')[0],
-                                    string.Join(", ", GenericArguments.Select(x => x.NameWithGenericArguments)))
+                    ? $"{Name.Split('`')[0]}<{string.Join(", ", GenericArguments.Select(x => x.NameWithGenericArguments))}>"
                     : Name;
             }
         }
@@ -113,7 +112,7 @@ namespace Pomona.Common.TypeSystem
 
         public override string ToString()
         {
-            return IsGenericType ? string.Format("{0}<{1}>", Name.Split('`')[0], string.Join(", ", GenericArguments)) : Name;
+            return IsGenericType ? $"{Name.Split('`')[0]}<{string.Join(", ", GenericArguments)}>" : Name;
         }
 
 

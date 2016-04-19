@@ -87,7 +87,7 @@ namespace Pomona.Common
             if (etagValue != null)
             {
                 options.ModifyRequest(
-                    request => request.Headers.Add("If-Match", string.Format("\"{0}\"", etagValue)));
+                    request => request.Headers.Add("If-Match", $"\"{etagValue}\""));
             }
         }
 

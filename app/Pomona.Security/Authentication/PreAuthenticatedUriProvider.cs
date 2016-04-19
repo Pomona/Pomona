@@ -42,7 +42,7 @@ namespace Pomona.Security.Authentication
             var pagePathWithoutQueryString = uri.GetLeftPart(UriPartial.Path);
 
             return newQueryString.Count > 0
-                ? String.Format("{0}?{1}", pagePathWithoutQueryString, newQueryString)
+                ? $"{pagePathWithoutQueryString}?{newQueryString}"
                 : pagePathWithoutQueryString;
         }
 
@@ -61,7 +61,7 @@ namespace Pomona.Security.Authentication
             var pagePathWithoutQueryString = uri.GetLeftPart(UriPartial.Path);
 
             return newQueryString.Count > 0
-                ? String.Format("{0}?{1}", pagePathWithoutQueryString, newQueryString)
+                ? $"{pagePathWithoutQueryString}?{newQueryString}"
                 : pagePathWithoutQueryString;
         }
 

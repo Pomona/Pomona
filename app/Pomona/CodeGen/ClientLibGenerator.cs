@@ -1142,9 +1142,7 @@ namespace Pomona.CodeGen
                 if (!this.enumClientTypeDict.TryGetValue(enumType, out typeRef))
                 {
                     throw new InvalidOperationException(
-                        String.Format(
-                            "Generated property has a reference to {0}, but has probably not been included in SourceTypes.",
-                            enumType.Type.FullName));
+                        $"Generated property has a reference to {enumType.Type.FullName}, but has probably not been included in SourceTypes.");
                 }
             }
             else if (transformedType != null)
@@ -1383,8 +1381,7 @@ namespace Pomona.CodeGen
                             && resourceType.ParentToChildProperty.ExposedAsRepository))
                     {
                         CustomRepositoryInterface = new TypeDefinition(parent.@namespace,
-                                                                       String.Format("I{0}Repository",
-                                                                                     structuredType.Name),
+                                                                       $"I{structuredType.Name}Repository",
                                                                        TypeAttributes.Interface
                                                                        | TypeAttributes.Public
                                                                        | TypeAttributes.Abstract);

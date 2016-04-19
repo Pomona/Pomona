@@ -46,7 +46,7 @@ namespace Pomona.TestHelpers
                 throw new ArgumentNullException(nameof(assembly));
 
             if (String.IsNullOrEmpty(assembly.CodeBase))
-                throw new ArgumentException(String.Format("The assembly '{0}' has no code base.", assembly), nameof(assembly));
+                throw new ArgumentException($"The assembly '{assembly}' has no code base.", nameof(assembly));
 
             UriBuilder uri = new UriBuilder(assembly.CodeBase);
             string unescapeDataString = Uri.UnescapeDataString(uri.Path);
@@ -55,12 +55,12 @@ namespace Pomona.TestHelpers
             if (String.IsNullOrEmpty(assemblyPath))
             {
                 throw new FileNotFoundException(
-                    String.Format("Could not find a physical path for '{0}'.", assembly.CodeBase));
+                    $"Could not find a physical path for '{assembly.CodeBase}'.");
             }
 
             FileInfo assemblyFile = new FileInfo(assemblyPath);
             DirectoryInfo parentDirectory = assemblyFile.Directory;
-            string fileNotFoundMessage = String.Format("Couldn't find a Project file for '{0}'.", assembly);
+            string fileNotFoundMessage = $"Couldn't find a Project file for '{assembly}'.";
             string projectFileName = Path.ChangeExtension(assemblyFile.Name, "csproj");
 
             try
@@ -153,7 +153,7 @@ namespace Pomona.TestHelpers
             FileInfo projectFile = new FileInfo(projectPath);
             DirectoryInfo parentDirectory = projectFile.Directory;
 
-            string fileNotFoundMessage = String.Format("Couldn't find a Solution file for '{0}'.", assembly);
+            string fileNotFoundMessage = $"Couldn't find a Solution file for '{assembly}'.";
 
             try
             {
@@ -262,11 +262,7 @@ namespace Pomona.TestHelpers
                                     String.Join("",
                                                 versions.Select(
                                                     x =>
-                                                        String.Format("    {0}\r\n{1}",
-                                                                      x.Key,
-                                                                      String.Join("",
-                                                                                  x.Select(
-                                                                                      y => String.Format("        {0}\r\n", y.ProjectName)))))));
+                                                        $"    {x.Key}\r\n{String.Join("", x.Select(y => $"        {y.ProjectName}\r\n"))}")));
 
                     errorCount++;
 
@@ -279,10 +275,7 @@ namespace Pomona.TestHelpers
                                     String.Join("",
                                                 suggestedUpgrades.Select(
                                                     x =>
-                                                        String.Format("        Update-Package -Id {0} -ProjectName {1} -Version {2}\r\n",
-                                                                      x.Id,
-                                                                      x.ProjectName,
-                                                                      suggestedVersion))));
+                                                        $"        Update-Package -Id {x.Id} -ProjectName {x.ProjectName} -Version {suggestedVersion}\r\n")));
                 }
             }
             foreach (var item in packages.SelectMany(x => x))

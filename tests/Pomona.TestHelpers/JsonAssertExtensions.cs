@@ -99,10 +99,7 @@ namespace Pomona.TestHelpers
             var jsonValue = propToken as JValue;
             Assert.IsNotNull(
                 jsonValue,
-                string.Format(
-                    "JSON property {0} is not of type JValue. Contents:\r\n{1}",
-                    propertyName,
-                    jobject));
+                $"JSON property {propertyName} is not of type JValue. Contents:\r\n{jobject}");
             return (string)jsonValue.Value;
         }
 

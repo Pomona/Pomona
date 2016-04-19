@@ -47,7 +47,7 @@ namespace Pomona.Example.Models
 
         public string ToStringConverted()
         {
-            return string.Format("#{0:x2}{1:x2}{2:x2}", Red, Green, Blue);
+            return $"#{Red:x2}{Green:x2}{Blue:x2}";
         }
     }
 }

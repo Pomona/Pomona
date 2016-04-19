@@ -77,7 +77,7 @@ namespace Pomona.Queries
             // By enclosing the selectListExpression in a method call, we can use the same parser
             // as for filter queries, then we convert each part of the select statement to a
             // lambda expression.
-            var symbolTree = ParseSymbolTree(string.Format("select({0})", selectListExpression));
+            var symbolTree = ParseSymbolTree($"select({selectListExpression})");
             var thisParam = Expression.Parameter(thisType, "_this");
             var selectParts =
                 symbolTree.Children.Select(x => ParseSelectPart(thisType, x, thisParam, selectListExpression)).ToList();
@@ -142,7 +142,7 @@ namespace Pomona.Queries
                 if (!TryGetImplicitPropertyName(node, out propertyName))
                 {
                     throw QueryParseException.Create(node.ParserNode,
-                                                     string.Format("Unable to infer property name of select expression ({0})", node),
+                                                     $"Unable to infer property name of select expression ({node})",
                                                      parsedString, null, QueryParseErrorReason.GenericError);
                 }
             }

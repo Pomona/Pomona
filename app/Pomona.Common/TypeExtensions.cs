@@ -54,7 +54,7 @@ namespace Pomona.Common
                 return propertyInfo.NormalizeReflectedType();
 
             if (baseMethod.DeclaringType == null)
-                throw new InvalidOperationException(String.Format("{0} has no declaring type.", baseMethod));
+                throw new InvalidOperationException($"{baseMethod} has no declaring type.");
 
             return baseMethod.DeclaringType.GetProperty(propertyInfo.Name,
                                                         BindingFlags.Instance | BindingFlags.NonPublic |
@@ -92,9 +92,7 @@ namespace Pomona.Common
                 return constructor;
 
             string argumentString = String.Join(", ", parameterTypes.Select(x => x.FullName));
-            var message = String.Format("Could not find the constructor {0}({1})",
-                                        type,
-                                        argumentString);
+            var message = $"Could not find the constructor {type}({argumentString})";
             throw new MissingMethodException(message);
         }
 
@@ -837,10 +835,7 @@ namespace Pomona.Common
             }
 
             string argumentString = String.Join(", ", genericArgumentTypes.Select(x => x.FullName));
-            var message = String.Format("Could not find the method {0}.{1}<{2}>().",
-                                        type,
-                                        methodName,
-                                        argumentString);
+            var message = $"Could not find the method {type}.{methodName}<{argumentString}>().";
 
             throw new MissingMethodException(message);
         }

@@ -117,7 +117,7 @@ namespace Pomona.SystemTests.Linq
                 // Explicit call to FirstLazy should succeed.
                                     .FirstLazy();
             var beforeLoadUri = ((IHasResourceUri)lazyCritter).Uri;
-            var predicate = string.Format("$filter=id+eq+{0}", randCritter.Id);
+            var predicate = $"$filter=id+eq+{randCritter.Id}";
             Assert.That(beforeLoadUri, Is.StringContaining(predicate));
             Console.WriteLine(beforeLoadUri);
             // Should load uri when retrieving name

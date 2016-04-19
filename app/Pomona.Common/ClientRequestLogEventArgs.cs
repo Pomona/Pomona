@@ -43,7 +43,7 @@ namespace Pomona.Common
 
         public override string ToString()
         {
-            return string.Format("Request:\r\n{0}\r\nResponse:\r\n{1}\r\n", Request, Response);
+            return $"Request:\r\n{Request}\r\nResponse:\r\n{Response}\r\n";
         }
     }
 }

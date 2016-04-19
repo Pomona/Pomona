@@ -2007,7 +2007,7 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
         public static string GetBandName(Random rng)
         {
             var randomNoun = SingularToPluralTranslator.ToPlural(randomNouns[rng.Next(0, instruments.Count)]);
-            return string.Format("The {0} {1}", FirstToUpper(GetAdjective(rng)), FirstToUpper(randomNoun));
+            return $"The {FirstToUpper(GetAdjective(rng))} {FirstToUpper(randomNoun)}";
         }
 
 
