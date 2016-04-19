@@ -19,6 +19,14 @@ namespace Pomona.Common
 {
     public static class TypeExtensions
     {
+        public static string CodeBaseAbsolutePath(this Assembly assembly)
+        {
+            if (assembly == null)
+                throw new ArgumentNullException(nameof(assembly));
+            return new Uri(assembly.CodeBase).AbsolutePath;
+        }
+
+
         public static IEnumerable<PropertyInfo> GetAllInheritedPropertiesFromInterface(this Type sourceType)
         {
             if (sourceType == null)

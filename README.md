@@ -10,6 +10,8 @@ domain model objects is exposed as HTTP resources.
 Pomona was born out of frustrations with the difficulties of exposing a complex business domain model
 as a RESTful web service.
 
+[![Build status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046?svg=true)](https://ci.appveyor.com/project/Pomona/pomona)
+
 ## Highlights
 
 * Customizable conventions
