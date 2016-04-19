@@ -38,10 +38,7 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public virtual TypeSpec BaseType
-        {
-            get { return this.baseType.Value; }
-        }
+        public virtual TypeSpec BaseType => this.baseType.Value;
 
         public abstract ConstructorSpec Constructor { get; }
 
@@ -57,65 +54,35 @@ namespace Pomona.Common.TypeSystem
             }
         }
 
-        public string FullName
-        {
-            get { return $"{Namespace}.{Name}"; }
-        }
+        public string FullName => $"{Namespace}.{Name}";
 
         public abstract IEnumerable<TypeSpec> Interfaces { get; }
         public abstract bool IsAbstract { get; }
 
-        public virtual bool IsAlwaysExpanded
-        {
-            get { return true; }
-        }
+        public virtual bool IsAlwaysExpanded => true;
 
-        public virtual bool IsArray
-        {
-            get { return Type.IsArray; }
-        }
+        public virtual bool IsArray => Type.IsArray;
 
-        public virtual bool IsCollection
-        {
-            get { return false; }
-        }
+        public virtual bool IsCollection => false;
 
-        public virtual bool IsDictionary
-        {
-            get { return false; }
-        }
+        public virtual bool IsDictionary => false;
 
-        public virtual bool IsGenericType
-        {
-            get { return Type.IsGenericType; }
-        }
+        public virtual bool IsGenericType => Type.IsGenericType;
 
-        public virtual bool IsGenericTypeDefinition
-        {
-            get { return Type.IsGenericTypeDefinition; }
-        }
+        public virtual bool IsGenericTypeDefinition => Type.IsGenericTypeDefinition;
 
-        public virtual bool IsInterface
-        {
-            get { return Type.IsInterface; }
-        }
+        public virtual bool IsInterface => Type.IsInterface;
 
         public abstract bool IsNullable { get; }
 
-        public virtual string Namespace
-        {
-            get { return this.@namespace.Value; }
-        }
+        public virtual string Namespace => this.@namespace.Value;
 
         public abstract string NameWithGenericArguments { get; }
         public abstract IEnumerable<PropertySpec> Properties { get; }
         public abstract IEnumerable<PropertySpec> RequiredProperties { get; }
         public abstract TypeSerializationMode SerializationMode { get; }
 
-        public virtual Type Type
-        {
-            get { return (Type)Member; }
-        }
+        public virtual Type Type => (Type)Member;
 
 
         public virtual object Create(IConstructorPropertySource propertySource)

@@ -48,10 +48,7 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public override TypeSpec ExpectedBaseType
-        {
-            get { return Property.PropertyType; }
-        }
+        public override TypeSpec ExpectedBaseType => Property.PropertyType;
 
         public override string Uri
         {

@@ -28,15 +28,9 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public IDictionary<string, long> EnumValues
-        {
-            get { return this.enumValues.Value; }
-        }
+        public IDictionary<string, long> EnumValues => this.enumValues.Value;
 
-        public override TypeSerializationMode SerializationMode
-        {
-            get { return TypeSerializationMode.Value; }
-        }
+        public override TypeSerializationMode SerializationMode => TypeSerializationMode.Value;
 
 
         public new static ITypeFactory GetFactory()
@@ -61,10 +55,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public int Priority
-            {
-                get { return -400; }
-            }
+            public int Priority => -400;
         }
     }
 }

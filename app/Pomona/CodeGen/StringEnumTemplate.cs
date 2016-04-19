@@ -44,20 +44,11 @@ namespace Pomona.CodeGen
             }
         }
 
-        public bool IsDefault
-        {
-            get { return defaultValue == this; }
-        }
+        public bool IsDefault => defaultValue == this;
 
-        public bool IsKnown
-        {
-            get { return KnownValuesMap.ContainsKey(Value); }
-        }
+        public bool IsKnown => KnownValuesMap.ContainsKey(Value);
 
-        public string Value
-        {
-            get { return this.value ?? defaultValue.value; }
-        }
+        public string Value => this.value ?? defaultValue.value;
 
         private static Dictionary<string, StringEnumTemplate> KnownValuesMap
         {

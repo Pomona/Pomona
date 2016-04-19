@@ -30,10 +30,7 @@ namespace Pomona.Queries
         }
 
 
-        public bool HasArguments
-        {
-            get { return Children.Count > 0; }
-        }
+        public bool HasArguments => Children.Count > 0;
 
         public string Name { get; }
 

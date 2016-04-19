@@ -180,10 +180,7 @@ namespace Pomona.Common.TypeSystem
         {
             private readonly List<ParameterSpec> parameterSpecs = new List<ParameterSpec>();
 
-            public IList<ParameterSpec> ParameterSpecs
-            {
-                get { return this.parameterSpecs; }
-            }
+            public IList<ParameterSpec> ParameterSpecs => this.parameterSpecs;
 
 
             protected virtual Expression VisitArgumentBinding(Expression node,

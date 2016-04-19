@@ -44,10 +44,7 @@ namespace Pomona.Common.ExtendedResources
 
         internal Type DictValueType { get; }
 
-        internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties
-        {
-            get { return this.extendedProperties.Value; }
-        }
+        internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties => this.extendedProperties.Value;
 
 
         internal void Validate()

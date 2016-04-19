@@ -18,10 +18,7 @@ namespace Pomona.UnitTests.TypeSystem
     [TestFixture]
     public class SubclassComparerTests
     {
-        private static IEnumerable<Type> ShuffledTypes
-        {
-            get { return new[] { typeof(B), typeof(A), typeof(D), typeof(C) }; }
-        }
+        private static IEnumerable<Type> ShuffledTypes => new[] { typeof(B), typeof(A), typeof(D), typeof(C) };
 
 
         [Test]

@@ -24,10 +24,7 @@ namespace Pomona.Common
         }
 
 
-        public string Method
-        {
-            get { return Request.Method.ToString(); }
-        }
+        public string Method => Request.Method.ToString();
 
         public HttpRequestMessage Request { get; }
 
@@ -35,10 +32,7 @@ namespace Pomona.Common
 
         public Exception ThrownException { get; }
 
-        public string Uri
-        {
-            get { return Request.RequestUri.ToString(); }
-        }
+        public string Uri => Request.RequestUri.ToString();
 
 
         public override string ToString()

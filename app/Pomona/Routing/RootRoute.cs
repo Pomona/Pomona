@@ -25,20 +25,11 @@ namespace Pomona.Routing
         }
 
 
-        public override HttpMethod AllowedMethods
-        {
-            get { return HttpMethod.Get; }
-        }
+        public override HttpMethod AllowedMethods => HttpMethod.Get;
 
-        public override TypeSpec InputType
-        {
-            get { return this.resultItemType.TypeResolver.FromType(typeof(void)); }
-        }
+        public override TypeSpec InputType => this.resultItemType.TypeResolver.FromType(typeof(void));
 
-        public override TypeSpec ResultType
-        {
-            get { return this.resultItemType; }
-        }
+        public override TypeSpec ResultType => this.resultItemType;
 
 
         protected override IEnumerable<Route> LoadChildren()

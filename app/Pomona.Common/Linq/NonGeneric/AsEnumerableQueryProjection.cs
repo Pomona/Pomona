@@ -13,10 +13,7 @@ namespace Pomona.Common.Linq.NonGeneric
 {
     internal class AsEnumerableQueryProjection : QueryProjection
     {
-        public override string Name
-        {
-            get { return "AsEnumerable"; }
-        }
+        public override string Name => "AsEnumerable";
 
 
         public override Expression Apply(IQueryable queryable)

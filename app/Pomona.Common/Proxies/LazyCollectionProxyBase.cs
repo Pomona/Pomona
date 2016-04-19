@@ -25,10 +25,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public override bool IsLoaded
-        {
-            get { return this.dontTouchwrappedList != null; }
-        }
+        public override bool IsLoaded => this.dontTouchwrappedList != null;
 
         public TCollection WrappedList
         {
@@ -66,10 +63,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public int Count
-        {
-            get { return WrappedList.Count; }
-        }
+        public int Count => WrappedList.Count;
 
 
         public IEnumerator<T> GetEnumerator()
@@ -78,10 +72,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
+        public bool IsReadOnly => true;
 
 
         public bool Remove(T item)

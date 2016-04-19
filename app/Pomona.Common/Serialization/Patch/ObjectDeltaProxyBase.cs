@@ -82,9 +82,6 @@ namespace Pomona.Common.Serialization.Patch
     public class ObjectDeltaProxyBase<T> : ObjectDeltaProxyBase, IDelta<T>
         where T : class
     {
-        public new T Original
-        {
-            get { return (T)base.Original; }
-        }
+        public new T Original => (T)base.Original;
     }
 }

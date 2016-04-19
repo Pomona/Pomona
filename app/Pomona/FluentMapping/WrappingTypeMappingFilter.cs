@@ -28,15 +28,9 @@ namespace Pomona.FluentMapping
         }
 
 
-        protected virtual ITypeMappingFilter WrappedFilter
-        {
-            get { return this.wrappedFilter; }
-        }
+        protected virtual ITypeMappingFilter WrappedFilter => this.wrappedFilter;
 
-        public virtual string ApiVersion
-        {
-            get { return this.wrappedFilter.ApiVersion; }
-        }
+        public virtual string ApiVersion => this.wrappedFilter.ApiVersion;
 
 
         public virtual bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
@@ -45,10 +39,7 @@ namespace Pomona.FluentMapping
         }
 
 
-        public ClientMetadata ClientMetadata
-        {
-            get { return this.wrappedFilter.ClientMetadata; }
-        }
+        public ClientMetadata ClientMetadata => this.wrappedFilter.ClientMetadata;
 
 
         public virtual bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)

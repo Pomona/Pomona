@@ -29,10 +29,7 @@ namespace Pomona.RequestProcessing
 
         public HandlerMethod Method { get; }
 
-        public IList<HandlerParameter> Parameters
-        {
-            get { return Method.Parameters; }
-        }
+        public IList<HandlerParameter> Parameters => Method.Parameters;
 
 
         public override bool CanProcess(PomonaContext context)
@@ -122,9 +119,6 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public Type ReturnType
-        {
-            get { return Method.ReturnType; }
-        }
+        public Type ReturnType => Method.ReturnType;
     }
 }

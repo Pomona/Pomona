@@ -31,25 +31,13 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override bool IsDictionary
-        {
-            get { return true; }
-        }
+        public override bool IsDictionary => true;
 
-        public virtual TypeSpec KeyType
-        {
-            get { return this.keyType.Value; }
-        }
+        public virtual TypeSpec KeyType => this.keyType.Value;
 
-        public override TypeSerializationMode SerializationMode
-        {
-            get { return TypeSerializationMode.Dictionary; }
-        }
+        public override TypeSerializationMode SerializationMode => TypeSerializationMode.Dictionary;
 
-        public virtual TypeSpec ValueType
-        {
-            get { return this.valueType.Value; }
-        }
+        public virtual TypeSpec ValueType => this.valueType.Value;
 
 
         public new static ITypeFactory GetFactory()
@@ -75,10 +63,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public int Priority
-            {
-                get { return 0; }
-            }
+            public int Priority => 0;
         }
 
         #endregion

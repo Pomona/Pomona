@@ -34,17 +34,11 @@ namespace Pomona.Nancy
             get { yield break; }
         }
 
-        public IEnumerable<TypeRegistration> TypeRegistrations
+        public IEnumerable<TypeRegistration> TypeRegistrations => new[]
         {
-            get
-            {
-                return new[]
-                {
-                    new TypeRegistration(typeof(IPomonaModuleConfigurationBinder),
-                                         typeof(PomonaModuleConfigurationBinder), Lifetime.Singleton),
-                    new TypeRegistration(typeof(IQueryExecutor), typeof(DefaultQueryExecutor), Lifetime.Transient)
-                };
-            }
-        }
+            new TypeRegistration(typeof(IPomonaModuleConfigurationBinder),
+                                 typeof(PomonaModuleConfigurationBinder), Lifetime.Singleton),
+            new TypeRegistration(typeof(IQueryExecutor), typeof(DefaultQueryExecutor), Lifetime.Transient)
+        };
     }
 }

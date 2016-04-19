@@ -31,10 +31,7 @@ namespace Pomona.CodeGen
         }
 
 
-        public string PackageFileName
-        {
-            get { return this.typeMapper.Filter.ClientMetadata.AssemblyName + "." + GetVersionString() + ".nupkg"; }
-        }
+        public string PackageFileName => this.typeMapper.Filter.ClientMetadata.AssemblyName + "." + GetVersionString() + ".nupkg";
 
 
         public void BuildPackage(Stream stream)

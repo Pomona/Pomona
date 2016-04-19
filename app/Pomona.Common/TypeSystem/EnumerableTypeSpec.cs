@@ -23,25 +23,13 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override TypeSpec ElementType
-        {
-            get { return ItemType; }
-        }
+        public override TypeSpec ElementType => ItemType;
 
-        public override bool IsAlwaysExpanded
-        {
-            get { return false; }
-        }
+        public override bool IsAlwaysExpanded => false;
 
-        public override bool IsCollection
-        {
-            get { return true; }
-        }
+        public override bool IsCollection => true;
 
-        public virtual TypeSpec ItemType
-        {
-            get { return this.itemType.Value; }
-        }
+        public virtual TypeSpec ItemType => this.itemType.Value;
 
 
         public new static ITypeFactory GetFactory()
@@ -76,10 +64,7 @@ namespace Pomona.Common.TypeSystem
             }
 
 
-            public int Priority
-            {
-                get { return 50; }
-            }
+            public int Priority => 50;
         }
     }
 }

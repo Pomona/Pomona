@@ -21,10 +21,7 @@ namespace Pomona.SystemTests
     [TestFixture]
     public class HttpWebRequestClientTests : ClientTestsBase
     {
-        public override bool UseSelfHostedHttpServer
-        {
-            get { return true; }
-        }
+        public override bool UseSelfHostedHttpServer => true;
 
 
         [Test]

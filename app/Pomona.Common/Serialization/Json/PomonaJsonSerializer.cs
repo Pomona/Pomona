@@ -392,10 +392,7 @@ namespace Pomona.Common.Serialization.Json
             }
 
 
-            public JsonWriter JsonWriter
-            {
-                get { return this.jsonWriter; }
-            }
+            public JsonWriter JsonWriter => this.jsonWriter;
 
             #region Implementation of IDisposable
 

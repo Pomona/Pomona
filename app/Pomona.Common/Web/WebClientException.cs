@@ -35,10 +35,7 @@ namespace Pomona.Common.Web
         }
 
 
-        public new TBody Body
-        {
-            get { return (TBody)base.Body; }
-        }
+        public new TBody Body => (TBody)base.Body;
     }
 
     [Serializable]
@@ -76,10 +73,7 @@ namespace Pomona.Common.Web
 
         public object Body { get; }
 
-        public bool HasBody
-        {
-            get { return Body != null; }
-        }
+        public bool HasBody => Body != null;
 
         public HttpStatusCode StatusCode { get; }
 

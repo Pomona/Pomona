@@ -26,15 +26,9 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public XDocAssembly Assembly
-        {
-            get { return new XDocAssembly(GetOrAddElement("assembly")); }
-        }
+        public XDocAssembly Assembly => new XDocAssembly(GetOrAddElement("assembly"));
 
-        public XDocMemberCollection Members
-        {
-            get { return new XDocMemberCollection(GetOrAddElement("members")); }
-        }
+        public XDocMemberCollection Members => new XDocMemberCollection(GetOrAddElement("members"));
 
 
         public XDocContentContainer GetSummary(MemberInfo memberInfo)

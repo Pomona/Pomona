@@ -18,10 +18,7 @@ namespace Pomona.Example.SimpleExtraSite
         }
 
 
-        public override ClientMetadata ClientMetadata
-        {
-            get { return base.ClientMetadata.With("Extra.Client", "ExtraClient", "IExtraClient", "Extra.Client"); }
-        }
+        public override ClientMetadata ClientMetadata => base.ClientMetadata.With("Extra.Client", "ExtraClient", "IExtraClient", "Extra.Client");
 
 
         public override bool GenerateIndependentClient()

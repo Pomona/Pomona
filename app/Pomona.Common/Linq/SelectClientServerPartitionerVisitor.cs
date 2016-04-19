@@ -138,10 +138,7 @@ namespace Pomona.Common.Linq
 
             public int Index { get; }
 
-            public override ExpressionType NodeType
-            {
-                get { return ExpressionType.Extension; }
-            }
+            public override ExpressionType NodeType => ExpressionType.Extension;
 
             public override Type Type { get; }
         }

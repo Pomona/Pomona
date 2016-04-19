@@ -26,14 +26,8 @@ namespace Pomona.Example
             }
         }
 
-        public override IEnumerable<Type> SourceTypes
-        {
-            get { return CritterRepository.GetEntityTypes().Concat(new[] { typeof(GenericBaseClass<int>) }); }
-        }
+        public override IEnumerable<Type> SourceTypes => CritterRepository.GetEntityTypes().Concat(new[] { typeof(GenericBaseClass<int>) });
 
-        public override ITypeMappingFilter TypeMappingFilter
-        {
-            get { return new CritterTypeMappingFilter(SourceTypes); }
-        }
+        public override ITypeMappingFilter TypeMappingFilter => new CritterTypeMappingFilter(SourceTypes);
     }
 }

@@ -24,58 +24,24 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public override HttpMethod AccessMode
-        {
-            get { return StructuredPropertyDetails.AccessMode; }
-        }
+        public override HttpMethod AccessMode => StructuredPropertyDetails.AccessMode;
 
-        public override ExpandMode ExpandMode
-        {
-            get { return StructuredPropertyDetails.ExpandMode; }
-        }
+        public override ExpandMode ExpandMode => StructuredPropertyDetails.ExpandMode;
 
-        public virtual bool ExposedOnUrl
-        {
-            get
-            {
-                // TODO: Make this configurable
-                return PropertyType is ResourceType || PropertyType is EnumerableTypeSpec;
-            }
-        }
+        public virtual bool ExposedOnUrl => PropertyType is ResourceType || PropertyType is EnumerableTypeSpec;
 
-        public virtual bool IsAttributesProperty
-        {
-            get { return StructuredPropertyDetails.IsAttributesProperty; }
-        }
+        public virtual bool IsAttributesProperty => StructuredPropertyDetails.IsAttributesProperty;
 
-        public virtual bool IsEtagProperty
-        {
-            get { return StructuredPropertyDetails.IsEtagProperty; }
-        }
+        public virtual bool IsEtagProperty => StructuredPropertyDetails.IsEtagProperty;
 
-        public virtual bool IsPrimaryKey
-        {
-            get { return StructuredPropertyDetails.IsPrimaryKey; }
-        }
+        public virtual bool IsPrimaryKey => StructuredPropertyDetails.IsPrimaryKey;
 
-        public override bool IsSerialized
-        {
-            get { return StructuredPropertyDetails.IsSerialized; }
-        }
+        public override bool IsSerialized => StructuredPropertyDetails.IsSerialized;
 
-        public override HttpMethod ItemAccessMode
-        {
-            get { return StructuredPropertyDetails.ItemAccessMode; }
-        }
+        public override HttpMethod ItemAccessMode => StructuredPropertyDetails.ItemAccessMode;
 
-        public new StructuredType ReflectedType
-        {
-            get { return (StructuredType)base.ReflectedType; }
-        }
+        public new StructuredType ReflectedType => (StructuredType)base.ReflectedType;
 
-        protected virtual StructuredPropertyDetails StructuredPropertyDetails
-        {
-            get { return this.structuredPropertyDetails.Value; }
-        }
+        protected virtual StructuredPropertyDetails StructuredPropertyDetails => this.structuredPropertyDetails.Value;
     }
 }

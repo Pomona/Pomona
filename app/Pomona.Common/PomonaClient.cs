@@ -54,10 +54,7 @@ namespace Pomona.Common
         }
 
 
-        public IEnumerable<Type> ResourceTypes
-        {
-            get { return this.typeMapper.ResourceTypes; }
-        }
+        public IEnumerable<Type> ResourceTypes => this.typeMapper.ResourceTypes;
 
 
         public string GetRelativeUriForType(Type type)
@@ -259,14 +256,8 @@ namespace Pomona.Common
         }
 
 
-        public virtual ClientTypeMapper TypeMapper
-        {
-            get { return this.typeMapper; }
-        }
+        public virtual ClientTypeMapper TypeMapper => this.typeMapper;
 
-        public virtual IWebClient WebClient
-        {
-            get { return this.dispatcher.WebClient; }
-        }
+        public virtual IWebClient WebClient => this.dispatcher.WebClient;
     }
 }

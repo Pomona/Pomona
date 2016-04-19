@@ -52,19 +52,13 @@ namespace Pomona.Common.TypeSystem
 
         public override RuntimeMethodHandle MethodHandle { get; }
 
-        public override Module Module
-        {
-            get { return GetType().Module; }
-        }
+        public override Module Module => GetType().Module;
 
         public override string Name { get; }
 
         public override Type ReflectedType { get; }
 
-        public override ICustomAttributeProvider ReturnTypeCustomAttributes
-        {
-            get { return null; }
-        }
+        public override ICustomAttributeProvider ReturnTypeCustomAttributes => null;
 
 
         public override MethodInfo GetBaseDefinition()

@@ -25,32 +25,17 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public bool IsResource
-        {
-            get { return TypeSpec is ResourceType; }
-        }
+        public bool IsResource => TypeSpec is ResourceType;
 
-        public bool IsTransformedType
-        {
-            get { return TypeSpec is StructuredType; }
-        }
+        public bool IsTransformedType => TypeSpec is StructuredType;
 
         public HandlerMethod Method { get; }
 
-        public string Name
-        {
-            get { return this.parameterInfo.Name; }
-        }
+        public string Name => this.parameterInfo.Name;
 
-        public int Position
-        {
-            get { return this.parameterInfo.Position; }
-        }
+        public int Position => this.parameterInfo.Position;
 
-        public Type Type
-        {
-            get { return this.parameterInfo.ParameterType; }
-        }
+        public Type Type => this.parameterInfo.ParameterType;
 
         public TypeSpec TypeSpec
         {

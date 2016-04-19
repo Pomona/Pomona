@@ -396,15 +396,9 @@ namespace Pomona.TestHelpers
             }
 
 
-            public string AssumedPackagePath
-            {
-                get { return AssumedPackagePathStart + Version; }
-            }
+            public string AssumedPackagePath => AssumedPackagePathStart + Version;
 
-            public string AssumedPackagePathStart
-            {
-                get { return Path.Combine(RelativePackagesPath, Id + "."); }
-            }
+            public string AssumedPackagePathStart => Path.Combine(RelativePackagesPath, Id + ".");
 
             public string Id { get; }
 
@@ -413,29 +407,14 @@ namespace Pomona.TestHelpers
                 get { return preferredFrameworkVersions.FirstOrDefault(x => AvailableFrameworkVersions.Contains(x)); }
             }
 
-            public string ProjectDirectory
-            {
-                get { return Path.GetDirectoryName(this.projectFile); }
-            }
+            public string ProjectDirectory => Path.GetDirectoryName(this.projectFile);
 
-            public string ProjectName
-            {
-                get { return Path.GetFileNameWithoutExtension(this.projectFile); }
-            }
+            public string ProjectName => Path.GetFileNameWithoutExtension(this.projectFile);
 
-            public XDocument ProjectXmlDocument
-            {
-                get { return this.projectXmlDocument ?? (this.projectXmlDocument = XDocument.Load(this.projectFile)); }
-            }
+            public XDocument ProjectXmlDocument => this.projectXmlDocument ?? (this.projectXmlDocument = XDocument.Load(this.projectFile));
 
-            public string RelativePackagesPath
-            {
-                get
-                {
-                    return GetRelativePath(Path.Combine(this.solutionDirectoy, "packages"),
-                                           Path.GetDirectoryName(this.projectFile));
-                }
-            }
+            public string RelativePackagesPath => GetRelativePath(Path.Combine(this.solutionDirectoy, "packages"),
+                                                                  Path.GetDirectoryName(this.projectFile));
 
             public string Version { get; }
 
@@ -452,14 +431,8 @@ namespace Pomona.TestHelpers
                 }
             }
 
-            private string FullPackagePath
-            {
-                get
-                {
-                    return this.fullPackagePath
-                           ?? (this.fullPackagePath = Path.Combine(this.solutionDirectoy, "packages", Id + "." + Version));
-                }
-            }
+            private string FullPackagePath => this.fullPackagePath
+                                              ?? (this.fullPackagePath = Path.Combine(this.solutionDirectoy, "packages", Id + "." + Version));
 
 
             public static IEnumerable<NugetPackageElement> Load(string solutionDirectory)

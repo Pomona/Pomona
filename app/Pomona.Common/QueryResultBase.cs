@@ -29,15 +29,9 @@ namespace Pomona.Common
         }
 
 
-        public override Type ItemType
-        {
-            get { return typeof(T); }
-        }
+        public override Type ItemType => typeof(T);
 
-        public override Type ListType
-        {
-            get { return typeof(TCollection); }
-        }
+        public override Type ListType => typeof(TCollection);
 
         public override string Next { get; }
 
@@ -49,21 +43,12 @@ namespace Pomona.Common
 
         #region IList<T> Members
 
-        public override int Count
-        {
-            get { return this.items.Count; }
-        }
+        public override int Count => this.items.Count;
 
         // For serialization
-        internal IEnumerable<T> Items
-        {
-            get { return new ReadOnlyCollection<T>(this.ToList()); }
-        }
+        internal IEnumerable<T> Items => new ReadOnlyCollection<T>(this.ToList());
 
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
+        public bool IsReadOnly => true;
 
 
         public void Add(T item)

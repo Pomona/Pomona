@@ -43,15 +43,9 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public virtual IEnumerable<MethodInfo> MappedMethods
-        {
-            get { return this.mappedMethods; }
-        }
+        public virtual IEnumerable<MethodInfo> MappedMethods => this.mappedMethods;
 
-        protected Func<MethodCallExpression, QueryExpression, TExpression> Constructor
-        {
-            get { return this.constructor ?? (this.constructor = FindConstructor()); }
-        }
+        protected Func<MethodCallExpression, QueryExpression, TExpression> Constructor => this.constructor ?? (this.constructor = FindConstructor());
 
 
         public override sealed bool TryWrapNode(Expression node, out QueryExpression wrapper)

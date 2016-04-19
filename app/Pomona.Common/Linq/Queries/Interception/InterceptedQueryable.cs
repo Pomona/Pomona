@@ -38,9 +38,6 @@ namespace Pomona.Common.Linq.Queries.Interception
 
         public override Expression Expression { get; }
 
-        public override IQueryProvider Provider
-        {
-            get { return this.provider; }
-        }
+        public override IQueryProvider Provider => this.provider;
     }
 }

@@ -163,10 +163,7 @@ namespace Pomona.Common
             remove { this.client.RequestCompleted -= value; }
         }
 
-        public ClientSettings Settings
-        {
-            get { return this.client.Settings; }
-        }
+        public ClientSettings Settings => this.client.Settings;
 
 
         public bool TryGetResourceInfoForType(Type type, out ResourceInfoAttribute resourceInfo)
@@ -175,15 +172,9 @@ namespace Pomona.Common
         }
 
 
-        public ClientTypeMapper TypeMapper
-        {
-            get { return this.client.TypeMapper; }
-        }
+        public ClientTypeMapper TypeMapper => this.client.TypeMapper;
 
-        public IWebClient WebClient
-        {
-            get { return this.client.WebClient; }
-        }
+        public IWebClient WebClient => this.client.WebClient;
 
 
         void IPomonaClient.Delete(object resource, RequestOptions requestOptions)

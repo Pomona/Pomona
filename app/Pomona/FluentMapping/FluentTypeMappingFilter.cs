@@ -216,10 +216,7 @@ namespace TestNs
         }
 
 
-        public string ApiVersion
-        {
-            get { return this.wrappedFilter.ApiVersion; }
-        }
+        public string ApiVersion => this.wrappedFilter.ApiVersion;
 
 
         public bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
@@ -228,10 +225,7 @@ namespace TestNs
         }
 
 
-        public ClientMetadata ClientMetadata
-        {
-            get { return this.wrappedFilter.ClientMetadata; }
-        }
+        public ClientMetadata ClientMetadata => this.wrappedFilter.ClientMetadata;
 
 
         public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)

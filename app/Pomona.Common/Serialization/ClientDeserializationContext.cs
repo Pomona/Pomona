@@ -178,9 +178,6 @@ namespace Pomona.Common.Serialization
         }
 
 
-        public IResourceNode TargetNode
-        {
-            get { return null; }
-        }
+        public IResourceNode TargetNode => null;
     }
 }

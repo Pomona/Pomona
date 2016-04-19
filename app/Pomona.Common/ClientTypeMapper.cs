@@ -52,10 +52,7 @@ namespace Pomona.Common
         }
 
 
-        public IEnumerable<Type> ResourceTypes
-        {
-            get { return this.resourceTypes; }
-        }
+        public IEnumerable<Type> ResourceTypes => this.resourceTypes;
 
 
         public static T CreatePostForm<T>()

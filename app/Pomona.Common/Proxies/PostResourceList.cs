@@ -84,15 +84,9 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public int Count
-        {
-            get { return this.wrapped.Count; }
-        }
+        public int Count => this.wrapped.Count;
 
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly => false;
 
         #endregion
 

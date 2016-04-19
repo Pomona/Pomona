@@ -40,25 +40,13 @@ namespace Pomona.RequestProcessing
 
         public MethodInfo MethodInfo { get; }
 
-        public string Name
-        {
-            get { return MethodInfo.Name; }
-        }
+        public string Name => MethodInfo.Name;
 
-        public IList<HandlerParameter> Parameters
-        {
-            get { return this.parameters.Value; }
-        }
+        public IList<HandlerParameter> Parameters => this.parameters.Value;
 
-        public IList<Type> ParameterTypes
-        {
-            get { return this.parameterTypes.Value; }
-        }
+        public IList<Type> ParameterTypes => this.parameterTypes.Value;
 
-        public Type ReturnType
-        {
-            get { return MethodInfo.ReturnType; }
-        }
+        public Type ReturnType => MethodInfo.ReturnType;
 
         public TypeMapper TypeMapper { get; }
 

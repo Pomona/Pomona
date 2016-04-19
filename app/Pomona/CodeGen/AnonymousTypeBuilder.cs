@@ -59,10 +59,7 @@ namespace Pomona.CodeGen
         }
 
 
-        private int PropCount
-        {
-            get { return this.properties.Count; }
-        }
+        private int PropCount => this.properties.Count;
 
 
         public TypeDefinition BuildAnonymousType()

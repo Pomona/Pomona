@@ -54,10 +54,7 @@ namespace Pomona.Nancy
             }
         }
 
-        private TypeMapper TypeMapper
-        {
-            get { return this.sessionFactory.TypeMapper; }
-        }
+        private TypeMapper TypeMapper => this.sessionFactory.TypeMapper;
 
 
         protected virtual PomonaError OnException(Exception exception)

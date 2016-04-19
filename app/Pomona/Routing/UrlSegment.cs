@@ -89,44 +89,22 @@ namespace Pomona.Routing
             }
         }
 
-        public string Description
-        {
-            get { return ToString(); }
-        }
+        public string Description => ToString();
 
-        public bool Exists
-        {
-            get
-            {
-                // TODO: BETTER WAY TO CHECK EXISTANCE
-                return Value != null;
-            }
-        }
+        public bool Exists => Value != null;
 
         public IEnumerable<UrlSegment> FinalMatchCandidates
         {
             get { return Leafs.Where(x => x.IsLastSegment); }
         }
 
-        public TypeSpec InputType
-        {
-            get { return Route.InputType; }
-        }
+        public TypeSpec InputType => Route.InputType;
 
-        public bool IsLastSegment
-        {
-            get { return this.pathSegmentIndex == (this.pathSegments.Length - 1); }
-        }
+        public bool IsLastSegment => this.pathSegmentIndex == (this.pathSegments.Length - 1);
 
-        public bool IsLeaf
-        {
-            get { return Children.Count == 0; }
-        }
+        public bool IsLeaf => Children.Count == 0;
 
-        public bool IsRoot
-        {
-            get { return Parent != null; }
-        }
+        public bool IsRoot => Parent != null;
 
         public IEnumerable<UrlSegment> Leafs
         {
@@ -143,20 +121,11 @@ namespace Pomona.Routing
             get { return this.WalkTree(x => x.SelectedChild).Skip(1).LastOrDefault(x => !x.IsLastSegment && x.SelectedChild == null); }
         }
 
-        public string PathSegment
-        {
-            get { return this.pathSegmentIndex >= 0 ? this.pathSegments[this.pathSegmentIndex] : string.Empty; }
-        }
+        public string PathSegment => this.pathSegmentIndex >= 0 ? this.pathSegments[this.pathSegmentIndex] : string.Empty;
 
-        public string RelativePath
-        {
-            get { return string.Join("/", this.pathSegments.Take(this.pathSegmentIndex + 1)); }
-        }
+        public string RelativePath => string.Join("/", this.pathSegments.Take(this.pathSegmentIndex + 1));
 
-        public TypeSpec ResultItemType
-        {
-            get { return Route.ResultItemType; }
-        }
+        public TypeSpec ResultItemType => Route.ResultItemType;
 
         public Route Route { get; }
 
@@ -176,10 +145,7 @@ namespace Pomona.Routing
             get { return this.WalkTree(x => x.SelectedChild).LastOrDefault(x => x.IsLastSegment); }
         }
 
-        public IPomonaSession Session
-        {
-            get { return this.tree.Session; }
-        }
+        public IPomonaSession Session => this.tree.Session;
 
 
         public object Get()
@@ -237,15 +203,9 @@ namespace Pomona.Routing
 
         public UrlSegment Parent { get; }
 
-        public TypeSpec ResultType
-        {
-            get { return Route.ResultType; }
-        }
+        public TypeSpec ResultType => Route.ResultType;
 
-        public UrlSegment Root
-        {
-            get { return this.tree.Root; }
-        }
+        public UrlSegment Root => this.tree.Root;
 
         public object Value
         {
@@ -260,14 +220,8 @@ namespace Pomona.Routing
             }
         }
 
-        IEnumerable<UrlSegment> ITreeNode<UrlSegment>.Children
-        {
-            get { return Children; }
-        }
+        IEnumerable<UrlSegment> ITreeNode<UrlSegment>.Children => Children;
 
-        IResourceNode IResourceNode.Parent
-        {
-            get { return Parent; }
-        }
+        IResourceNode IResourceNode.Parent => Parent;
     }
 }

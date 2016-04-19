@@ -18,20 +18,11 @@ namespace Pomona.UnitTests.PomonaSession
     {
         public Critter FirstCritter { get; private set; }
 
-        public int FirstCritterId
-        {
-            get { return FirstCritter.Id; }
-        }
+        public int FirstCritterId => FirstCritter.Id;
 
-        public MusicalCritter MusicalCritter
-        {
-            get { return Repository.List<Critter>().OfType<MusicalCritter>().First(); }
-        }
+        public MusicalCritter MusicalCritter => Repository.List<Critter>().OfType<MusicalCritter>().First();
 
-        public int MusicalCritterId
-        {
-            get { return MusicalCritter.Id; }
-        }
+        public int MusicalCritterId => MusicalCritter.Id;
 
         protected CritterRepository Repository { get; private set; }
         protected TypeMapper TypeMapper { get; private set; }

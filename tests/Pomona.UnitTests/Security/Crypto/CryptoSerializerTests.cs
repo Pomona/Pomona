@@ -71,10 +71,7 @@ namespace Pomona.UnitTests.Security.Crypto
                 0x3a, 0xef, 0x27, 0x2b, 0xcb, 0x8a, 0xc5, 0xe7, 0x8d, 0xa2, 0x6e, 0xeb, 0x59, 0x76, 0xeb, 0x0e
             };
 
-            public byte[] SiteKey
-            {
-                get { return key; }
-            }
+            public byte[] SiteKey => key;
         }
 
         public class NonRandomGenerator : RandomNumberGenerator

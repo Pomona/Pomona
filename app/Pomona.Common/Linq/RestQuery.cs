@@ -40,9 +40,6 @@ namespace Pomona.Common.Linq
 
         public override Expression Expression { get; }
 
-        public override IQueryProvider Provider
-        {
-            get { return this.provider; }
-        }
+        public override IQueryProvider Provider => this.provider;
     }
 }

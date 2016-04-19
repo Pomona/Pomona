@@ -322,10 +322,7 @@ namespace Pomona.Common.Internals
             }
 
 
-            public int ArgumentCount
-            {
-                get { return ArgumentOrder.Count; }
-            }
+            public int ArgumentCount => ArgumentOrder.Count;
 
             public IList<int> ArgumentOrder { get; }
 
@@ -483,10 +480,7 @@ namespace Pomona.Common.Internals
             }
 
 
-            public int Count
-            {
-                get { return this.targetList.Count; }
-            }
+            public int Count => this.targetList.Count;
 
 
             public IEnumerator<T> GetEnumerator()
@@ -511,10 +505,7 @@ namespace Pomona.Common.Internals
             }
 
 
-            public bool IsReadOnly
-            {
-                get { return true; }
-            }
+            public bool IsReadOnly => true;
 
             public T this[int index]
             {

@@ -35,10 +35,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public Func<TOwner, TPropType> Getter
-        {
-            get { return this.getter ?? (this.getter = GetterExpression.Compile()); }
-        }
+        public Func<TOwner, TPropType> Getter => this.getter ?? (this.getter = GetterExpression.Compile());
 
         public Expression<Func<TOwner, TPropType>> GetterExpression
         {
@@ -58,17 +55,11 @@ namespace Pomona.Common.Proxies
             }
         }
 
-        public string Name
-        {
-            get { return PropertyInfo.Name; }
-        }
+        public string Name => PropertyInfo.Name;
 
         public PropertyInfo PropertyInfo { get; }
 
-        public Action<TOwner, TPropType> Setter
-        {
-            get { return this.setter ?? (this.setter = SetterExpression.Compile()); }
-        }
+        public Action<TOwner, TPropType> Setter => this.setter ?? (this.setter = SetterExpression.Compile());
 
         public Expression<Action<TOwner, TPropType>> SetterExpression
         {

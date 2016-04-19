@@ -22,10 +22,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override ReadOnlyCollection<object> Children
-        {
-            get { return new ReadOnlyCollection<object>(new object[] { Value }); }
-        }
+        public override ReadOnlyCollection<object> Children => new ReadOnlyCollection<object>(new object[] { Value });
 
         public QuerySegmentExpression Value { get; }
 

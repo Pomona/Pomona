@@ -43,10 +43,7 @@ namespace Pomona.SystemTests.CodeGen
                 typeof(HttpClient)
             }.Select(x => x.Assembly));
 
-        private static Assembly ClientAssembly
-        {
-            get { return typeof(CritterClient).Assembly; }
-        }
+        private static Assembly ClientAssembly => typeof(CritterClient).Assembly;
 
 
         [Test]

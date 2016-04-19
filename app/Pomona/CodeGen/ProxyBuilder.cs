@@ -48,10 +48,7 @@ namespace Pomona.CodeGen
         }
 
 
-        public virtual ModuleDefinition Module
-        {
-            get { return this.module; }
-        }
+        public virtual ModuleDefinition Module => this.module;
 
         public virtual string ProxyNameFormat
         {

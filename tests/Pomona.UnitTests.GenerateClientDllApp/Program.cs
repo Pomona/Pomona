@@ -85,10 +85,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 
         private class IndependentClientDllConfiguration : ModifiedCritterPomonaConfiguration
         {
-            public override ITypeMappingFilter TypeMappingFilter
-            {
-                get { return new IndependentClientDllTypeMappingFilter(SourceTypes); }
-            }
+            public override ITypeMappingFilter TypeMappingFilter => new IndependentClientDllTypeMappingFilter(SourceTypes);
 
             #region Nested type: IndependentClientDllTypeMappingFilter
 
@@ -100,10 +97,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
                 }
 
 
-                public override ClientMetadata ClientMetadata
-                {
-                    get { return base.ClientMetadata.With("IndependentCritters"); }
-                }
+                public override ClientMetadata ClientMetadata => base.ClientMetadata.With("IndependentCritters");
 
 
                 public override bool GenerateIndependentClient()
@@ -127,10 +121,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             }
 
 
-            public override IEnumerable<object> FluentRuleObjects
-            {
-                get { return base.FluentRuleObjects.Append(new ModifiedFluentRules()); }
-            }
+            public override IEnumerable<object> FluentRuleObjects => base.FluentRuleObjects.Append(new ModifiedFluentRules());
 
             public override ITypeMappingFilter TypeMappingFilter { get; }
         }

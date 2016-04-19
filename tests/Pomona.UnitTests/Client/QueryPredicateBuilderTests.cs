@@ -711,10 +711,7 @@ namespace Pomona.UnitTests.Client
 
         public static class SomeStaticClass
         {
-            public static DateTime SomeDate
-            {
-                get { return new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc); }
-            }
+            public static DateTime SomeDate => new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc);
         }
     }
 }

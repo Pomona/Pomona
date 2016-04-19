@@ -49,9 +49,6 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public new TRepository Original
-        {
-            get { return (TRepository)base.Original; }
-        }
+        public new TRepository Original => (TRepository)base.Original;
     }
 }

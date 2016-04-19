@@ -38,17 +38,11 @@ namespace Pomona
         }
 
 
-        public IRequestProcessorPipeline Pipeline
-        {
-            get { return this.pipeline; }
-        }
+        public IRequestProcessorPipeline Pipeline => this.pipeline;
 
         public Route Routes { get; }
 
-        public ITextSerializerFactory SerializerFactory
-        {
-            get { return this.serializerFactory; }
-        }
+        public ITextSerializerFactory SerializerFactory => this.serializerFactory;
 
         public TypeMapper TypeMapper { get; }
     }

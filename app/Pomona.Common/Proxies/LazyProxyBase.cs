@@ -86,10 +86,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public bool IsLoaded
-        {
-            get { return ProxyTarget != null; }
-        }
+        public bool IsLoaded => ProxyTarget != null;
 
         public string Uri { get; private set; }
     }
