@@ -108,7 +108,7 @@ namespace Pomona.UnitTests.Client
         [SetUp]
         public virtual void SetUp()
         {
-            RequestTraceEnabled = true;
+            // RequestTraceEnabled = true;
             Repository.ResetTestData();
         }
 
