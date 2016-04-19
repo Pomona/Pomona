@@ -7,3 +7,10 @@ install:
 script:
  - xbuild Pomona.sln /property:Configuration="Debug" /verbosity:detailed
  - mono --debug --runtime=v4.0.30319 ./packages/NUnit.ConsoleRunner.3.2.0/tools/nunit3-console.exe ./tests/Pomona.UnitTests/bin/Debug/Pomona.UnitTests.dll ./tests/Pomona.SystemTests/bin/Debug/Pomona.SystemTests.dll --where "cat != TODO && cat != WindowsRequired"
+notifications:
+ 	webhooks:
+ 		urls:
+ 			- https://webhooks.gitter.im/e/69968ba595f0b6e7b7ee
+ 		on_success: change
+ 		on_failure: change
+ 		on_start: never
