@@ -19,7 +19,8 @@ namespace Pomona.UnitTests
         {
             var programFilesX86Path = Environment.GetEnvironmentVariable("ProgramFiles(x86)") ??
                                       Environment.GetEnvironmentVariable("ProgramFiles");
-            Assert.NotNull(programFilesX86Path);
+
+            Assert.That(programFilesX86Path, Is.Not.Null, "Program Files path is null");
 
             var peverifyPath = Path.Combine(programFilesX86Path,
                                             @"Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\PEVerify.exe");
