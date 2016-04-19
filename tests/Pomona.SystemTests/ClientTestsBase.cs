@@ -76,7 +76,7 @@ namespace Pomona.SystemTests
         {
             var callingStackFrame = new StackFrame(1);
             var callingMethod = callingStackFrame.GetMethod();
-            Assert.That(callingMethod.Name, Is.StringStarting("Query" + typeof(TEntity).Name));
+            Assert.That(callingMethod.Name, Does.StartWith("Query" + typeof(TEntity).Name));
 
             var allEntities = Repository.List<TEntity>();
             var entities =

@@ -86,7 +86,7 @@ namespace Pomona.UnitTests.Serialization.Json
                     this.deserializer.DeserializeString("\"blahrg\"", options : new DeserializeOptions() { ExpectedBaseType = typeof(bool) }));
 
             // This will wrap a JsonSerializationException for now.
-            Assert.That(ex.Message, Is.StringStarting("Error converting value \"blahrg\" to type 'System.Boolean'."));
+            Assert.That(ex.Message, Does.StartWith("Error converting value \"blahrg\" to type 'System.Boolean'."));
             Assert.That(ex.InnerException, Is.InstanceOf<JsonSerializationException>());
         }
 

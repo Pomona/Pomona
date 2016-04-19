@@ -118,12 +118,12 @@ namespace Pomona.SystemTests.Linq
                                     .FirstLazy();
             var beforeLoadUri = ((IHasResourceUri)lazyCritter).Uri;
             var predicate = $"$filter=id+eq+{randCritter.Id}";
-            Assert.That(beforeLoadUri, Is.StringContaining(predicate));
+            Assert.That(beforeLoadUri, Contains.Substring(predicate));
             Console.WriteLine(beforeLoadUri);
             // Should load uri when retrieving name
             var name = lazyCritter.Name;
             var afterLoadUri = ((IHasResourceUri)lazyCritter).Uri;
-            Assert.That(afterLoadUri, Is.Not.StringContaining(predicate));
+            Assert.That(afterLoadUri, Does.Not.Contain(predicate));
             Console.WriteLine(afterLoadUri);
             Assert.That(name, Is.EqualTo(expected.Name));
         }
@@ -345,7 +345,7 @@ namespace Pomona.SystemTests.Linq
 
             Console.WriteLine(exception);
 
-            Assert.That(exception.Message, Is.StringContaining("hat"));
+            Assert.That(exception.Message, Contains.Substring("hat"));
         }
 
 
@@ -393,7 +393,7 @@ namespace Pomona.SystemTests.Linq
                                                 .ToList();
 
             var exception = Assert.Throws<NotSupportedException>(throwing);
-            Assert.That(exception.Message, Is.StringContaining("OrderBy"));
+            Assert.That(exception.Message, Contains.Substring("OrderBy"));
         }
 
 
@@ -407,7 +407,7 @@ namespace Pomona.SystemTests.Linq
                                                 .ToList();
 
             var exception = Assert.Throws<NotSupportedException>(throwing);
-            Assert.That(exception.Message, Is.StringContaining("OrderBy"));
+            Assert.That(exception.Message, Contains.Substring("OrderBy"));
         }
 
 
@@ -420,7 +420,7 @@ namespace Pomona.SystemTests.Linq
                                                 .ToList();
 
             var exception = Assert.Throws<NotImplementedException>(throwing);
-            Assert.That(exception.Message, Is.StringContaining("comparer"));
+            Assert.That(exception.Message, Contains.Substring("comparer"));
         }
 
 
@@ -775,7 +775,7 @@ namespace Pomona.SystemTests.Linq
             var ex =
                 Assert.Throws<BadRequestException>(
                     () => Client.Critters.First(x => x.Id > 4 && x.IsNotAllowedInFilters == "haha"));
-            Assert.That(ex.Message, Is.StringContaining("isNotAllowedInFilters"));
+            Assert.That(ex.Message, Contains.Substring("isNotAllowedInFilters"));
         }
 
 
@@ -800,7 +800,7 @@ namespace Pomona.SystemTests.Linq
 
             var exception =
                 Assert.Throws<Common.Web.ResourceNotFoundException>(() => result.Weapons.Select(x => x.Id).ToArray());
-            Assert.That(exception.Uri, Is.StringContaining(""));
+            Assert.That(exception.Uri, Contains.Substring(""));
         }
 
 

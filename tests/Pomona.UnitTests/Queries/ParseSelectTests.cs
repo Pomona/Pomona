@@ -57,7 +57,7 @@ namespace Pomona.UnitTests.Queries
         }
 
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void TestFixtureSetUp()
         {
             // This is needed to get parser to use same anonymous types as those in expected expressions.

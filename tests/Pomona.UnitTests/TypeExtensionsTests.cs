@@ -73,7 +73,7 @@ namespace Pomona.UnitTests
                 Assert.Throws<MissingMethodException>(
                     () => type.GetConstructor(typeof(string), typeof(int)));
             Assert.That(exception.Message,
-                        Is.StringContaining("TheInheritedClass(System.String, System.Int32)"));
+                        Contains.Substring("TheInheritedClass(System.String, System.Int32)"));
         }
 
 
@@ -193,7 +193,7 @@ namespace Pomona.UnitTests
                 Assert.Throws<MissingMethodException>(
                     () => type.GetGenericInstanceMethod("GenericMethod", typeof(string), typeof(int)));
             Assert.That(exception.Message,
-                        Is.StringContaining("TheInheritedClass.GenericMethod<System.String, System.Int32>()"));
+                        Contains.Substring("TheInheritedClass.GenericMethod<System.String, System.Int32>()"));
         }
 
 
@@ -223,7 +223,7 @@ namespace Pomona.UnitTests
             var exception =
                 Assert.Throws<MissingMethodException>(
                     () => type.GetGenericInstanceMethod("NonExistingMethod", typeof(string)));
-            Assert.That(exception.Message, Is.StringContaining("TheInheritedClass.NonExistingMethod"));
+            Assert.That(exception.Message, Contains.Substring("TheInheritedClass.NonExistingMethod"));
         }
 
 

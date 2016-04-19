@@ -40,7 +40,7 @@ namespace Pomona.UnitTests.Documentation
                 LoadXmlDoc().GetSummary((PropertyInfo)ReflectionHelper.GetInstanceMemberInfo<Critter>(x => x.Name));
             Assert.That(summary, Is.InstanceOf<XDocContentContainer>());
             Assert.That(summary.Count, Is.EqualTo(1));
-            Assert.That(summary.First().ToString(), Is.StringContaining("Name of the critter!"));
+            Assert.That(summary.First().ToString(), Contains.Substring("Name of the critter!"));
         }
 
 
