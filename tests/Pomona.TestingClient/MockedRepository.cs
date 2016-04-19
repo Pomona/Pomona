@@ -132,7 +132,7 @@ namespace Pomona.TestingClient
         public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            var postForm = Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+            Client.TypeMapper.CreatePostForm(typeof(TSubResource));
 
             var resInfo = Client.GetResourceInfoForType(typeof(TSubResource));
             var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
@@ -153,7 +153,7 @@ namespace Pomona.TestingClient
             where TSubResource : class, TResource
             where TSubResponseResource : TPostReturnType
         {
-            var postForm = Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+            Client.TypeMapper.CreatePostForm(typeof(TSubResource));
 
             var resInfo = Client.GetResourceInfoForType(typeof(TSubResource));
             var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
