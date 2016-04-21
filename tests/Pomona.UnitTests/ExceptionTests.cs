@@ -63,7 +63,7 @@ namespace Pomona.UnitTests
 
         #region Setup/Teardown
 
-        [OneTimeSetUp]
+        [TestFixtureSetUp]
         public void FixtureSetUp()
         {
             var pomonaExceptions = typeof(UnknownTypeException).Assembly

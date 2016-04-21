@@ -48,7 +48,7 @@ namespace Pomona.NHibernate3.Tests
 
         #region Setup/Teardown
 
-        [OneTimeSetUp]
+        [TestFixtureSetUp]
         public void FixtureSetUp()
         {
             this.sessionFactory = Fluently.Configure()

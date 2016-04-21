@@ -56,7 +56,7 @@ namespace Pomona.UnitTests.Client
         public abstract TClient CreateInMemoryTestingClient(string baseUri, CritterBootstrapper critterBootstrapper);
 
 
-        [OneTimeSetUp]
+        [TestFixtureSetUp]
         public void FixtureSetUp()
         {
             if (UseSelfHostedHttpServer)
@@ -89,7 +89,7 @@ namespace Pomona.UnitTests.Client
         }
 
 
-        [OneTimeTearDown]
+        [TestFixtureTearDown]
         public void FixtureTearDown()
         {
             TeardownRequestCompletedHandler();
