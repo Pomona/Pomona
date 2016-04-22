@@ -107,7 +107,7 @@ namespace Pomona.SystemTests
         [Test]
         public void Query_SelectNullableIntegerInAnonymousType_IsSuccessful()
         {
-            var results = Client.Critters.Query().Select(x => new { theNull = (int?)null }).Take(1).ToList();
+            var results = Client.Critters.Query().Select(x => new { theNull = (int?)null, x.Id }).Take(1).ToList();
             Assert.That(results.Select(x => x.theNull), Is.EquivalentTo(new[] { (int?)null }));
         }
 
