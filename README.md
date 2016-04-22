@@ -13,9 +13,9 @@ as a RESTful web service.
 ## Build status
 ||Windows (AppVeyor)|Linux (Travis)|
 |:--:|:--:|:--:|
-|**develop**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/develop?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/develop)|TODO|
-|**master**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/master?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/master)|TODO|
-|**future**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/future?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/future)|TODO|
+|**develop**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/develop?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/develop)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=develop)](https://travis-ci.org/Pomona/Pomona)|
+|**master**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/master?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/master)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=master)](https://travis-ci.org/Pomona/Pomona)|
+|**future**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/future?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/future)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=future)](https://travis-ci.org/Pomona/Pomona)|
 
 
 ## Highlights

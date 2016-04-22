@@ -50,7 +50,7 @@ namespace Pomona.TestHelpers
 
             UriBuilder uri = new UriBuilder(assembly.CodeBase);
             string unescapeDataString = Uri.UnescapeDataString(uri.Path);
-            string assemblyPath = Path.GetFileName(unescapeDataString);
+            string assemblyPath = Path.GetFullPath(unescapeDataString);
 
             if (String.IsNullOrEmpty(assemblyPath))
             {
@@ -359,7 +359,9 @@ namespace Pomona.TestHelpers
 
         private static bool IsIgnoredPath(string directoryName)
         {
-            return directoryName.Contains("\\obj\\") || directoryName.Contains("\\bin\\");
+            var slash = Path.DirectorySeparatorChar;
+            return directoryName.Contains(slash + "obj" + slash)
+                || directoryName.Contains(slash + "bin" + slash);
         }
 
 
@@ -481,7 +483,7 @@ namespace Pomona.TestHelpers
                         assumedPackagePathStart.Length + 1);
                 var referencesGroupedByVersion =
                     ProjectXmlDocument.XPathSelectElements(xpathPredicate, nsManager).Select(
-                        x => new LibReference(this, assumedPackagePathStart, x, ns)).ToList().GroupBy(
+                        x => new LibReference(assumedPackagePathStart, x, ns)).ToList().GroupBy(
                             x => x.PathVersionPart).ToList();
                 if (referencesGroupedByVersion.Count == 0)
                 {
@@ -574,15 +576,8 @@ namespace Pomona.TestHelpers
 
             private class LibReference
             {
-                private readonly NugetPackageElement parent;
-
-
-                public LibReference(NugetPackageElement parent,
-                                    string hintPathBeforePrefix,
-                                    XElement element,
-                                    XNamespace ns)
+                public LibReference(string hintPathBeforePrefix, XElement element, XNamespace ns)
                 {
-                    this.parent = parent;
                     var hintPathElement = element.Descendants(ns + "HintPath").First();
                     HintPath = hintPathElement.Value;
                     PathVersionPart = HintPath.Substring(hintPathBeforePrefix.Length,

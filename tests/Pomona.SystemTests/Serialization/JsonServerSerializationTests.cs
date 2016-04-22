@@ -117,6 +117,7 @@ namespace Pomona.SystemTests.Serialization
 
 
         [Test]
+        [Category("WindowsRequired")]
         [Explicit("This is a performance test and should only be run when doing performance optimization")]
         public void Serialize_LargeAmountOfObjects()
         {

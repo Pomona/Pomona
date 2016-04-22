@@ -104,7 +104,8 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo", "concat(jalla,'boo')");
-            AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
+            var faafoo = "faafoo";
+            AssertBuild(x => x.Jalla + "boo" + faafoo, "concat(concat(jalla,'boo'),'faafoo')");
         }
 
 
