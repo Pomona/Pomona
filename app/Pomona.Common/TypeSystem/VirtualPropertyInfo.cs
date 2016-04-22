@@ -54,24 +54,15 @@ namespace Pomona.Common.TypeSystem
 
         public override PropertyAttributes Attributes { get; }
 
-        public override bool CanRead
-        {
-            get { return this.getMethod != null; }
-        }
+        public override bool CanRead => this.getMethod != null;
 
-        public override bool CanWrite
-        {
-            get { return this.setMethod != null; }
-        }
+        public override bool CanWrite => this.setMethod != null;
 
         public override Type DeclaringType { get; }
 
         public override int MetadataToken { get; }
 
-        public override Module Module
-        {
-            get { return GetType().Module; }
-        }
+        public override Module Module => GetType().Module;
 
         public override string Name { get; }
 
@@ -201,9 +192,8 @@ namespace Pomona.Common.TypeSystem
                                            string name,
                                            PropertyAttributes attributes)
         {
-            return string.Format("{0}:{1}:{2}:{3}:{4}:{5}:{6}", declaringType.AssemblyQualifiedName,
-                                 reflectedType.AssemblyQualifiedName, propertyType.AssemblyQualifiedName, readable,
-                                 writable, name, attributes);
+            return
+                $"{declaringType.AssemblyQualifiedName}:{reflectedType.AssemblyQualifiedName}:{propertyType.AssemblyQualifiedName}:{readable}:{writable}:{name}:{attributes}";
         }
     }
 }

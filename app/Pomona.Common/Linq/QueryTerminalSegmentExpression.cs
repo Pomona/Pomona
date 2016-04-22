@@ -25,10 +25,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override ReadOnlyCollection<object> Children
-        {
-            get { return new ReadOnlyCollection<object>(new object[] { this.value }); }
-        }
+        public override ReadOnlyCollection<object> Children => new ReadOnlyCollection<object>(new object[] { this.value });
 
 
         public override string ToString()

@@ -29,10 +29,7 @@ namespace Pomona.Common.Web
         }
 
 
-        public new TBody Body
-        {
-            get { return (TBody)base.Body; }
-        }
+        public new TBody Body => (TBody)base.Body;
     }
 
     [Serializable]

@@ -23,10 +23,7 @@ namespace Pomona.Common.ExtendedResources
 
         public ExtendedResourceInfo UserTypeInfo { get; }
 
-        public object WrappedResource
-        {
-            get { return this.wrappedList; }
-        }
+        public object WrappedResource => this.wrappedList;
 
         #region IList<T> Members
 
@@ -70,15 +67,9 @@ namespace Pomona.Common.ExtendedResources
             set { throw new NotImplementedException(); }
         }
 
-        public int Count
-        {
-            get { return this.wrappedList.Count; }
-        }
+        public int Count => this.wrappedList.Count;
 
-        public bool IsReadOnly
-        {
-            get { return ((IList<TExtended>)this.wrappedList).IsReadOnly; }
-        }
+        public bool IsReadOnly => ((IList<TExtended>)this.wrappedList).IsReadOnly;
 
 
         public void Add(TExtended item)

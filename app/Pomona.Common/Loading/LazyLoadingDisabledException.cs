@@ -32,7 +32,7 @@ namespace Pomona.Common.Loading
 
 
         internal LazyLoadingDisabledException(string resourcePath, LoadException innerException)
-            : base(String.Format("Unable to fetch {0}. Lazy loading is disabled.", resourcePath), innerException)
+            : base($"Unable to fetch {resourcePath}. Lazy loading is disabled.", innerException)
         {
         }
     }

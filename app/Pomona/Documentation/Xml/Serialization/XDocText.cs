@@ -23,9 +23,6 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public string Value
-        {
-            get { return ((XText)Node).Value; }
-        }
+        public string Value => ((XText)Node).Value;
     }
 }

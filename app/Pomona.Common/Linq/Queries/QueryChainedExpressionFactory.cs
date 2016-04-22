@@ -31,9 +31,7 @@ namespace Pomona.Common.Linq.Queries
                 if (methodField == null)
                 {
                     throw new InvalidOperationException(
-                        string.Format(
-                            "Unable to get default matching method for {0}, should exist a public static field Method of type MethodInfo declared on type.",
-                            GetType()));
+                        $"Unable to get default matching method for {GetType()}, should exist a public static field Method of type MethodInfo declared on type.");
                 }
                 MethodInfo method = (MethodInfo)methodField.GetValue(null);
                 if (method == null)
@@ -45,15 +43,9 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public virtual IEnumerable<MethodInfo> MappedMethods
-        {
-            get { return this.mappedMethods; }
-        }
+        public virtual IEnumerable<MethodInfo> MappedMethods => this.mappedMethods;
 
-        protected Func<MethodCallExpression, QueryExpression, TExpression> Constructor
-        {
-            get { return this.constructor ?? (this.constructor = FindConstructor()); }
-        }
+        protected Func<MethodCallExpression, QueryExpression, TExpression> Constructor => this.constructor ?? (this.constructor = FindConstructor());
 
 
         public override sealed bool TryWrapNode(Expression node, out QueryExpression wrapper)
@@ -91,11 +83,7 @@ namespace Pomona.Common.Linq.Queries
             if (ctor == null)
             {
                 throw new MissingMethodException(
-                    string.Format(
-                        "Unable to locate private constructor with signature .ctor({0}, {1}) on type {2}",
-                        paramTypes[0],
-                        paramTypes[1],
-                        typeof(TExpression)));
+                    $"Unable to locate private constructor with signature .ctor({paramTypes[0]}, {paramTypes[1]}) on type {typeof(TExpression)}");
             }
 
             var nodeParam = Expression.Parameter(paramTypes[0]);

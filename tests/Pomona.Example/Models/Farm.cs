@@ -21,10 +21,7 @@ namespace Pomona.Example.Models
 
         public List<Critter> Critters { get; set; }
 
-        public IEnumerable<MusicalCritter> MusicalCritters
-        {
-            get { return Critters.OfType<MusicalCritter>(); }
-        }
+        public IEnumerable<MusicalCritter> MusicalCritters => Critters.OfType<MusicalCritter>();
 
         public string Name { get; set; }
     }

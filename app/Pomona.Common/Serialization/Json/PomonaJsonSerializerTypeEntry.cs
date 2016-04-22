@@ -37,10 +37,7 @@ namespace Pomona.Common.Serialization.Json
         }
 
 
-        public IEnumerable<PropertySpec> ManuallyWrittenProperties
-        {
-            get { return this.manuallyWrittenProperties; }
-        }
+        public IEnumerable<PropertySpec> ManuallyWrittenProperties => this.manuallyWrittenProperties;
 
         public Action<JsonWriter, object, IContainer> WritePropertiesFunc { get; private set; }
 

@@ -44,10 +44,7 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public ResourceProperty ChildToParentProperty
-        {
-            get { return (ResourceProperty)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false); }
-        }
+        public ResourceProperty ChildToParentProperty => (ResourceProperty)this.type.GetPropertyByName(this.childToParentPropertyInfo.Name, false);
 
         public ResourceProperty ETagProperty
         {
@@ -58,30 +55,18 @@ namespace Pomona.Common.TypeSystem
 
         public bool IsSingleton { get; }
 
-        public ResourceType ParentResourceType
-        {
-            get { return ParentToChildProperty != null ? (ResourceType)ParentToChildProperty.DeclaringType : null; }
-        }
+        public ResourceType ParentResourceType => ParentToChildProperty != null ? (ResourceType)ParentToChildProperty.DeclaringType : null;
 
-        public ResourceProperty ParentToChildProperty
-        {
-            get
-            {
-                return this.parentToChildPropertyInfo != null
-                    ? (ResourceProperty)
-                        this.type.TypeResolver.FromType(this.parentToChildPropertyInfo.DeclaringType).GetPropertyByName(
-                            this.parentToChildPropertyInfo.Name,
-                            false)
-                    : null;
-            }
-        }
+        public ResourceProperty ParentToChildProperty => this.parentToChildPropertyInfo != null
+            ? (ResourceProperty)
+                this.type.TypeResolver.FromType(this.parentToChildPropertyInfo.DeclaringType).GetPropertyByName(
+                    this.parentToChildPropertyInfo.Name,
+                    false)
+            : null;
 
         public string PluralName { get; }
 
-        public StructuredType PostReturnType
-        {
-            get { return (StructuredType)this.type.TypeResolver.FromType(this.postReturnType); }
-        }
+        public StructuredType PostReturnType => (StructuredType)this.type.TypeResolver.FromType(this.postReturnType);
 
         public IEnumerable<Type> ResourceHandlers { get; }
 

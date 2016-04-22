@@ -136,9 +136,6 @@ namespace Pomona.Queries
         {
             var arrayElements = node.Children.Select(x => ParseExpression(x, this.thisParam, expectedElementType)).ToList();
 
-            if (arrayElements.Count == 0 && expectedElementType == null)
-                throw new NotSupportedException("Does not support empty arrays.");
-
             var elementType = expectedElementType ?? typeof(object);
 
             // TODO: Check that all array members are of same type
@@ -641,10 +638,7 @@ namespace Pomona.Queries
                 if (methodParameters.Length != reorderedArgs.Count - argArrayOffset)
                 {
                     var message =
-                        string.Format(
-                            "Number parameters count ({0}) for method {1}.{2} does not match provided argument count ({3})",
-                            methodParameters.Length, method.DeclaringType.FullName, method.Name,
-                            (reorderedArgs.Count - argArrayOffset));
+                        $"Number parameters count ({methodParameters.Length}) for method {method.DeclaringType.FullName}.{method.Name} does not match provided argument count ({(reorderedArgs.Count - argArrayOffset)})";
                     throw CreateParseException(node, message);
                 }
 

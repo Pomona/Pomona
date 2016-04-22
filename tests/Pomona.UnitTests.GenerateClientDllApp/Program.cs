@@ -25,16 +25,48 @@ namespace Pomona.UnitTests.GenerateClientDllApp
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        public static void Main(string[] args)
         {
             // Modify property Protected of class Critter to not be protected in client dll.
             // This is to test setting a protected property will throw exception on server.
 
-            WriteClientLibrary(@"../../../../lib/Critters.Client.dll", new TypeMapper(new ModifiedCritterPomonaConfiguration()));
-            WriteClientLibrary(@"../../../../lib/Extra.Client.dll", new TypeMapper(new SimplePomonaConfiguration()));
-            WriteClientLibrary(@"../../../../lib/IndependentCritters.dll", new TypeMapper(new IndependentClientDllConfiguration()));
+            var libDirectory = GetLibDirectory(args);
+            int result;
 
-            Console.WriteLine("Wrote client dlls.");
+            if (libDirectory == null)
+                result = 1;
+            else
+            {
+                result = WriteClientLibrary(Path.Combine(libDirectory, "Critters.Client.dll"),
+                                            new TypeMapper(new ModifiedCritterPomonaConfiguration()));
+                result |= WriteClientLibrary(Path.Combine(libDirectory, "Extra.Client.dll"),
+                                             new TypeMapper(new SimplePomonaConfiguration()));
+                result |= WriteClientLibrary(Path.Combine(libDirectory, "IndependentCritters.dll"),
+                                             new TypeMapper(new IndependentClientDllConfiguration()));
+            }
+
+            if (result != 0)
+                Environment.Exit(result);
+
+            Console.WriteLine("Wrote client DLL files.");
+        }
+
+
+        private static string GetLibDirectory(string[] args)
+        {
+            try
+            {
+                var solutionDir = args.FirstOrDefault();
+                if (solutionDir == null || !Directory.Exists(solutionDir))
+                    throw new DirectoryNotFoundException($"Solution directory '{solutionDir}' not found");
+
+                return Path.Combine(solutionDir, "lib");
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                return null;
+            }
         }
 
 
@@ -63,32 +95,39 @@ namespace Pomona.UnitTests.GenerateClientDllApp
         }
 
 
-        private static void WriteClientLibrary(string dllName, TypeMapper typeMapper)
+        private static int WriteClientLibrary(string dllName, TypeMapper typeMapper)
         {
-            dllName = Path.GetFullPath(dllName);
-            Console.WriteLine("Writing dll to {0}", dllName);
-            var xmlDocName = Path.Combine(Path.GetDirectoryName(dllName), Path.GetFileNameWithoutExtension(dllName) + ".xml");
-
-            // Avoid modifying existing xml doc file while Visual studio is reading it.
-            if (File.Exists(xmlDocName))
-                File.Delete(xmlDocName);
-            using (var file = new FileStream(dllName, FileMode.OpenOrCreate))
+            try
             {
-                if (!dllName.EndsWith(".dll"))
-                    throw new ArgumentException("Filename should end with .dll");
-                ClientLibGenerator.WriteClientLibrary(typeMapper, file, xmlDocStreamFactory : () => File.OpenWrite(xmlDocName),
-                                                      assemblyTransformHook : TransformAssemblyHook);
+                dllName = Path.GetFullPath(dllName);
+                Console.WriteLine("Writing DLL to {0}", dllName);
+                var xmlDocName = Path.Combine(Path.GetDirectoryName(dllName), Path.GetFileNameWithoutExtension(dllName) + ".xml");
+
+                // Avoid modifying existing xml doc file while Visual studio is reading it.
+                if (File.Exists(xmlDocName))
+                    File.Delete(xmlDocName);
+                using (var file = new FileStream(dllName, FileMode.OpenOrCreate))
+                {
+                    if (!dllName.EndsWith(".dll"))
+                        throw new ArgumentException("Filename should end with .dll");
+                    ClientLibGenerator.WriteClientLibrary(typeMapper, file, xmlDocStreamFactory : () => File.OpenWrite(xmlDocName),
+                                                          assemblyTransformHook : TransformAssemblyHook);
+                }
             }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                return 1;
+            }
+
+            return 0;
         }
 
         #region Nested type: IndependentClientDllConfiguration
 
         private class IndependentClientDllConfiguration : ModifiedCritterPomonaConfiguration
         {
-            public override ITypeMappingFilter TypeMappingFilter
-            {
-                get { return new IndependentClientDllTypeMappingFilter(SourceTypes); }
-            }
+            public override ITypeMappingFilter TypeMappingFilter => new IndependentClientDllTypeMappingFilter(SourceTypes);
 
             #region Nested type: IndependentClientDllTypeMappingFilter
 
@@ -100,10 +139,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
                 }
 
 
-                public override ClientMetadata ClientMetadata
-                {
-                    get { return base.ClientMetadata.With("IndependentCritters"); }
-                }
+                public override ClientMetadata ClientMetadata => base.ClientMetadata.With("IndependentCritters");
 
 
                 public override bool GenerateIndependentClient()
@@ -127,10 +163,7 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             }
 
 
-            public override IEnumerable<object> FluentRuleObjects
-            {
-                get { return base.FluentRuleObjects.Append(new ModifiedFluentRules()); }
-            }
+            public override IEnumerable<object> FluentRuleObjects => base.FluentRuleObjects.Append(new ModifiedFluentRules());
 
             public override ITypeMappingFilter TypeMappingFilter { get; }
         }

@@ -38,39 +38,21 @@ namespace Pomona.Routing
         public abstract HttpMethod AllowedMethods { get; }
         public abstract TypeSpec InputType { get; }
 
-        public bool IsRoot
-        {
-            get { return Parent == null; }
-        }
+        public bool IsRoot => Parent == null;
 
-        public virtual bool IsSingle
-        {
-            get { return !(ResultType is EnumerableTypeSpec); }
-        }
+        public virtual bool IsSingle => !(ResultType is EnumerableTypeSpec);
 
-        public PathNodeType NodeType
-        {
-            get
-            {
-                return ResultType.IsCollection
-                    ? PathNodeType.Collection
-                    : ((ResultItemType is ResourceType) ? PathNodeType.Resource : PathNodeType.Custom);
-            }
-        }
+        public PathNodeType NodeType => ResultType.IsCollection
+            ? PathNodeType.Collection
+            : ((ResultItemType is ResourceType) ? PathNodeType.Resource : PathNodeType.Custom);
 
         public int Priority { get; }
 
-        public virtual TypeSpec ResultItemType
-        {
-            get { return ResultType.GetItemType(); }
-        }
+        public virtual TypeSpec ResultItemType => ResultType.GetItemType();
 
         public abstract TypeSpec ResultType { get; }
 
-        private ReadOnlyDictionary<string, IEnumerable<Route>> LiteralRouteMap
-        {
-            get { return this.literalRouteMap.Value; }
-        }
+        private ReadOnlyDictionary<string, IEnumerable<Route>> LiteralRouteMap => this.literalRouteMap.Value;
 
 
         public IEnumerable<Route> MatchChildren(string pathSegment)
@@ -118,10 +100,7 @@ namespace Pomona.Routing
         }
 
 
-        public IEnumerable<Route> Children
-        {
-            get { return this.childrenSortedByPriority.Value; }
-        }
+        public IEnumerable<Route> Children => this.childrenSortedByPriority.Value;
 
         public Route Parent { get; }
     }

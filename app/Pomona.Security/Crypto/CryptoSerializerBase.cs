@@ -36,10 +36,7 @@ namespace Pomona.Security.Crypto
         }
 
 
-        private byte[] KeyBytes
-        {
-            get { return this.siteKeyProvider.SiteKey; }
-        }
+        private byte[] KeyBytes => this.siteKeyProvider.SiteKey;
 
 
         protected virtual SymmetricAlgorithm CreateSymmetricalAlgorithm()

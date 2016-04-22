@@ -22,10 +22,7 @@ namespace Pomona.UnitTests
     [TestFixture]
     public class SolutionTests
     {
-        private static string SolutionDirectory
-        {
-            get { return Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>()); }
-        }
+        private static string SolutionDirectory => Path.GetDirectoryName(SolutionTestsHelper.FindSolutionPathOf<SolutionTests>());
 
 
         [Ignore("Does not support C# 6, must be reimplemented using roslyn")]

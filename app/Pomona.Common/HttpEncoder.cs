@@ -114,7 +114,7 @@ namespace Pomona.Common
                 ch = input[i];
 
                 if ((ch < 32 && ch != 9) || ch == 127)
-                    StringBuilderAppend(String.Format("%{0:x2}", (int)ch), ref sb);
+                    StringBuilderAppend($"%{(int)ch:x2}", ref sb);
             }
 
             if (sb != null)

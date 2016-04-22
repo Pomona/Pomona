@@ -11,9 +11,6 @@ namespace Pomona.Example.Models.Existence
 {
     public class DwarfPlanet : Planemo
     {
-        public ICollection<DwarfMoon> Moons
-        {
-            get { return new List<DwarfMoon>(); }
-        }
+        public ICollection<DwarfMoon> Moons => new List<DwarfMoon>();
     }
 }

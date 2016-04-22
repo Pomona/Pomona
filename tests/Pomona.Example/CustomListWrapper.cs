@@ -22,15 +22,9 @@ namespace Pomona.Example
             set { this.wrappedList[index] = value; }
         }
 
-        public int Count
-        {
-            get { return this.wrappedList.Count; }
-        }
+        public int Count => this.wrappedList.Count;
 
-        public bool IsReadOnly
-        {
-            get { return ((IList<T>)this.wrappedList).IsReadOnly; }
-        }
+        public bool IsReadOnly => ((IList<T>)this.wrappedList).IsReadOnly;
 
 
         public void Add(T item)

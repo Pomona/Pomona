@@ -29,10 +29,7 @@ namespace Pomona.SystemTests
     {
         protected List<ClientRequestLogEventArgs> RequestLog { get; } = new List<ClientRequestLogEventArgs>();
 
-        protected IWebClient WebClient
-        {
-            get { return Client.WebClient; }
-        }
+        protected IWebClient WebClient => Client.WebClient;
 
 
         public override CritterClient CreateHttpTestingClient(string baseUri)

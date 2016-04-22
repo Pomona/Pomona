@@ -88,15 +88,9 @@ namespace Pomona.TestingClient
         }
 
 
-        public Type ElementType
-        {
-            get { return typeof(TResource); }
-        }
+        public Type ElementType => typeof(TResource);
 
-        public Expression Expression
-        {
-            get { return Expression.Constant(Client.Query<TResource>()); }
-        }
+        public Expression Expression => Expression.Constant(Client.Query<TResource>());
 
 
         public IEnumerator<TResource> GetEnumerator()
@@ -138,7 +132,7 @@ namespace Pomona.TestingClient
         public virtual TPostReturnType Post<TSubResource>(Action<TSubResource> postAction)
             where TSubResource : class, TResource
         {
-            var postForm = Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+            Client.TypeMapper.CreatePostForm(typeof(TSubResource));
 
             var resInfo = Client.GetResourceInfoForType(typeof(TSubResource));
             var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
@@ -159,7 +153,7 @@ namespace Pomona.TestingClient
             where TSubResource : class, TResource
             where TSubResponseResource : TPostReturnType
         {
-            var postForm = Client.TypeMapper.CreatePostForm(typeof(TSubResource));
+            Client.TypeMapper.CreatePostForm(typeof(TSubResource));
 
             var resInfo = Client.GetResourceInfoForType(typeof(TSubResource));
             var form = (TSubResource)Activator.CreateInstance(resInfo.PostFormType);
@@ -199,10 +193,7 @@ namespace Pomona.TestingClient
         }
 
 
-        public IQueryProvider Provider
-        {
-            get { return Client.Query<TResource>().Provider; }
-        }
+        public IQueryProvider Provider => Client.Query<TResource>().Provider;
 
 
         public virtual IQueryable<TResource> Query()

@@ -75,15 +75,9 @@ namespace Pomona.CodeGen
 
         public XDoc XDoc { get; } = new XDoc();
 
-        private TypeReference StringTypeRef
-        {
-            get { return Import(typeof(string)); }
-        }
+        private TypeReference StringTypeRef => Import(typeof(string));
 
-        private TypeReference VoidTypeRef
-        {
-            get { return Import(typeof(void)); }
-        }
+        private TypeReference VoidTypeRef => Import(typeof(void));
 
 
         public void CreateClientDll(Stream stream,
@@ -1142,9 +1136,7 @@ namespace Pomona.CodeGen
                 if (!this.enumClientTypeDict.TryGetValue(enumType, out typeRef))
                 {
                     throw new InvalidOperationException(
-                        String.Format(
-                            "Generated property has a reference to {0}, but has probably not been included in SourceTypes.",
-                            enumType.Type.FullName));
+                        $"Generated property has a reference to {enumType.Type.FullName}, but has probably not been included in SourceTypes.");
                 }
             }
             else if (transformedType != null)
@@ -1383,8 +1375,7 @@ namespace Pomona.CodeGen
                             && resourceType.ParentToChildProperty.ExposedAsRepository))
                     {
                         CustomRepositoryInterface = new TypeDefinition(parent.@namespace,
-                                                                       String.Format("I{0}Repository",
-                                                                                     structuredType.Name),
+                                                                       $"I{structuredType.Name}Repository",
                                                                        TypeAttributes.Interface
                                                                        | TypeAttributes.Public
                                                                        | TypeAttributes.Abstract);
@@ -1455,15 +1446,9 @@ namespace Pomona.CodeGen
 
             public TypeDefinition BaseType { get; set; }
 
-            public TypeDefinition CustomRepositoryBaseTypeDefinition
-            {
-                get { return this.customRepositoryBaseTypeDefinition.Value; }
-            }
+            public TypeDefinition CustomRepositoryBaseTypeDefinition => this.customRepositoryBaseTypeDefinition.Value;
 
-            public GenericInstanceType CustomRepositoryBaseTypeReference
-            {
-                get { return (GenericInstanceType)this.customRepositoryBaseTypeReference.Value; }
-            }
+            public GenericInstanceType CustomRepositoryBaseTypeReference => (GenericInstanceType)this.customRepositoryBaseTypeReference.Value;
 
             public TypeDefinition CustomRepositoryInterface { get; }
 
@@ -1476,21 +1461,11 @@ namespace Pomona.CodeGen
             public TypeDefinition PocoType { get; set; }
             public TypeDefinition PostFormType { get; set; }
 
-            public TypeReference PostReturnTypeReference
-            {
-                get { return this.postReturnTypeReference.Value; }
-            }
+            public TypeReference PostReturnTypeReference => this.postReturnTypeReference.Value;
 
-            public TypeReference PrimaryIdTypeReference
-            {
-                get
-                {
-                    return
-                        this.parent.Import(StructuredType.PrimaryId != null
-                            ? StructuredType.PrimaryId.PropertyType
-                            : typeof(object));
-                }
-            }
+            public TypeReference PrimaryIdTypeReference => this.parent.Import(StructuredType.PrimaryId != null
+                ? StructuredType.PrimaryId.PropertyType
+                : typeof(object));
 
             public StructuredType StructuredType { get; }
 

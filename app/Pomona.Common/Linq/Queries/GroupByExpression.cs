@@ -28,15 +28,9 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new GroupByFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new GroupByFactory());
 
-        public LambdaExpression KeySelector
-        {
-            get { return (LambdaExpression)((UnaryExpression)Arguments[1]).Operand; }
-        }
+        public LambdaExpression KeySelector => (LambdaExpression)((UnaryExpression)Arguments[1]).Operand;
 
 
         public static GroupByExpression Create(QueryExpression source, LambdaExpression keySelector)

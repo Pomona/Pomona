@@ -50,9 +50,7 @@ namespace Pomona.CodeGen
 
             if (constructor == null)
             {
-                var message = String.Format("Could not find the constructor {0}({1}).",
-                                            propWrapperTypeDef,
-                                            Module.TypeSystem.String.FullName);
+                var message = $"Could not find the constructor {propWrapperTypeDef}({Module.TypeSystem.String.FullName}).";
                 throw new InvalidOperationException(message);
             }
 
@@ -81,8 +79,7 @@ namespace Pomona.CodeGen
             var onGetMethod = baseDef.Methods.FirstOrDefault(x => x.Name == "OnGet");
             if (onGetMethod == null || onGetMethod.GenericParameters.Count != 2)
             {
-                var message = String.Format("Could not find the method {0}.OnGet<{1}, {2}>().", baseDef, proxyTargetType,
-                                            proxyProp.PropertyType);
+                var message = $"Could not find the method {baseDef}.OnGet<{proxyTargetType}, {proxyProp.PropertyType}>().";
                 throw new InvalidOperationException(message);
             }
 
@@ -94,8 +91,7 @@ namespace Pomona.CodeGen
             var onSetMethod = baseDef.Methods.FirstOrDefault(x => x.Name == "OnSet");
             if (onSetMethod == null || onSetMethod.GenericParameters.Count != 2)
             {
-                var message = String.Format("Could not find the method {0}.OnSet<{1}, {2}>().", baseDef, proxyTargetType,
-                                            proxyProp.PropertyType);
+                var message = $"Could not find the method {baseDef}.OnSet<{proxyTargetType}, {proxyProp.PropertyType}>().";
                 throw new InvalidOperationException(message);
             }
 

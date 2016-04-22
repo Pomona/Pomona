@@ -39,10 +39,7 @@ namespace Pomona
         }
 
 
-        public new T Entity
-        {
-            get { return (T)base.Entity; }
-        }
+        public new T Entity => (T)base.Entity;
     }
 
     public class PomonaResponse

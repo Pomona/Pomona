@@ -12,19 +12,10 @@ namespace Pomona.Example.SimpleExtraSite
 {
     public class SimplePomonaConfiguration : PomonaConfigurationBase
     {
-        public override IEnumerable<Type> SourceTypes
-        {
-            get { return new[] { typeof(SimpleExtraData) }; }
-        }
+        public override IEnumerable<Type> SourceTypes => new[] { typeof(SimpleExtraData) };
 
-        public override ITypeMappingFilter TypeMappingFilter
-        {
-            get { return new SimpleTypeMappingFilter(SourceTypes); }
-        }
+        public override ITypeMappingFilter TypeMappingFilter => new SimpleTypeMappingFilter(SourceTypes);
 
-        protected override Type DataSource
-        {
-            get { return typeof(SimpleDataSource); }
-        }
+        protected override Type DataSource => typeof(SimpleDataSource);
     }
 }

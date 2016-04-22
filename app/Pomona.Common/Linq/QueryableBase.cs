@@ -35,10 +35,7 @@ namespace Pomona.Common.Linq
 
         public abstract IQueryProvider Provider { get; }
 
-        Type IQueryable.ElementType
-        {
-            get { return typeof(T); }
-        }
+        Type IQueryable.ElementType => typeof(T);
 
 
         IEnumerator IEnumerable.GetEnumerator()

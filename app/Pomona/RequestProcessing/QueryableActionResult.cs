@@ -26,18 +26,12 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public Type ResultType
-        {
-            get { return typeof(TResult); }
-        }
+        public Type ResultType => typeof(TResult);
 
         public int? DefaultPageSize { get; private set; }
 
         public QueryProjection Projection { get; }
 
-        public IQueryable WrappedQueryable
-        {
-            get { return InnerQueryable; }
-        }
+        public IQueryable WrappedQueryable => InnerQueryable;
     }
 }

@@ -31,29 +31,17 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public IEnumerable<Attribute> Attributes
-        {
-            get { return DeclaredAttributes.Concat(InheritedAttributes); }
-        }
+        public IEnumerable<Attribute> Attributes => DeclaredAttributes.Concat(InheritedAttributes);
 
-        public ReadOnlyCollection<Attribute> DeclaredAttributes
-        {
-            get { return this.declaredAttributes.Value; }
-        }
+        public ReadOnlyCollection<Attribute> DeclaredAttributes => this.declaredAttributes.Value;
 
         public abstract IEnumerable<Attribute> InheritedAttributes { get; }
 
         public MemberInfo Member { get; }
 
-        public string Name
-        {
-            get { return this.name.Value; }
-        }
+        public string Name => this.name.Value;
 
-        public UniqueMemberToken Token
-        {
-            get { return Member.UniqueToken(); }
-        }
+        public UniqueMemberToken Token => Member.UniqueToken();
 
         public ITypeResolver TypeResolver { get; }
 

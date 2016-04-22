@@ -126,7 +126,7 @@ namespace Pomona.UnitTests.Queries
         {
             var dateTimeString = "2000-12-12T12:00";
             var expectedTime = DateTime.Parse(dateTimeString);
-            var expr = this.parser.Parse<Dummy>(string.Format("Time eq datetime'{0}'", dateTimeString));
+            var expr = this.parser.Parse<Dummy>($"Time eq datetime'{dateTimeString}'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftTimeConstant = AssertIsConstant<DateTime>(binExpr.Right);
             Assert.That(leftTimeConstant, Is.EqualTo(expectedTime));
@@ -153,7 +153,7 @@ namespace Pomona.UnitTests.Queries
         public void Parse_ExpressionAccessingPropertyNotAllowedInExpression_ThrowsExceptionWithUsefulMessage()
         {
             var exception = Assert.Throws<QueryParseException>(() => this.parser.Parse<Dummy>("isNotAllowedInQueries eq 'blah'"));
-            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+            Assert.That(exception.Message.Replace("\r", ""), Contains.Substring(
                 @"Error on line 1 character 0 of query:
 |/
 isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
@@ -166,7 +166,7 @@ isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
         public void Parse_ExpressionWithGrammarError_ThrowsExceptionWithUsefulMessage()
         {
             var exception = Assert.Throws<QueryParseException>(() => this.parser.Parse<Dummy>("name eo 'blah'"));
-            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+            Assert.That(exception.Message.Replace("\r", ""), Contains.Substring(
                 @"Error on line 1 character 5 of query:
      |/
 name eo 'blah'".Replace("\r", "")));
@@ -177,7 +177,7 @@ name eo 'blah'".Replace("\r", "")));
         public void Parse_GuidConstant_CreatesCorrectExpression()
         {
             var guid = Guid.NewGuid();
-            var expr = this.parser.Parse<Dummy>(string.Format("Guid eq guid'{0}'", guid));
+            var expr = this.parser.Parse<Dummy>($"Guid eq guid'{guid}'");
             var binExpr = AssertCast<BinaryExpression>(expr.Body);
             var leftGuidConstant = AssertIsConstant<Guid>(binExpr.Right);
             Assert.That(leftGuidConstant, Is.EqualTo(guid));
@@ -188,7 +188,7 @@ name eo 'blah'".Replace("\r", "")));
         public void Parse_MultiLineExpressionWithGrammarError_ThrowsExceptionWithUsefulMessage()
         {
             var exception = Assert.Throws<QueryParseException>(() => this.parser.Parse<Dummy>("name  \r\n  eo 'blah'"));
-            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+            Assert.That(exception.Message.Replace("\r", ""), Contains.Substring(
                 @"Error on line 2 character 2 of query:
   |/
   eo 'blah'".Replace("\r", "")));

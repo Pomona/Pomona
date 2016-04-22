@@ -54,10 +54,7 @@ namespace Pomona.Common.Internals
         }
 
 
-        public int Count
-        {
-            get { return Inner.Count; }
-        }
+        public int Count => Inner.Count;
 
 
         public IEnumerator<TOuter> GetEnumerator()
@@ -66,10 +63,7 @@ namespace Pomona.Common.Internals
         }
 
 
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
+        public bool IsReadOnly => true;
 
 
         public bool Remove(TOuter item)

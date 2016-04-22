@@ -44,10 +44,7 @@ namespace Pomona.Common.ExtendedResources
 
         internal Type DictValueType { get; }
 
-        internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties
-        {
-            get { return this.extendedProperties.Value; }
-        }
+        internal ReadOnlyCollection<ExtendedProperty> ExtendedProperties => this.extendedProperties.Value;
 
 
         internal void Validate()
@@ -99,15 +96,13 @@ namespace Pomona.Common.ExtendedResources
                     return ExtendedAttributeProperty.Create(extendedProp, this);
                 else
                 {
-                    var message = string.Format(
-                        "Unable to map property {0} of type {1} to underlying dictionary property {2} of {3}. Only nullable value types can be mapped to a dictionary.",
-                        extendedProp.Name, ExtendedType.FullName, DictProperty.Name, ServerType.FullName);
+                    var message =
+                        $"Unable to map property {extendedProp.Name} of type {ExtendedType.FullName} to underlying dictionary property {DictProperty.Name} of {ServerType.FullName}. Only nullable value types can be mapped to a dictionary.";
                     return new InvalidExtendedProperty(extendedProp, message);
                 }
             }
-            return new InvalidExtendedProperty(extendedProp, string.Format(
-                "Unable to map property {0} of type {1} to any underlying dictionary property having a [ResourceAttributesProperty] on {2}.",
-                extendedProp.Name, ExtendedType.FullName, ServerType.FullName));
+            return new InvalidExtendedProperty(extendedProp,
+                                               $"Unable to map property {extendedProp.Name} of type {ExtendedType.FullName} to any underlying dictionary property having a [ResourceAttributesProperty] on {ServerType.FullName}.");
         }
     }
 }

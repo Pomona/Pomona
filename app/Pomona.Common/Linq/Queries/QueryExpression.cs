@@ -34,10 +34,7 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public override bool CanReduce
-        {
-            get { return true; }
-        }
+        public override bool CanReduce => true;
 
         public Type ElementType
         {
@@ -52,15 +49,9 @@ namespace Pomona.Common.Linq.Queries
 
         public Expression Node { get; }
 
-        public override ExpressionType NodeType
-        {
-            get { return ExpressionType.Extension; }
-        }
+        public override ExpressionType NodeType => ExpressionType.Extension;
 
-        public override Type Type
-        {
-            get { return Node.Type; }
-        }
+        public override Type Type => Node.Type;
 
         private static List<Type> QueryExpressionTypes
         {

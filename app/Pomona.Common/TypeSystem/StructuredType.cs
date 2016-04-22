@@ -31,75 +31,33 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public virtual HttpMethod AllowedMethods
-        {
-            get { return StructuredTypeDetails.AllowedMethods; }
-        }
+        public virtual HttpMethod AllowedMethods => StructuredTypeDetails.AllowedMethods;
 
-        public bool DeleteAllowed
-        {
-            get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete); }
-        }
+        public bool DeleteAllowed => StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Delete);
 
-        public override bool IsAbstract
-        {
-            get { return StructuredTypeDetails.IsAbstract; }
-        }
+        public override bool IsAbstract => StructuredTypeDetails.IsAbstract;
 
-        public override bool IsAlwaysExpanded
-        {
-            get { return StructuredTypeDetails.AlwaysExpand; }
-        }
+        public override bool IsAlwaysExpanded => StructuredTypeDetails.AlwaysExpand;
 
-        public bool MappedAsValueObject
-        {
-            get { return StructuredTypeDetails.MappedAsValueObject; }
-        }
+        public bool MappedAsValueObject => StructuredTypeDetails.MappedAsValueObject;
 
-        public Action<object> OnDeserialized
-        {
-            get { return StructuredTypeDetails.OnDeserialized; }
-        }
+        public Action<object> OnDeserialized => StructuredTypeDetails.OnDeserialized;
 
-        public bool PatchAllowed
-        {
-            get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch); }
-        }
+        public bool PatchAllowed => StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Patch);
 
-        public bool PostAllowed
-        {
-            get { return StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post); }
-        }
+        public bool PostAllowed => StructuredTypeDetails.AllowedMethods.HasFlag(HttpMethod.Post);
 
-        public virtual StructuredProperty PrimaryId
-        {
-            get { return StructuredTypeDetails.PrimaryId; }
-        }
+        public virtual StructuredProperty PrimaryId => StructuredTypeDetails.PrimaryId;
 
-        public new virtual IEnumerable<StructuredProperty> Properties
-        {
-            get { return base.Properties.Cast<StructuredProperty>(); }
-        }
+        public new virtual IEnumerable<StructuredProperty> Properties => base.Properties.Cast<StructuredProperty>();
 
-        public virtual ResourceInfoAttribute ResourceInfo
-        {
-            get { return DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault(); }
-        }
+        public virtual ResourceInfoAttribute ResourceInfo => DeclaredAttributes.OfType<ResourceInfoAttribute>().FirstOrDefault();
 
-        public IEnumerable<StructuredType> SubTypes
-        {
-            get { return this.subTypes.Value; }
-        }
+        public IEnumerable<StructuredType> SubTypes => this.subTypes.Value;
 
-        public new IResourceTypeResolver TypeResolver
-        {
-            get { return (IResourceTypeResolver)(((TypeSpec)this).TypeResolver); }
-        }
+        public new IResourceTypeResolver TypeResolver => (IResourceTypeResolver)(((TypeSpec)this).TypeResolver);
 
-        protected StructuredTypeDetails StructuredTypeDetails
-        {
-            get { return this.structuredTypeDetails.Value; }
-        }
+        protected StructuredTypeDetails StructuredTypeDetails => this.structuredTypeDetails.Value;
 
 
         public override object Create(IConstructorPropertySource propertySource)

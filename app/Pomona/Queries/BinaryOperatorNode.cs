@@ -20,20 +20,14 @@ namespace Pomona.Queries
         }
 
 
-        public NodeBase Left
-        {
-            get { return Children[0]; }
-        }
+        public NodeBase Left => Children[0];
 
-        public NodeBase Right
-        {
-            get { return Children[1]; }
-        }
+        public NodeBase Right => Children[1];
 
 
         public override string ToString()
         {
-            return string.Format("({0} {1} {2})", Left, NodeType, Right);
+            return $"({Left} {NodeType} {Right})";
         }
     }
 }

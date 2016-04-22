@@ -30,10 +30,7 @@ namespace Pomona.RequestProcessing
 
         public HandlerMethod Method { get; }
 
-        public IList<HandlerParameter> Parameters
-        {
-            get { return Method.Parameters; }
-        }
+        public IList<HandlerParameter> Parameters => Method.Parameters;
 
 
         public override bool CanProcess(PomonaContext context)
@@ -76,11 +73,7 @@ namespace Pomona.RequestProcessing
             }
             throw new HandlerMethodInvocationException(context,
                                                        this,
-                                                       string.Format(
-                                                           "Unable to invoke handler {0}.{1}, don't know how to provide value for parameter {2}",
-                                                           Method.MethodInfo.ReflectedType,
-                                                           Method.Name,
-                                                           parameter.Name),
+                                                       $"Unable to invoke handler {Method.MethodInfo.ReflectedType}.{Method.Name}, don't know how to provide value for parameter {parameter.Name}",
                                                        innerEx);
         }
 
@@ -127,9 +120,6 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public Type ReturnType
-        {
-            get { return Method.ReturnType; }
-        }
+        public Type ReturnType => Method.ReturnType;
     }
 }

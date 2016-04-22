@@ -21,7 +21,7 @@ namespace Pomona.Common.Proxies
 
         public override string ToString()
         {
-            return string.Format("{0}({1}) - {2}", GetType().Name, Uri, IsLoaded ? "loaded" : "not loaded");
+            return $"{GetType().Name}({Uri}) - {(IsLoaded ? "loaded" : "not loaded")}";
         }
 
 
@@ -30,7 +30,7 @@ namespace Pomona.Common.Proxies
             if (Client == null)
             {
                 throw new InvalidOperationException(
-                    String.Format("{0}.Initialize(IResourceFetchContext) must be invoked before OnGet.", this));
+                    $"{this}.Initialize(IResourceFetchContext) must be invoked before OnGet.");
             }
 
             try
@@ -49,8 +49,7 @@ namespace Pomona.Common.Proxies
 
         protected void OnSet<TOwner, TPropType>(PropertyWrapper<TOwner, TPropType> property, TPropType value)
         {
-            throw new InvalidOperationException(String.Format("{0} is just a proxy. Use Patch to modify a resource.",
-                                                              property));
+            throw new InvalidOperationException($"{property} is just a proxy. Use Patch to modify a resource.");
         }
 
 
@@ -87,10 +86,7 @@ namespace Pomona.Common.Proxies
         }
 
 
-        public bool IsLoaded
-        {
-            get { return ProxyTarget != null; }
-        }
+        public bool IsLoaded => ProxyTarget != null;
 
         public string Uri { get; private set; }
     }

@@ -19,14 +19,16 @@ namespace Pomona.UnitTests
         {
             var programFilesX86Path = Environment.GetEnvironmentVariable("ProgramFiles(x86)") ??
                                       Environment.GetEnvironmentVariable("ProgramFiles");
-            Assert.NotNull(programFilesX86Path);
+
+            Assert.That(programFilesX86Path, Is.Not.Null, "Program Files path is null");
 
             var peverifyPath = Path.Combine(programFilesX86Path,
                                             @"Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\PEVerify.exe");
             if (!File.Exists(peverifyPath))
                 Assert.Inconclusive("Unable to run peverify test, need to have Microsoft sdk installed.");
 
-            var peVerifyArguments = string.Format("\"{0}\" /md /il", dllPath.Replace("\"", "\\\""));
+            dllPath = dllPath.Replace("\"", "\\\"");
+            var peVerifyArguments = $"\"{dllPath}\" /md /il";
 
             var proc = new Process
             {

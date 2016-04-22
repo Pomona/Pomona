@@ -31,20 +31,11 @@ namespace Pomona.Routing
         }
 
 
-        public override HttpMethod AllowedMethods
-        {
-            get { return (this.resultItemType.PostAllowed ? HttpMethod.Post : 0) | HttpMethod.Get; }
-        }
+        public override HttpMethod AllowedMethods => (this.resultItemType.PostAllowed ? HttpMethod.Post : 0) | HttpMethod.Get;
 
-        public override TypeSpec InputType
-        {
-            get { return this.parent.TypeMapper.FromType(typeof(void)); }
-        }
+        public override TypeSpec InputType => this.parent.TypeMapper.FromType(typeof(void));
 
-        public override TypeSpec ResultItemType
-        {
-            get { return this.resultItemType; }
-        }
+        public override TypeSpec ResultItemType => this.resultItemType;
 
         public override TypeSpec ResultType { get; }
 
@@ -67,9 +58,6 @@ namespace Pomona.Routing
         }
 
 
-        public string MatchValue
-        {
-            get { return this.resultItemType.UrlRelativePath; }
-        }
+        public string MatchValue => this.resultItemType.UrlRelativePath;
     }
 }

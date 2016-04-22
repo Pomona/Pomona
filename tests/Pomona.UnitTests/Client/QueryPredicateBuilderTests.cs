@@ -104,7 +104,8 @@ namespace Pomona.UnitTests.Client
         {
             AssertBuild(x => string.Concat(x.Jalla, "boo"), "concat(jalla,'boo')");
             AssertBuild(x => x.Jalla + "boo", "concat(jalla,'boo')");
-            AssertBuild(x => x.Jalla + "boo" + "faa" + "foo", "concat(concat(concat(jalla,'boo'),'faa'),'foo')");
+            var faafoo = "faafoo";
+            AssertBuild(x => x.Jalla + "boo" + faafoo, "concat(concat(jalla,'boo'),'faafoo')");
         }
 
 
@@ -350,7 +351,7 @@ namespace Pomona.UnitTests.Client
         {
             var guidString = "6dd20569-5c87-46f9-8665-9f413d9e7c47";
             var guid = new Guid(guidString);
-            AssertBuild(x => x.Guid == guid, string.Format("guid eq guid'{0}'", guidString));
+            AssertBuild(x => x.Guid == guid, $"guid eq guid'{guidString}'");
         }
 
 
@@ -711,10 +712,7 @@ namespace Pomona.UnitTests.Client
 
         public static class SomeStaticClass
         {
-            public static DateTime SomeDate
-            {
-                get { return new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc); }
-            }
+            public static DateTime SomeDate => new DateTime(2222, 11, 1, 1, 1, 1, DateTimeKind.Utc);
         }
     }
 }

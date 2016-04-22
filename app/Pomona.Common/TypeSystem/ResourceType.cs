@@ -40,85 +40,37 @@ namespace Pomona.Common.TypeSystem
         }
 
 
-        public ResourceProperty ChildToParentProperty
-        {
-            get { return ResourceTypeDetails.ChildToParentProperty; }
-        }
+        public ResourceProperty ChildToParentProperty => ResourceTypeDetails.ChildToParentProperty;
 
-        public ResourceProperty ETagProperty
-        {
-            get { return ResourceTypeDetails.ETagProperty; }
-        }
+        public ResourceProperty ETagProperty => ResourceTypeDetails.ETagProperty;
 
-        public bool IsChildResource
-        {
-            get { return ResourceTypeDetails.ParentResourceType != null; }
-        }
+        public bool IsChildResource => ResourceTypeDetails.ParentResourceType != null;
 
-        public bool IsExposedAsRepository
-        {
-            get { return ResourceTypeDetails.IsExposedAsRepository; }
-        }
+        public bool IsExposedAsRepository => ResourceTypeDetails.IsExposedAsRepository;
 
-        public bool IsSingleton
-        {
-            get { return ResourceTypeDetails.IsSingleton; }
-        }
+        public bool IsSingleton => ResourceTypeDetails.IsSingleton;
 
-        public bool IsUriBaseType
-        {
-            get { return UriBaseType == this; }
-        }
+        public bool IsUriBaseType => UriBaseType == this;
 
-        public IEnumerable<ResourceType> MergedTypes
-        {
-            get { return SubTypes.OfType<ResourceType>(); }
-        }
+        public IEnumerable<ResourceType> MergedTypes => SubTypes.OfType<ResourceType>();
 
-        public ResourceType ParentResourceType
-        {
-            get { return ResourceTypeDetails.ParentResourceType; }
-        }
+        public ResourceType ParentResourceType => ResourceTypeDetails.ParentResourceType;
 
-        public ResourceProperty ParentToChildProperty
-        {
-            get { return ResourceTypeDetails.ParentToChildProperty; }
-        }
+        public ResourceProperty ParentToChildProperty => ResourceTypeDetails.ParentToChildProperty;
 
-        public string PluralName
-        {
-            get { return ResourceTypeDetails.PluralName; }
-        }
+        public string PluralName => ResourceTypeDetails.PluralName;
 
-        public StructuredType PostReturnType
-        {
-            get { return ResourceTypeDetails.PostReturnType; }
-        }
+        public StructuredType PostReturnType => ResourceTypeDetails.PostReturnType;
 
-        public new virtual IEnumerable<ResourceProperty> Properties
-        {
-            get { return base.Properties.Cast<ResourceProperty>(); }
-        }
+        public new virtual IEnumerable<ResourceProperty> Properties => base.Properties.Cast<ResourceProperty>();
 
-        public IEnumerable<Type> ResourceHandlers
-        {
-            get { return ResourceTypeDetails.ResourceHandlers; }
-        }
+        public IEnumerable<Type> ResourceHandlers => ResourceTypeDetails.ResourceHandlers;
 
-        public ResourceType UriBaseType
-        {
-            get { return this.uriBaseType.Value; }
-        }
+        public ResourceType UriBaseType => this.uriBaseType.Value;
 
-        public string UrlRelativePath
-        {
-            get { return ResourceTypeDetails.UrlRelativePath; }
-        }
+        public string UrlRelativePath => ResourceTypeDetails.UrlRelativePath;
 
-        protected ResourceTypeDetails ResourceTypeDetails
-        {
-            get { return this.resourceTypeDetails.Value; }
-        }
+        protected ResourceTypeDetails ResourceTypeDetails => this.resourceTypeDetails.Value;
 
 
         public void AppendUri(object o, StringBuilder sb)

@@ -216,10 +216,7 @@ namespace TestNs
         }
 
 
-        public string ApiVersion
-        {
-            get { return this.wrappedFilter.ApiVersion; }
-        }
+        public string ApiVersion => this.wrappedFilter.ApiVersion;
 
 
         public bool ClientEnumIsGeneratedAsStringEnum(Type enumType)
@@ -228,10 +225,7 @@ namespace TestNs
         }
 
 
-        public ClientMetadata ClientMetadata
-        {
-            get { return this.wrappedFilter.ClientMetadata; }
-        }
+        public ClientMetadata ClientMetadata => this.wrappedFilter.ClientMetadata;
 
 
         public bool ClientPropertyIsExposedAsRepository(PropertyInfo propertyInfo)
@@ -530,10 +524,7 @@ namespace TestNs
                     DefaultPropertyInclusionMode.AllPropertiesRequiresExplicitMapping)
                 {
                     throw new PomonaMappingException(
-                        string.Format(
-                            "All properties are required to be explicitly included or excluded from mapping, but {0} of {1} is neither.",
-                            propertyInfo.Name,
-                            propertyInfo.DeclaringType.FullName));
+                        $"All properties are required to be explicitly included or excluded from mapping, but {propertyInfo.Name} of {propertyInfo.DeclaringType.FullName} is neither.");
                 }
             }
 

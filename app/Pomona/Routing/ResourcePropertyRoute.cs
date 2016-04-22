@@ -22,22 +22,13 @@ namespace Pomona.Routing
         }
 
 
-        public override HttpMethod AllowedMethods
-        {
-            get { return Property.AccessMode; }
-        }
+        public override HttpMethod AllowedMethods => Property.AccessMode;
 
-        public override TypeSpec InputType
-        {
-            get { return Property.DeclaringType; }
-        }
+        public override TypeSpec InputType => Property.DeclaringType;
 
         public ResourceProperty Property { get; }
 
-        public override TypeSpec ResultType
-        {
-            get { return Property.PropertyType; }
-        }
+        public override TypeSpec ResultType => Property.PropertyType;
 
 
         protected override IEnumerable<Route> LoadChildren()
@@ -58,9 +49,6 @@ namespace Pomona.Routing
         }
 
 
-        public string MatchValue
-        {
-            get { return Property.UriName; }
-        }
+        public string MatchValue => Property.UriName;
     }
 }

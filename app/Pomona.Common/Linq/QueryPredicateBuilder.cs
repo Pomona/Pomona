@@ -70,14 +70,8 @@ namespace Pomona.Common.Linq
 
         protected LambdaExpression RootLambda { get; private set; }
 
-        protected ParameterExpression ThisParameter
-        {
-            get
-            {
-                return this.thisParameter
-                       ?? (RootLambda != null ? RootLambda.Parameters.FirstOrDefault() : null);
-            }
-        }
+        protected ParameterExpression ThisParameter => this.thisParameter
+                                                       ?? (RootLambda != null ? RootLambda.Parameters.FirstOrDefault() : null);
 
 
         public override Expression Visit(Expression node)
@@ -487,7 +481,7 @@ namespace Pomona.Common.Linq
                     return null;
 
                 var newArrayString = string.Join(",", encodedElements);
-                return string.Format("[{0}]", newArrayString);
+                return $"[{newArrayString}]";
             }
 
             if (valueType.IsEnum)
@@ -502,9 +496,9 @@ namespace Pomona.Common.Linq
                 case TypeCode.Int32:
                     return value.ToString();
                 case TypeCode.Int64:
-                    return string.Format("{0}L", value);
+                    return $"{value}L";
                 case TypeCode.DateTime:
-                    return string.Format("datetime'{0}'", DateTimeToString((DateTime)value));
+                    return $"datetime'{DateTimeToString((DateTime)value)}'";
                 case TypeCode.Double:
                     return DoubleToString((double)value);
                 case TypeCode.Single:
@@ -513,7 +507,7 @@ namespace Pomona.Common.Linq
                     return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
                     if (value is Guid)
-                        return string.Format("guid'{0}'", ((Guid)value));
+                        return $"guid'{((Guid)value)}'";
                     if (value is Type)
                         return GetExternalTypeName((Type)value);
                     break;
@@ -541,7 +535,7 @@ namespace Pomona.Common.Linq
             string typeName;
 
             if (nativeTypes.Contains(typeOperand))
-                typeName = string.Format("{0}{1}", typeOperand.Name, postfixSymbol);
+                typeName = $"{typeOperand.Name}{postfixSymbol}";
             else
             {
                 var resourceInfoAttribute =
@@ -614,7 +608,7 @@ namespace Pomona.Common.Linq
             var value = resourceIdProperty.GetValue(constantExpression.Value, null);
             var propertyType = resourceIdProperty.PropertyType;
             if (value == null && propertyType.IsValueType)
-                return NotSupported(node, String.Format("Can't compare {0} with null.", propertyType));
+                return NotSupported(node, $"Can't compare {propertyType} with null.");
 
             return Expression.Constant(value, propertyType);
         }

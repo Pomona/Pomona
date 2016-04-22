@@ -17,10 +17,7 @@ namespace Pomona.Profiling
         }
 
 
-        public static IProfiler Current
-        {
-            get { return ProfilerFactory != null ? ProfilerFactory() : null; }
-        }
+        public static IProfiler Current => ProfilerFactory != null ? ProfilerFactory() : null;
 
         public static Func<IProfiler> ProfilerFactory { get; set; }
 

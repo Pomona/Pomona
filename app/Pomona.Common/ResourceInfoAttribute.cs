@@ -31,32 +31,17 @@ namespace Pomona.Common
 
         public Type BaseType { get; set; }
 
-        public PropertyInfo EtagProperty
-        {
-            get { return this.etagProperty.Value; }
-        }
+        public PropertyInfo EtagProperty => this.etagProperty.Value;
 
-        public bool HasEtagProperty
-        {
-            get { return this.etagProperty.Value != null; }
-        }
+        public bool HasEtagProperty => this.etagProperty.Value != null;
 
-        public bool HasIdProperty
-        {
-            get { return this.idProperty.Value != null; }
-        }
+        public bool HasIdProperty => this.idProperty.Value != null;
 
-        public PropertyInfo IdProperty
-        {
-            get { return this.idProperty.Value; }
-        }
+        public PropertyInfo IdProperty => this.idProperty.Value;
 
         public Type InterfaceType { get; set; }
 
-        public bool IsUriBaseType
-        {
-            get { return UriBaseType == InterfaceType; }
-        }
+        public bool IsUriBaseType => UriBaseType == InterfaceType;
 
         public bool IsValueObject { get; set; }
         public string JsonTypeName { get; set; }

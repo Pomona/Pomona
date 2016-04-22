@@ -150,9 +150,6 @@ namespace Pomona.Common.Proxies
         public ExtendedResourceInfo UserTypeInfo { get; private set; }
         public object WrappedResource { get; private set; }
 
-        string IHasResourceUri.Uri
-        {
-            get { return ((IHasResourceUri)WrappedResource).Uri; }
-        }
+        string IHasResourceUri.Uri => ((IHasResourceUri)WrappedResource).Uri;
     }
 }

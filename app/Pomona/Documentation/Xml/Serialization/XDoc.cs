@@ -26,15 +26,9 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public XDocAssembly Assembly
-        {
-            get { return new XDocAssembly(GetOrAddElement("assembly")); }
-        }
+        public XDocAssembly Assembly => new XDocAssembly(GetOrAddElement("assembly"));
 
-        public XDocMemberCollection Members
-        {
-            get { return new XDocMemberCollection(GetOrAddElement("members")); }
-        }
+        public XDocMemberCollection Members => new XDocMemberCollection(GetOrAddElement("members"));
 
 
         public XDocContentContainer GetSummary(MemberInfo memberInfo)
@@ -71,7 +65,7 @@ namespace Pomona.Documentation.Xml.Serialization
                 default:
                     throw new NotImplementedException("Do not support member type " + memberInfo.MemberType);
             }
-            return string.Format("{0}:{1}", memberTypePrefix, GetMemberPath(memberInfo));
+            return $"{memberTypePrefix}:{GetMemberPath(memberInfo)}";
         }
 
 
@@ -80,7 +74,7 @@ namespace Pomona.Documentation.Xml.Serialization
             switch (memberInfo.MemberType)
             {
                 case MemberTypes.Property:
-                    return string.Format("{0}.{1}", GetMemberPath(memberInfo.DeclaringType), memberInfo.Name);
+                    return $"{GetMemberPath(memberInfo.DeclaringType)}.{memberInfo.Name}";
                 case MemberTypes.TypeInfo:
                     return ((Type)memberInfo).FullName;
                 default:

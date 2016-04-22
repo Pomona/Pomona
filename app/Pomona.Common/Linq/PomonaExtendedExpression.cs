@@ -21,15 +21,9 @@ namespace Pomona.Common.Linq
 
         public abstract ReadOnlyCollection<object> Children { get; }
 
-        public virtual bool LocalExecutionPreferred
-        {
-            get { return false; }
-        }
+        public virtual bool LocalExecutionPreferred => false;
 
-        public override ExpressionType NodeType
-        {
-            get { return ExpressionType.Extension; }
-        }
+        public override ExpressionType NodeType => ExpressionType.Extension;
 
         public abstract bool SupportedOnServer { get; }
 

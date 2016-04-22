@@ -31,10 +31,7 @@ namespace Pomona.Example
 
         public TypeMapper TypeMapper { get; }
 
-        protected override IRootPathProvider RootPathProvider
-        {
-            get { return new DefaultRootPathProvider(); }
-        }
+        protected override IRootPathProvider RootPathProvider => new DefaultRootPathProvider();
 
 
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)

@@ -29,9 +29,6 @@ namespace Pomona.Common.Linq.Queries.Interception
 
         public Func<Type, IQueryable> Factory { get; }
 
-        public IQueryable WrappedSource
-        {
-            get { return Factory(typeof(T)); }
-        }
+        public IQueryable WrappedSource => Factory(typeof(T));
     }
 }

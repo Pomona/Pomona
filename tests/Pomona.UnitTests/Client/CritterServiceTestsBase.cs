@@ -26,18 +26,12 @@ namespace Pomona.UnitTests.Client
         public CritterRepository Repository { get; private set; }
         public TypeMapper TypeMapper { get; private set; }
 
-        public virtual bool UseSelfHostedHttpServer
-        {
-            get { return UseSelfHostedHttpServerDefault; }
-        }
+        public virtual bool UseSelfHostedHttpServer => UseSelfHostedHttpServerDefault;
 
         protected string BaseUri { get; private set; }
         protected TClient Client { get; private set; }
 
-        protected ICollection<Critter> CritterEntities
-        {
-            get { return Repository.List<Critter>(); }
-        }
+        protected ICollection<Critter> CritterEntities => Repository.List<Critter>();
 
         protected bool RequestTraceEnabled { get; set; }
 

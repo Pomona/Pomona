@@ -44,7 +44,7 @@ namespace Pomona.UnitTests.TestHelpers.Web
                     var actualJson = JToken.Parse(actual.ReadAsStringAsync().Result);
 
                     Assert.That(JToken.DeepEquals(expectedJson, actualJson),
-                                string.Format("Expected:\r\n{0}\r\nActual:\r\n{1}\r\n", expectedJson, actualJson));
+                                $"Expected:\r\n{expectedJson}\r\nActual:\r\n{actualJson}\r\n");
                 }
                 else
                 {
@@ -93,7 +93,7 @@ namespace Pomona.UnitTests.TestHelpers.Web
                 }
             }
 
-            Assert.That(JToken.DeepEquals(result, expected), string.Format("Expected:\r\n{0}\r\nActual:\r\n{1}\r\n", expected, result));
+            Assert.That(JToken.DeepEquals(result, expected), $"Expected:\r\n{expected}\r\nActual:\r\n{result}\r\n");
         }
 
 

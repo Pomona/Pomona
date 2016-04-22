@@ -48,7 +48,7 @@ namespace Pomona.Common.Proxies
             var propWrapperTypeRef = this.propertyWrapperType.MakeGenericType(proxyTargetType, proxyProp.PropertyType);
             var proxyType = (TypeDefinition)proxyProp.DeclaringType;
             if (proxyType == null)
-                throw new InvalidOperationException(String.Format("{0} has no declaring type.", proxyProp));
+                throw new InvalidOperationException($"{proxyProp} has no declaring type.");
 
             var propWrapperCtor = propWrapperTypeRef.GetConstructor(typeof(string));
             var propertyWrapperField = proxyType.DefineField("_pwrap_" + targetProp.Name,

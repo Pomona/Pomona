@@ -25,10 +25,7 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public new TCollection Original
-        {
-            get { return (TCollection)base.Original; }
-        }
+        public new TCollection Original => (TCollection)base.Original;
     }
 
     public class CollectionDelta : Delta, ICollectionDelta
@@ -62,20 +59,11 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public int Count
-        {
-            get { return OriginalCount + this.added.Count - this.removed.Count; }
-        }
+        public int Count => OriginalCount + this.added.Count - this.removed.Count;
 
-        public int OriginalCount
-        {
-            get { return TrackedItems.Count; }
-        }
+        public int OriginalCount => TrackedItems.Count;
 
-        public bool OriginalItemsLoaded
-        {
-            get { return false; }
-        }
+        public bool OriginalItemsLoaded => false;
 
         protected ISet<Delta> TrackedItems
         {
@@ -334,20 +322,11 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public new IEnumerable<TElement> AddedItems
-        {
-            get { return base.AddedItems.Cast<TElement>(); }
-        }
+        public new IEnumerable<TElement> AddedItems => base.AddedItems.Cast<TElement>();
 
-        public new IEnumerable<TElement> ModifiedItems
-        {
-            get { return base.ModifiedItems.Cast<TElement>(); }
-        }
+        public new IEnumerable<TElement> ModifiedItems => base.ModifiedItems.Cast<TElement>();
 
-        public new IEnumerable<TElement> RemovedItems
-        {
-            get { return base.RemovedItems.Cast<TElement>(); }
-        }
+        public new IEnumerable<TElement> RemovedItems => base.RemovedItems.Cast<TElement>();
 
 
         protected override object CreateNestedDelta(object propValue, TypeSpec propValueType, Type propertyTye)
@@ -382,10 +361,7 @@ namespace Pomona.Common.Serialization.Patch
         }
 
 
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly => false;
 
 
         public bool Remove(TElement item)

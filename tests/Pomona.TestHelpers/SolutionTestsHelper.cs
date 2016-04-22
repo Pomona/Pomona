@@ -46,21 +46,21 @@ namespace Pomona.TestHelpers
                 throw new ArgumentNullException(nameof(assembly));
 
             if (String.IsNullOrEmpty(assembly.CodeBase))
-                throw new ArgumentException(String.Format("The assembly '{0}' has no code base.", assembly), nameof(assembly));
+                throw new ArgumentException($"The assembly '{assembly}' has no code base.", nameof(assembly));
 
             UriBuilder uri = new UriBuilder(assembly.CodeBase);
             string unescapeDataString = Uri.UnescapeDataString(uri.Path);
-            string assemblyPath = Path.GetFileName(unescapeDataString);
+            string assemblyPath = Path.GetFullPath(unescapeDataString);
 
             if (String.IsNullOrEmpty(assemblyPath))
             {
                 throw new FileNotFoundException(
-                    String.Format("Could not find a physical path for '{0}'.", assembly.CodeBase));
+                    $"Could not find a physical path for '{assembly.CodeBase}'.");
             }
 
             FileInfo assemblyFile = new FileInfo(assemblyPath);
             DirectoryInfo parentDirectory = assemblyFile.Directory;
-            string fileNotFoundMessage = String.Format("Couldn't find a Project file for '{0}'.", assembly);
+            string fileNotFoundMessage = $"Couldn't find a Project file for '{assembly}'.";
             string projectFileName = Path.ChangeExtension(assemblyFile.Name, "csproj");
 
             try
@@ -153,7 +153,7 @@ namespace Pomona.TestHelpers
             FileInfo projectFile = new FileInfo(projectPath);
             DirectoryInfo parentDirectory = projectFile.Directory;
 
-            string fileNotFoundMessage = String.Format("Couldn't find a Solution file for '{0}'.", assembly);
+            string fileNotFoundMessage = $"Couldn't find a Solution file for '{assembly}'.";
 
             try
             {
@@ -262,11 +262,7 @@ namespace Pomona.TestHelpers
                                     String.Join("",
                                                 versions.Select(
                                                     x =>
-                                                        String.Format("    {0}\r\n{1}",
-                                                                      x.Key,
-                                                                      String.Join("",
-                                                                                  x.Select(
-                                                                                      y => String.Format("        {0}\r\n", y.ProjectName)))))));
+                                                        $"    {x.Key}\r\n{String.Join("", x.Select(y => $"        {y.ProjectName}\r\n"))}")));
 
                     errorCount++;
 
@@ -279,10 +275,7 @@ namespace Pomona.TestHelpers
                                     String.Join("",
                                                 suggestedUpgrades.Select(
                                                     x =>
-                                                        String.Format("        Update-Package -Id {0} -ProjectName {1} -Version {2}\r\n",
-                                                                      x.Id,
-                                                                      x.ProjectName,
-                                                                      suggestedVersion))));
+                                                        $"        Update-Package -Id {x.Id} -ProjectName {x.ProjectName} -Version {suggestedVersion}\r\n")));
                 }
             }
             foreach (var item in packages.SelectMany(x => x))
@@ -366,7 +359,9 @@ namespace Pomona.TestHelpers
 
         private static bool IsIgnoredPath(string directoryName)
         {
-            return directoryName.Contains("\\obj\\") || directoryName.Contains("\\bin\\");
+            var slash = Path.DirectorySeparatorChar;
+            return directoryName.Contains(slash + "obj" + slash)
+                || directoryName.Contains(slash + "bin" + slash);
         }
 
 
@@ -403,15 +398,9 @@ namespace Pomona.TestHelpers
             }
 
 
-            public string AssumedPackagePath
-            {
-                get { return AssumedPackagePathStart + Version; }
-            }
+            public string AssumedPackagePath => AssumedPackagePathStart + Version;
 
-            public string AssumedPackagePathStart
-            {
-                get { return Path.Combine(RelativePackagesPath, Id + "."); }
-            }
+            public string AssumedPackagePathStart => Path.Combine(RelativePackagesPath, Id + ".");
 
             public string Id { get; }
 
@@ -420,29 +409,14 @@ namespace Pomona.TestHelpers
                 get { return preferredFrameworkVersions.FirstOrDefault(x => AvailableFrameworkVersions.Contains(x)); }
             }
 
-            public string ProjectDirectory
-            {
-                get { return Path.GetDirectoryName(this.projectFile); }
-            }
+            public string ProjectDirectory => Path.GetDirectoryName(this.projectFile);
 
-            public string ProjectName
-            {
-                get { return Path.GetFileNameWithoutExtension(this.projectFile); }
-            }
+            public string ProjectName => Path.GetFileNameWithoutExtension(this.projectFile);
 
-            public XDocument ProjectXmlDocument
-            {
-                get { return this.projectXmlDocument ?? (this.projectXmlDocument = XDocument.Load(this.projectFile)); }
-            }
+            public XDocument ProjectXmlDocument => this.projectXmlDocument ?? (this.projectXmlDocument = XDocument.Load(this.projectFile));
 
-            public string RelativePackagesPath
-            {
-                get
-                {
-                    return GetRelativePath(Path.Combine(this.solutionDirectoy, "packages"),
-                                           Path.GetDirectoryName(this.projectFile));
-                }
-            }
+            public string RelativePackagesPath => GetRelativePath(Path.Combine(this.solutionDirectoy, "packages"),
+                                                                  Path.GetDirectoryName(this.projectFile));
 
             public string Version { get; }
 
@@ -459,14 +433,8 @@ namespace Pomona.TestHelpers
                 }
             }
 
-            private string FullPackagePath
-            {
-                get
-                {
-                    return this.fullPackagePath
-                           ?? (this.fullPackagePath = Path.Combine(this.solutionDirectoy, "packages", Id + "." + Version));
-                }
-            }
+            private string FullPackagePath => this.fullPackagePath
+                                              ?? (this.fullPackagePath = Path.Combine(this.solutionDirectoy, "packages", Id + "." + Version));
 
 
             public static IEnumerable<NugetPackageElement> Load(string solutionDirectory)
@@ -515,7 +483,7 @@ namespace Pomona.TestHelpers
                         assumedPackagePathStart.Length + 1);
                 var referencesGroupedByVersion =
                     ProjectXmlDocument.XPathSelectElements(xpathPredicate, nsManager).Select(
-                        x => new LibReference(this, assumedPackagePathStart, x, ns)).ToList().GroupBy(
+                        x => new LibReference(assumedPackagePathStart, x, ns)).ToList().GroupBy(
                             x => x.PathVersionPart).ToList();
                 if (referencesGroupedByVersion.Count == 0)
                 {
@@ -608,15 +576,8 @@ namespace Pomona.TestHelpers
 
             private class LibReference
             {
-                private readonly NugetPackageElement parent;
-
-
-                public LibReference(NugetPackageElement parent,
-                                    string hintPathBeforePrefix,
-                                    XElement element,
-                                    XNamespace ns)
+                public LibReference(string hintPathBeforePrefix, XElement element, XNamespace ns)
                 {
-                    this.parent = parent;
                     var hintPathElement = element.Descendants(ns + "HintPath").First();
                     HintPath = hintPathElement.Value;
                     PathVersionPart = HintPath.Substring(hintPathBeforePrefix.Length,

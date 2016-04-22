@@ -26,10 +26,7 @@ namespace Pomona.Common.Linq
         }
 
 
-        public override ReadOnlyCollection<object> Children
-        {
-            get { return new ReadOnlyCollection<object>(this.children); }
-        }
+        public override ReadOnlyCollection<object> Children => new ReadOnlyCollection<object>(this.children);
 
 
         public override IEnumerable<string> ToStringSegments()

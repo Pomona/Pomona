@@ -25,15 +25,9 @@ namespace Pomona.Routing
         }
 
 
-        public IEnumerable<UrlSegment> Leafs
-        {
-            get { return Root.FinalMatchCandidates; }
-        }
+        public IEnumerable<UrlSegment> Leafs => Root.FinalMatchCandidates;
 
-        public int MatchCount
-        {
-            get { return Root.FinalMatchCandidates.Count(); }
-        }
+        public int MatchCount => Root.FinalMatchCandidates.Count();
 
         public UrlSegment Root { get; }
 

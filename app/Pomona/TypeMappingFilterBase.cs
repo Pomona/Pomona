@@ -79,17 +79,11 @@ namespace Pomona
         }
 
 
-        public virtual string ApiVersion
-        {
-            get { return "0.1.0"; }
-        }
+        public virtual string ApiVersion => "0.1.0";
 
         public ITypeMappingFilter BaseFilter { get; set; }
 
-        public virtual ClientMetadata ClientMetadata
-        {
-            get { return new ClientMetadata(informationalVersion : ApiVersion); }
-        }
+        public virtual ClientMetadata ClientMetadata => new ClientMetadata(informationalVersion : ApiVersion);
 
 
         public virtual bool GenerateIndependentClient()

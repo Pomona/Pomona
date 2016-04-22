@@ -22,10 +22,7 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new QuerySourceFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new QuerySourceFactory());
 
         private class QuerySourceFactory : QueryExpressionFactory
         {

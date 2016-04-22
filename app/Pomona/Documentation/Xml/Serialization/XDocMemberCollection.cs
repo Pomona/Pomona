@@ -52,10 +52,7 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public int Count
-        {
-            get { return Node.Elements("member").Count(); }
-        }
+        public int Count => Node.Elements("member").Count();
 
 
         public IEnumerator<XDocMember> GetEnumerator()
@@ -64,10 +61,7 @@ namespace Pomona.Documentation.Xml.Serialization
         }
 
 
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly => false;
 
 
         public bool Remove(XDocMember item)

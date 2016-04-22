@@ -28,10 +28,7 @@ namespace Pomona.Common.Linq.Queries
         }
 
 
-        public static QueryExpressionFactory Factory
-        {
-            get { return factory ?? (factory = new OfTypeFactory()); }
-        }
+        public static QueryExpressionFactory Factory => factory ?? (factory = new OfTypeFactory());
 
 
         public static OfTypeExpression Create(QueryExpression source, Type type)

@@ -222,14 +222,8 @@ namespace Pomona
         }
 
 
-        public Route Routes
-        {
-            get { return Factory.Routes; }
-        }
+        public Route Routes => Factory.Routes;
 
-        public TypeMapper TypeMapper
-        {
-            get { return Factory.TypeMapper; }
-        }
+        public TypeMapper TypeMapper => Factory.TypeMapper;
     }
 }

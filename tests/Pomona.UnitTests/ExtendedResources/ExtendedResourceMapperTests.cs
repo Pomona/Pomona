@@ -39,9 +39,8 @@ namespace Pomona.UnitTests.ExtendedResources
             {
                 this.extendedMapper.GetExtendedResourceInfo(typeof(ICustomTestResourceThatGotNonNullableInteger));
             });
-            Assert.That(ex.Message, Is.EqualTo(string.Format(
-                "Unable to map property {0} of type {1} to underlying dictionary property {2} of {3}. Only nullable value types can be mapped to a dictionary.",
-                "NotNullable", typeof(ICustomTestResourceThatGotNonNullableInteger).FullName, "Attributes", typeof(ITestResource).FullName)));
+            Assert.That(ex.Message, Is.EqualTo(
+                $"Unable to map property {"NotNullable"} of type {typeof(ICustomTestResourceThatGotNonNullableInteger).FullName} to underlying dictionary property {"Attributes"} of {typeof(ITestResource).FullName}. Only nullable value types can be mapped to a dictionary."));
         }
 
 

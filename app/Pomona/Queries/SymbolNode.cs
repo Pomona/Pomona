@@ -30,10 +30,7 @@ namespace Pomona.Queries
         }
 
 
-        public bool HasArguments
-        {
-            get { return Children.Count > 0; }
-        }
+        public bool HasArguments => Children.Count > 0;
 
         public string Name { get; }
 
@@ -41,12 +38,10 @@ namespace Pomona.Queries
         public override string ToString()
         {
             if (Children.Count == 0)
-                return String.Format("{0}", Name);
+                return $"{Name}";
             else
             {
-                return String.Format(
-                    "{0}({1})", Name,
-                    string.Join(", ", Children.Select(x => x.ToString())));
+                return $"{Name}({string.Join(", ", Children.Select(x => x.ToString()))})";
             }
         }
     }

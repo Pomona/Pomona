@@ -26,8 +26,7 @@ namespace Pomona.Routing
 
             if (!dataSourceInterface.IsAssignableFrom(dataSource))
             {
-                throw new ArgumentException(string.Format("dataSourceType must be castable to {0}",
-                                                          dataSourceInterface.FullName));
+                throw new ArgumentException($"dataSourceType must be castable to {dataSourceInterface.FullName}");
             }
 
             TypeMapper = typeMapper;
@@ -35,20 +34,11 @@ namespace Pomona.Routing
         }
 
 
-        public override HttpMethod AllowedMethods
-        {
-            get { return HttpMethod.Get; }
-        }
+        public override HttpMethod AllowedMethods => HttpMethod.Get;
 
-        public override TypeSpec InputType
-        {
-            get { return TypeMapper.FromType(typeof(void)); }
-        }
+        public override TypeSpec InputType => TypeMapper.FromType(typeof(void));
 
-        public override TypeSpec ResultType
-        {
-            get { return TypeMapper.FromType(typeof(IDictionary<string, object>)); }
-        }
+        public override TypeSpec ResultType => TypeMapper.FromType(typeof(IDictionary<string, object>));
 
         internal Type DataSource { get; }
 

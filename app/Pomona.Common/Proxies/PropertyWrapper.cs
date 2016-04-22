@@ -31,14 +31,11 @@ namespace Pomona.Common.Proxies
                                     .FirstOrDefault(t => t != null);
 
             if (PropertyInfo == null)
-                throw new MissingMemberException(String.Format("Could not wrap property {0}.", propertyName));
+                throw new MissingMemberException($"Could not wrap property {propertyName}.");
         }
 
 
-        public Func<TOwner, TPropType> Getter
-        {
-            get { return this.getter ?? (this.getter = GetterExpression.Compile()); }
-        }
+        public Func<TOwner, TPropType> Getter => this.getter ?? (this.getter = GetterExpression.Compile());
 
         public Expression<Func<TOwner, TPropType>> GetterExpression
         {
@@ -58,17 +55,11 @@ namespace Pomona.Common.Proxies
             }
         }
 
-        public string Name
-        {
-            get { return PropertyInfo.Name; }
-        }
+        public string Name => PropertyInfo.Name;
 
         public PropertyInfo PropertyInfo { get; }
 
-        public Action<TOwner, TPropType> Setter
-        {
-            get { return this.setter ?? (this.setter = SetterExpression.Compile()); }
-        }
+        public Action<TOwner, TPropType> Setter => this.setter ?? (this.setter = SetterExpression.Compile());
 
         public Expression<Action<TOwner, TPropType>> SetterExpression
         {
@@ -106,7 +97,7 @@ namespace Pomona.Common.Proxies
 
         public override string ToString()
         {
-            return String.Format("{0}.{1}", PropertyInfo.DeclaringType, Name);
+            return $"{PropertyInfo.DeclaringType}.{Name}";
         }
     }
 }

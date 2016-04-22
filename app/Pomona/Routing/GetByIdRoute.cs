@@ -36,15 +36,9 @@ namespace Pomona.Routing
 
         public StructuredProperty IdProperty { get; }
 
-        public override TypeSpec InputType
-        {
-            get { return this.resultItemType; }
-        }
+        public override TypeSpec InputType => this.resultItemType;
 
-        public override TypeSpec ResultType
-        {
-            get { return this.resultItemType; }
-        }
+        public override TypeSpec ResultType => this.resultItemType;
 
 
         protected override IEnumerable<Route> LoadChildren()
@@ -62,7 +56,7 @@ namespace Pomona.Routing
 
         protected override string PathSegmentToString()
         {
-            return string.Format("{{{0}}}", IdProperty.JsonName);
+            return $"{{{IdProperty.JsonName}}}";
         }
     }
 }
