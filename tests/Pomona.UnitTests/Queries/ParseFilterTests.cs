@@ -153,7 +153,7 @@ namespace Pomona.UnitTests.Queries
         public void Parse_ExpressionAccessingPropertyNotAllowedInExpression_ThrowsExceptionWithUsefulMessage()
         {
             var exception = Assert.Throws<QueryParseException>(() => this.parser.Parse<Dummy>("isNotAllowedInQueries eq 'blah'"));
-            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+            Assert.That(exception.Message.Replace("\r", ""), Contains.Substring(
                 @"Error on line 1 character 0 of query:
 |/
 isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
@@ -166,7 +166,7 @@ isNotAllowedInQueries eq 'blah'".Replace("\r", "")));
         public void Parse_ExpressionWithGrammarError_ThrowsExceptionWithUsefulMessage()
         {
             var exception = Assert.Throws<QueryParseException>(() => this.parser.Parse<Dummy>("name eo 'blah'"));
-            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+            Assert.That(exception.Message.Replace("\r", ""), Contains.Substring(
                 @"Error on line 1 character 5 of query:
      |/
 name eo 'blah'".Replace("\r", "")));
@@ -188,7 +188,7 @@ name eo 'blah'".Replace("\r", "")));
         public void Parse_MultiLineExpressionWithGrammarError_ThrowsExceptionWithUsefulMessage()
         {
             var exception = Assert.Throws<QueryParseException>(() => this.parser.Parse<Dummy>("name  \r\n  eo 'blah'"));
-            Assert.That(exception.Message.Replace("\r", ""), Is.StringContaining(
+            Assert.That(exception.Message.Replace("\r", ""), Contains.Substring(
                 @"Error on line 2 character 2 of query:
   |/
   eo 'blah'".Replace("\r", "")));

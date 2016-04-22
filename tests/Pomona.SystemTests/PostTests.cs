@@ -45,7 +45,7 @@ namespace Pomona.SystemTests
             }));
 
             Assert.That(exception.Message,
-                        Is.StringContaining("Cannot create an abstract class."),
+                        Contains.Substring("Cannot create an abstract class"),
                         "Pomona should warn about posting an abstract class");
         }
 
@@ -227,7 +227,7 @@ namespace Pomona.SystemTests
                     x.Hat = lazyNonExistingHat;
                     x.Name = critterName;
                 }));
-            Assert.That(ex.Message, Is.StringContaining(nonExistingHatUrl));
+            Assert.That(ex.Message, Contains.Substring(nonExistingHatUrl));
         }
 
 
@@ -555,7 +555,7 @@ namespace Pomona.SystemTests
 
             var ex = Assert.Throws<WebClientException>(() => Client.UnpostableThingsOnServer.Post(x => x.FooBar = "moo"));
             Console.WriteLine(ex);
-            Assert.That(ex.Message, Is.StringContaining("'405 MethodNotAllowed': Method POST not allowed!"));
+            Assert.That(ex.Message, Contains.Substring("'405 MethodNotAllowed': Method POST not allowed!"));
             Assert.That(ex.StatusCode, Is.EqualTo(HttpStatusCode.MethodNotAllowed));
         }
 

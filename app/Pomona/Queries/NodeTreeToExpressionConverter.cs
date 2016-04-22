@@ -136,9 +136,6 @@ namespace Pomona.Queries
         {
             var arrayElements = node.Children.Select(x => ParseExpression(x, this.thisParam, expectedElementType)).ToList();
 
-            if (arrayElements.Count == 0 && expectedElementType == null)
-                throw new NotSupportedException("Does not support empty arrays.");
-
             var elementType = expectedElementType ?? typeof(object);
 
             // TODO: Check that all array members are of same type

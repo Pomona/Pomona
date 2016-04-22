@@ -128,7 +128,7 @@ namespace Pomona.TestHelpers
 
         public static void AssertIsReference(this JToken jobject)
         {
-            Assert.IsNotNullOrEmpty(jobject.AssertHasPropertyWithString("_ref"), "Uri reference null or empty");
+            Assert.That(jobject.AssertHasPropertyWithString("_ref"), Is.Not.Null.Or.Empty, "Uri reference null or empty");
         }
 
 
