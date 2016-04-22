@@ -87,6 +87,15 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void Query_SelectEmptyArray_IsSuccessful()
+        {
+            var results = Client.Critters.Query().Select(x => new object[] { }).Take(1).ToList();
+            Assert.That(results.Count, Is.EqualTo(1));
+            Assert.That(results[0].Length, Is.EqualTo(0));
+        }
+
+
+        [Test]
         public void Query_SelectEnumInAnonymousType_IsSuccessful()
         {
             Save(new HasCustomEnum() { TheEnumValue = CustomEnum.Tock });
