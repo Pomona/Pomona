@@ -192,7 +192,15 @@ namespace Pomona.Common
                                   ISerializationContextProvider provider,
                                   RequestOptions options = null)
         {
-            return SendRequestAsync(uri, httpMethod, body, provider, options).ConfigureAwait(false).GetAwaiter().GetResult();
+            try
+            {
+                return Task.Run(() => SendRequestAsync(uri, httpMethod, body, provider, options)).Result;
+            }
+            catch (AggregateException aggregateException)
+                when (aggregateException.InnerExceptions.Count == 1 && aggregateException.InnerException is WebClientException)
+            {
+                throw aggregateException.InnerException;
+            }
         }
 
 

@@ -153,6 +153,13 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
+        public void Constructor_TakingHttpClient_DoesNotThrowException()
+        {
+            Assert.DoesNotThrow(() => new CritterClient("http://whatever", new HttpClient(new NoopHttpMessageHandler())));
+        }
+
+
+        [Test]
         public void ConstructorOfInheritedClientDoesNotThrowException()
         {
             Assert.DoesNotThrow(() => new InheritedClient("http://test/", new HttpWebClient(new NoopHttpMessageHandler())));
