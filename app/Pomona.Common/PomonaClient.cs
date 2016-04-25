@@ -33,6 +33,12 @@ namespace Pomona.Common
         }
 
 
+        public PomonaClient(ClientTypeMapper typeMapper, HttpClient httpClient)
+            : this(typeMapper, CreateDefaultRequestDispatcher(typeMapper, new HttpWebClient(httpClient)))
+        {
+        }
+
+
         public PomonaClient(ClientTypeMapper typeMapper, IWebClient webClient)
             : this(typeMapper, CreateDefaultRequestDispatcher(typeMapper, webClient))
         {
