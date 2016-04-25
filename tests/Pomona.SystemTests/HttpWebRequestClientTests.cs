@@ -7,6 +7,8 @@
 
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Critters.Client;
 
@@ -96,6 +98,26 @@ namespace Pomona.SystemTests
             Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
             galaxy = Client.Reload(galaxy);
             Assert.That(galaxy.Name, Is.EqualTo("The Joker?"));
+        }
+
+
+        [Test]
+        public void Synchronous_client_call_from_async_context_using_exclusive_scheduler_is_not_deadlocked()
+        {
+            // Note that this will probably leave a hanging worker thread if failing :/
+            // Not sure how to clean that up properly, might have to implement a custom TaskScheduler to do that
+            var ccsp = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, 1);
+            var tf = new TaskFactory(CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskContinuationOptions.None,
+                                     ccsp.ExclusiveScheduler);
+            // Should have good time to complete in 10seconds, on any computer
+            var hasCompleted = tf.StartNew(async () =>
+            {
+                // Just do some random sync client call
+                Client.Critters.Post(new CritterForm() { Name = "hi" });
+                await Task.Yield();
+                Client.Critters.Post(new CritterForm() { Name = "again" });
+            }).Wait(10000);
+            Assert.That(hasCompleted, Is.True, "Task never completed, which means it's probably deadlocked.");
         }
     }
 }
