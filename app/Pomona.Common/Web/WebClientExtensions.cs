@@ -7,6 +7,7 @@
 
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Pomona.Common.Web
 {
@@ -14,7 +15,7 @@ namespace Pomona.Common.Web
     {
         public static HttpResponseMessage SendSync(this IWebClient client, HttpRequestMessage request)
         {
-            return client.SendAsync(request, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            return Task.Run(() => client.SendAsync(request, CancellationToken.None)).Result;
         }
     }
 }

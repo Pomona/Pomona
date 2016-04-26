@@ -7,6 +7,7 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using Pomona.Common.ExtendedResources;
@@ -24,6 +25,14 @@ namespace Pomona.Common
         protected RootResource(string baseUri)
             : this(baseUri, new HttpWebClient())
         {
+        }
+
+
+        protected RootResource(string baseUri, HttpClient httpClient)
+        {
+            BaseUri = baseUri;
+            this.client = new PomonaClient(ClientTypeMapper, httpClient);
+            InstantiateClientRepositories();
         }
 
 
