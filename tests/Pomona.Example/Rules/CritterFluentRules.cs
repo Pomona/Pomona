@@ -30,24 +30,6 @@ namespace Pomona.Example.Rules
         }
 
 
-        public void Map(ITypeMappingConfigurator<HandledThing> map)
-        {
-            map
-                .HasChildren(x => x.Children,
-                             x => x.Parent,
-                             t =>
-                             {
-                                 return
-                                     t.ConstructedUsing(c => new HandledChild(c.Parent<HandledThing>()))
-                                      .HandledBy<HandledThingsHandler>();
-                             },
-                             o => o.ExposedAsRepository())
-                .Include(x => x.ETag, o => o.AsEtag())
-                .AsUriBaseType()
-                .DeleteAllowed().HandledBy<HandledThingsHandler>();
-        }
-
-
         public void Map(ITypeMappingConfigurator<HandledSingleChild> map)
         {
             map.AsChildResourceOf(x => x.HandledThing, x => x.SingleChild);

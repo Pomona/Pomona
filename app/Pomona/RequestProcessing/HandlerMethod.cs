@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -30,6 +31,23 @@ namespace Pomona.RequestProcessing
             if (typeMapper == null)
                 throw new ArgumentNullException(nameof(typeMapper));
             MethodInfo = methodInfo;
+
+            Type[] taskTypeArgs;
+            if (MethodInfo.ReturnType == typeof(Task))
+            {
+                UnwrappedReturnType = typeof(void);
+                IsAsync = true;
+            }
+            else if (MethodInfo.ReturnType.TryExtractTypeArguments(typeof(Task<>), out taskTypeArgs))
+            {
+                UnwrappedReturnType = taskTypeArgs[0];
+                IsAsync = true;
+            }
+            else
+            {
+                UnwrappedReturnType = MethodInfo.ReturnType;
+            }
+
             TypeMapper = typeMapper;
             this.parameters =
                 new Lazy<IList<HandlerParameter>>(
@@ -37,6 +55,8 @@ namespace Pomona.RequestProcessing
             this.parameterTypes = new Lazy<IList<Type>>(() => Parameters.MapList(x => x.Type));
         }
 
+
+        public bool IsAsync { get; }
 
         public MethodInfo MethodInfo { get; }
 
@@ -49,6 +69,8 @@ namespace Pomona.RequestProcessing
         public Type ReturnType => MethodInfo.ReturnType;
 
         public TypeMapper TypeMapper { get; }
+
+        public Type UnwrappedReturnType { get; }
 
 
         public RouteAction Match(HttpMethod method, PathNodeType nodeType, TypeSpec resourceType)
@@ -69,12 +91,6 @@ namespace Pomona.RequestProcessing
         public bool NameStartsWith(HttpMethod method)
         {
             return Name.StartsWith(method.ToString());
-        }
-
-
-        public bool ReturnsType(Type returnType)
-        {
-            return returnType.IsAssignableFrom(MethodInfo.ReturnType);
         }
 
 
@@ -109,7 +125,7 @@ namespace Pomona.RequestProcessing
             }
 
             // Check that it returns an IQueryable<Object>.
-            if (!typeof(IQueryable<>).MakeGenericType(resourceType.Type).IsAssignableFrom(MethodInfo.ReturnType))
+            if (!typeof(IQueryable<>).MakeGenericType(resourceType.Type).IsAssignableFrom(UnwrappedReturnType))
                 return null;
 
             return new DefaultHandlerMethodInvoker(this);
@@ -164,7 +180,7 @@ namespace Pomona.RequestProcessing
 
         private RouteAction MatchMethodTakingResourceId(ResourceType resourceType)
         {
-            if (MethodInfo.ReturnType != resourceType.Type)
+            if (UnwrappedReturnType != resourceType.Type)
                 return null;
 
             var idParam = Parameters.SingleOrDefault(x => x.Type == resourceType.PrimaryId.PropertyType.Type);

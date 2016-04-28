@@ -110,6 +110,7 @@
     <Compile Include="ExtraDataTests.cs" />
     <Compile Include="GetFromUriTests.cs" />
     <Compile Include="GetHtmlFormattedJsonTests.cs" />
+    <Compile Include="Handlers\AsyncResourceHandlerTests.cs" />
     <Compile Include="Handlers\ResourceHandlerTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />
     <Compile Include="ClientTestsBase.cs" />
