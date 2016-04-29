@@ -68,6 +68,7 @@
     </Compile>
     <Compile Include="AsyncHandledThingsHandler.cs" />
     <Compile Include="CritterBootstrapper.cs" />
+    <Compile Include="CritterErrorHandler.cs" />
     <Compile Include="CritterRepository.cs" />
     <Compile Include="CritterHost.cs" />
     <Compile Include="CritterModule.cs" />

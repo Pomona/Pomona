@@ -7,7 +7,6 @@
 
 using System;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,14 +17,10 @@ using Pomona.Common;
 using Pomona.Common.TypeSystem;
 using Pomona.Schemas;
 
-using HttpStatusCode = System.Net.HttpStatusCode;
-
 namespace Pomona.Nancy
 {
-    public abstract class PomonaModule : NancyModule, IPomonaErrorHandler
+    public abstract class PomonaModule : NancyModule
     {
-        private IContainer container;
-        private IPomonaDataSource dataSource;
         private IPomonaSessionFactory sessionFactory;
 
 
@@ -36,56 +31,24 @@ namespace Pomona.Nancy
 
 
         protected PomonaModule(IPomonaSessionFactory sessionFactory,
-                               string modulePath = "/",
-                               IPomonaDataSource dataSource = null)
+                               string modulePath = "/")
             : base(modulePath)
         {
-            Initialize(sessionFactory, dataSource);
+            Initialize(sessionFactory);
         }
 
-
-        protected IContainer Container
-        {
-            get
-            {
-                if (this.container == null)
-                    this.container = new ModuleContainer(Context, this.dataSource, this);
-                return this.container;
-            }
-        }
 
         private TypeMapper TypeMapper => this.sessionFactory.TypeMapper;
 
 
-        protected virtual PomonaError OnException(Exception exception)
-        {
-            if (exception is PomonaSerializationException)
-                return new PomonaError(HttpStatusCode.BadRequest, exception.Message);
-            var pomonaException = exception as PomonaServerException;
-
-            return pomonaException != null
-                ? new PomonaError(pomonaException.StatusCode, pomonaException.Entity ?? pomonaException.Message)
-                : new PomonaError(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError.ToString());
-        }
-
-
         protected virtual Task<PomonaResponse> ProcessRequest(CancellationToken cancellationToken)
         {
-            var pomonaSession = this.sessionFactory.CreateSession(Container,
+            var pomonaSession = this.sessionFactory.CreateSession(new ServerContainer(Context), 
                                                                   new UriResolver(TypeMapper, new BaseUriProvider(Context, ModulePath)));
             Context.SetPomonaSession(pomonaSession);
             var pomonaEngine =
                 new PomonaEngine(pomonaSession);
             return pomonaEngine.Handle(Context, ModulePath, cancellationToken);
-        }
-
-
-        protected virtual Exception UnwrapException(Exception exception)
-        {
-            if (exception is TargetInvocationException || exception is RequestExecutionException || exception is AggregateException)
-                return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
-
-            return exception;
         }
 
 
@@ -146,13 +109,12 @@ namespace Pomona.Nancy
         }
 
 
-        private void Initialize(IPomonaSessionFactory sessionFactory, IPomonaDataSource dataSource)
+        private void Initialize(IPomonaSessionFactory sessionFactory)
         {
             if (sessionFactory == null)
                 sessionFactory = PomonaModuleConfigurationBinder.Current.GetFactory(this);
 
             this.sessionFactory = sessionFactory;
-            this.dataSource = dataSource;
 
             // HACK TO SUPPORT NANCY TESTING (set a valid host name)
             Before += ctx =>
@@ -192,7 +154,7 @@ namespace Pomona.Nancy
                 }
                 catch (Exception ex)
                 {
-                    var error = OnException(UnwrapException(ex));
+                    var error = ((IPomonaErrorHandler)this.Context.Resolve(typeof(IPomonaErrorHandler))).HandleException(ex);
                     if (error == null)
                         throw;
 
@@ -233,40 +195,6 @@ namespace Pomona.Nancy
         private void SetErrorHandled()
         {
             Context.Items["ERROR_HANDLED"] = true;
-        }
-
-
-        public PomonaError HandleException(Exception exception)
-        {
-            return OnException(UnwrapException(exception));
-        }
-
-
-        private class ModuleContainer : ServerContainer
-        {
-            private readonly IPomonaDataSource dataSource;
-            private readonly PomonaModule module;
-
-
-            public ModuleContainer(NancyContext nancyContext, IPomonaDataSource dataSource, PomonaModule module)
-                : base(nancyContext)
-            {
-                this.dataSource = dataSource;
-                this.module = module;
-            }
-
-
-            public override T GetInstance<T>()
-            {
-                if (typeof(T) == GetType())
-                    return (T)((object)this.module);
-                if (typeof(T) == typeof(IPomonaDataSource) && this.dataSource != null)
-                    return (T)this.dataSource;
-                if (typeof(T) == typeof(IPomonaErrorHandler))
-                    return (T)((object)this.module);
-
-                return base.GetInstance<T>();
-            }
         }
     }
 }
