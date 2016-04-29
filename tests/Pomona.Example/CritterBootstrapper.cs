@@ -14,15 +14,20 @@ namespace Pomona.Example
 {
     public class CritterBootstrapper : DefaultNancyBootstrapper
     {
+        private readonly IPomonaSessionFactory factory;
+
+
         public CritterBootstrapper()
-            : this(null)
+            : this(null, null)
         {
         }
 
 
-        public CritterBootstrapper(CritterRepository repository = null)
+        public CritterBootstrapper(CritterRepository repository = null, CritterPomonaConfiguration configuration = null)
         {
-            TypeMapper = new TypeMapper(new CritterPomonaConfiguration());
+            configuration = configuration ?? new CritterPomonaConfiguration();
+            this.factory = configuration.CreateSessionFactory();
+            TypeMapper = this.factory.TypeMapper;
             Repository = repository ?? new CritterRepository(TypeMapper);
         }
 
@@ -39,6 +44,7 @@ namespace Pomona.Example
             base.ConfigureApplicationContainer(container);
             //container.Register(new CritterPomonaConfiguration().CreateSessionFactory());
             container.Register(Repository);
+            container.Register(this.factory);
             //container.Register<CritterDataSource>();
             //container.Register(this.typeMapper);
         }

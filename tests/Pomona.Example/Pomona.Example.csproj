@@ -66,6 +66,7 @@
     <Compile Include="..\..\app\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AsyncHandledThingsHandler.cs" />
     <Compile Include="CritterBootstrapper.cs" />
     <Compile Include="CritterRepository.cs" />
     <Compile Include="CritterHost.cs" />
@@ -170,8 +171,10 @@
     <Compile Include="Models\WebColor.cs" />
     <Compile Include="NotKnownToDataSourceAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rules\AsyncHandledThingRules.cs" />
     <Compile Include="Rules\CritterFluentRules.cs" />
     <Compile Include="Rules\GalaxyRules.cs" />
+    <Compile Include="Rules\HandledThingRules.cs" />
     <Compile Include="SimpleExtraSite\SimpleDataSource.cs" />
     <Compile Include="SimpleExtraSite\SimpleExtraData.cs" />
     <Compile Include="SimpleExtraSite\SimpleExtraModule.cs" />

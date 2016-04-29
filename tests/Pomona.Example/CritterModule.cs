@@ -19,6 +19,10 @@ namespace Pomona.Example
     [PomonaConfiguration(typeof(CritterPomonaConfiguration))]
     public class CritterModule : PomonaModule
     {
+        public CritterModule(IPomonaSessionFactory pomonaSessionFactory) : base(pomonaSessionFactory)
+        {
+        }
+
         protected override PomonaError OnException(Exception exception)
         {
             if (exception is ModelValidationException)

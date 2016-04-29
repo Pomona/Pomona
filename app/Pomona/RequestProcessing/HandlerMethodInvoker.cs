@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -19,6 +20,13 @@ namespace Pomona.RequestProcessing
     public abstract class HandlerMethodInvoker<TInvokeState> : RouteAction, IHandlerMethodInvoker
         where TInvokeState : class, new()
     {
+        private static readonly Func<Type, HandlerMethodInvoker<TInvokeState>, PomonaContext, Task, HttpStatusCode?, Task<PomonaResponse>>
+            invokeAndWrapAsyncMethod =
+                GenericInvoker.Instance<HandlerMethodInvoker<TInvokeState>>()
+                              .CreateFunc1<PomonaContext, Task, HttpStatusCode?, Task<PomonaResponse>>(
+                                  x => x.InvokeAndWrapAsync<object>(null, null, null));
+
+
         protected HandlerMethodInvoker(HandlerMethod method)
         {
             if (method == null)
@@ -38,7 +46,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public override PomonaResponse Process(PomonaContext context)
+        public override Task<PomonaResponse> Process(PomonaContext context)
         {
             return InvokeAndWrap(context);
         }
@@ -93,21 +101,48 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse InvokeAndWrap(PomonaContext context,
-                                             HttpStatusCode? statusCode = null)
+        private Task<PomonaResponse> InvokeAndWrap(PomonaContext context,
+                                                   HttpStatusCode? statusCode = null)
         {
             var handler = context.Session.GetInstance(Method.MethodInfo.ReflectedType);
             var result = Invoke(handler, context);
-            var resultAsResponse = result as PomonaResponse;
+
+            if (Method.IsAsync)
+            {
+                if (Method.UnwrappedReturnType == typeof(void))
+                {
+                    return
+                        ((Task)result).ContinueWith(x => new PomonaResponse(context, PomonaResponse.NoBodyEntity, HttpStatusCode.NoContent));
+                }
+                return invokeAndWrapAsyncMethod(Method.UnwrappedReturnType, this, context, (Task)result, statusCode);
+            }
+            else
+            {
+                var resultAsResponse = result as PomonaResponse;
+                if (resultAsResponse != null)
+                    return Task.FromResult(resultAsResponse);
+
+                var responseBody = result;
+                if (ReturnType == typeof(void))
+                    responseBody = PomonaResponse.NoBodyEntity;
+
+                if (responseBody == PomonaResponse.NoBodyEntity)
+                    statusCode = HttpStatusCode.NoContent;
+
+                return Task.FromResult(new PomonaResponse(context, responseBody, statusCode ?? HttpStatusCode.OK, context.ExpandedPaths));
+            }
+        }
+
+
+        private async Task<PomonaResponse> InvokeAndWrapAsync<TResult>(PomonaContext context,
+                                                                       Task<TResult> task,
+                                                                       HttpStatusCode? statusCode = null)
+        {
+            var resultAsResponse = task as Task<PomonaResponse>;
             if (resultAsResponse != null)
-                return resultAsResponse;
+                return await resultAsResponse;
 
-            var responseBody = result;
-            if (ReturnType == typeof(void))
-                responseBody = PomonaResponse.NoBodyEntity;
-
-            if (responseBody == PomonaResponse.NoBodyEntity)
-                statusCode = HttpStatusCode.NoContent;
+            var responseBody = (object)await task;
 
             return new PomonaResponse(context, responseBody, statusCode ?? HttpStatusCode.OK, context.ExpandedPaths);
         }

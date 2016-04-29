@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.Routing
 {
@@ -30,9 +31,9 @@ namespace Pomona.Routing
         }
 
 
-        public override PomonaResponse Process(PomonaContext context)
+        public override Task<PomonaResponse> Process(PomonaContext context)
         {
-            return this.func(context);
+            return Task.FromResult(this.func(context));
         }
     }
 }

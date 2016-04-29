@@ -17,7 +17,12 @@ using Pomona.Example.Models;
 
 namespace Pomona.UnitTests.Client
 {
-    public abstract class CritterServiceTestsBase<TClient>
+    public abstract class CritterServiceTestsBase<TClient> : CritterServiceTestsBase<TClient, CritterBootstrapper>
+    {
+    }
+
+    public abstract class CritterServiceTestsBase<TClient, TBootstrapper>
+        where TBootstrapper : CritterBootstrapper, new()
     {
         public const bool UseSelfHostedHttpServerDefault = false;
         private static TClient cachedNancyTestingClient;
@@ -75,7 +80,7 @@ namespace Pomona.UnitTests.Client
 
                 if (cachedNancyTestingClient == null)
                 {
-                    var critterBootstrapper = new CritterBootstrapper();
+                    var critterBootstrapper = new TBootstrapper();
                     critterBootstrapper.Initialise();
                     cachedNancyTestingClientRepository = critterBootstrapper.Repository;
                     cachedNancyTestingClient = CreateInMemoryTestingClient(BaseUri, critterBootstrapper);

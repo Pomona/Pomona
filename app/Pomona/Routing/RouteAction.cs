@@ -32,12 +32,12 @@ namespace Pomona.Routing
 
         #endregion
 
-        public abstract PomonaResponse Process(PomonaContext context);
+        public abstract Task<PomonaResponse> Process(PomonaContext context);
 
 
         Task<PomonaResponse> IPomonaRequestProcessor.Process(PomonaContext context)
         {
-            return Task.FromResult(Process(context));
+            return Process(context);
         }
     }
 }
