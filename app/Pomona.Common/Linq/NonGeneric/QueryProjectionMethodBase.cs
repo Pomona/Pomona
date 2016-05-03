@@ -30,18 +30,5 @@ namespace Pomona.Common.Linq.NonGeneric
 
 
         protected abstract MethodInfo GetMethod(Type elementType);
-
-
-        private static MethodInfo GetNonGenericQueryableMethod(Type iqType, string name)
-        {
-            var method = typeof(Queryable).GetMethod(name,
-                                                     BindingFlags.Public | BindingFlags.Static,
-                                                     null,
-                                                     new Type[] { iqType },
-                                                     null);
-            if (method == null)
-                throw new NotSupportedException("Unable to apply " + name + " to " + iqType);
-            return method;
-        }
     }
 }
