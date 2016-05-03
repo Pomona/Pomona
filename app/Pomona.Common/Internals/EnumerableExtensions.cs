@@ -134,7 +134,7 @@ namespace Pomona.Common.Internals
         /// </summary>
         /// <param name="source">Source</param>
         /// <returns>New list.</returns>
-        public static IEnumerable ToListDetectType(this IEnumerable source)
+        public static IList ToListDetectType(this IEnumerable source)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
@@ -142,7 +142,7 @@ namespace Pomona.Common.Internals
             if (!source.GetType().TryGetEnumerableElementType(out elementType))
                 return source.Cast<object>().ToList();
 
-            return (IEnumerable)toListMethod.MakeGenericMethod(elementType).Invoke(null, new object[] { source });
+            return (IList)toListMethod.MakeGenericMethod(elementType).Invoke(null, new object[] { source });
         }
 
 

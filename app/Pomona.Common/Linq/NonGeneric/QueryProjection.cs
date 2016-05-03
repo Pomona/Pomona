@@ -35,7 +35,20 @@ namespace Pomona.Common.Linq.NonGeneric
 
 
         public abstract string Name { get; }
+
         public abstract Expression Apply(IQueryable queryable);
+
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != GetType())
+                return false;
+            return Equals((QueryProjection)obj);
+        }
 
 
         public virtual object Execute(IQueryable queryable)
@@ -52,6 +65,12 @@ namespace Pomona.Common.Linq.NonGeneric
         }
 
 
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
+
+
         /// <summary>
         /// Gets the resulting type given an IQueryable with specified element type.
         /// </summary>
@@ -60,9 +79,27 @@ namespace Pomona.Common.Linq.NonGeneric
         public abstract Type GetResultType(Type elementType);
 
 
+        public static bool operator ==(QueryProjection left, QueryProjection right)
+        {
+            return Equals(left, right);
+        }
+
+
+        public static bool operator !=(QueryProjection left, QueryProjection right)
+        {
+            return !Equals(left, right);
+        }
+
+
         public override string ToString()
         {
             return Name;
+        }
+
+
+        protected bool Equals(QueryProjection other)
+        {
+            return string.Equals(Name, other.Name);
         }
 
 
