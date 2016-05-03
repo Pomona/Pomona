@@ -58,7 +58,7 @@ namespace Pomona
                 var resultEntity = result.Entity;
                 var resultAsQueryable = resultEntity as IQueryable;
                 if (resultAsQueryable != null && context.ExecuteQueryable)
-                    result = ExecuteQueryable(context, resultAsQueryable);
+                    result = await ExecuteQueryable(context, resultAsQueryable);
 
                 if (context.AcceptType != null && !context.AcceptType.IsInstanceOfType(resultEntity))
                 {
@@ -83,7 +83,7 @@ namespace Pomona
         }
 
 
-        private PomonaResponse ExecuteQueryable(PomonaContext context, IQueryable resultAsQueryable)
+        private async Task<PomonaResponse> ExecuteQueryable(PomonaContext context, IQueryable resultAsQueryable)
         {
             var queryableActionResult = resultAsQueryable as IQueryableActionResult;
             int? defaultPageSize = null;
@@ -102,7 +102,7 @@ namespace Pomona
 
             var queryExecutor = GetInstance<IQueryExecutor>();
             var pomonaQuery = ParseQuery(context, resultAsQueryable.ElementType, defaultPageSize);
-            return queryExecutor.ApplyAndExecute(resultAsQueryable, pomonaQuery);
+            return await queryExecutor.ApplyAndExecute(resultAsQueryable, pomonaQuery);
         }
 
 

@@ -57,7 +57,6 @@ namespace Pomona
         public int Top { get; set; }
         public string Url { get; set; }
 
-
         public IQueryable ApplyExpressions(IQueryable queryable)
         {
             if (queryable.ElementType != OfType.Type)

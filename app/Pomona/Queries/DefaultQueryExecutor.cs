@@ -6,14 +6,15 @@
 #endregion
 
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Pomona.Queries
 {
     public class DefaultQueryExecutor : IQueryExecutor
     {
-        public virtual PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery query)
+        public virtual Task<PomonaResponse> ApplyAndExecute(IQueryable queryable, PomonaQuery query)
         {
-            return query.ApplyAndExecute(queryable);
+            return Task.FromResult(query.ApplyAndExecute(queryable));
         }
     }
 }
