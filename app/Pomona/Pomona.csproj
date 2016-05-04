@@ -292,7 +292,6 @@
       <Name>Pomona.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition=" '$(OS)' != 'Unix' ">
     <!-- Folder containing AntlrBuildTask.dll -->
