@@ -1,0 +1,15 @@
+index:Pomona REST API Framework
+introduction:Introduction
+getting_started:Getting started
+configuration:Configuration and bootstrapping
+configuration/rules:Type rules
+configuration/property_mapping:Mapping properties
+configuration/convention:Changing conventions
+handlers:Resource handlers
+handlers/datasource:Data source
+type_system:Type system
+generated_client:Generated client
+rest:Using exposed service
+rest/queries:Queries
+rest/patch_format:Patch format
+rest/etags:Concurrency control using ETags
