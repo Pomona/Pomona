@@ -53,7 +53,6 @@
   <ItemGroup>
     <Compile Include="DustyConfiguration.cs" />
     <Compile Include="DustyModule.cs" />
-    <Compile Include="DustyRules.cs" />
     <Compile Include="GameConsoleHandler.cs" />
     <Compile Include="Models\GameConsole.cs" />
     <Compile Include="Program.cs" />

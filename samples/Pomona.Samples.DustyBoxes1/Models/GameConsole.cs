@@ -7,9 +7,11 @@
 
 namespace Pomona.Samples.DustyBoxes.Models
 {
+    // SAMPLE: dusty-game-console
     public class GameConsole
     {
         public string Id { get; set; }
         public string Name { get; set; }
     }
+    // ENDSAMPLE
 }

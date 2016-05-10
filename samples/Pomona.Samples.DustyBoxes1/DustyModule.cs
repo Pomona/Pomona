@@ -7,8 +7,10 @@
 
 namespace Pomona.Samples.DustyBoxes
 {
+    // SAMPLE: dusty-module
     [PomonaConfiguration(typeof(DustyConfiguration))]
     public class DustyModule : PomonaModule
     {
     }
+    // ENDSAMPLE
 }

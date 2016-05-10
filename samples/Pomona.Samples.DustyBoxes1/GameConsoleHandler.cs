@@ -11,6 +11,7 @@ using Pomona.Samples.DustyBoxes.Models;
 
 namespace Pomona.Samples.DustyBoxes
 {
+    // SAMPLE: dusty-game-console-handler
     public class GameConsoleHandler
     {
         public IQueryable<GameConsole> Query()
@@ -24,4 +25,5 @@ namespace Pomona.Samples.DustyBoxes
                 }.AsQueryable();
         }
     }
+    // ENDSAMPLE
 }
