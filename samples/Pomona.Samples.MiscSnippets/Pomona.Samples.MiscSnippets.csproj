@@ -42,6 +42,8 @@
   <ItemGroup>
     <Compile Include="Configuration.cs" />
     <Compile Include="Customer.cs" />
+    <Compile Include="CustomerHandler.cs" />
+    <Compile Include="ExludePropertyFluentRule.cs" />
     <Compile Include="FluentRules.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

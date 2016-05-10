@@ -15,6 +15,18 @@ property of your configuration class to be considered:
 
 Type options are defined through the `ITypeMappingConfigurator<T>` interface.
 
+### Ignoring properties
 
+A property can be ignored and hidden from the exposed resource by using the `Exclude` method.
+
+<[sample:misc-exlude-property-fluent-rule]>
+
+### Selecting handler
+
+A handler class can be chosen for a resource type by using the `HandledBy<T>` method.
+
+<[sample:misc-handled-by-fluent-rule]>
+
+You can find out more about this in <[linkto:handlers]>
 
 ## Property options
