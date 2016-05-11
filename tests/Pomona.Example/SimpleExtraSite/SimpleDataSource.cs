@@ -10,6 +10,7 @@ using System.Linq;
 
 namespace Pomona.Example.SimpleExtraSite
 {
+    // SAMPLE: simple-data-source
     internal class SimpleDataSource : IPomonaDataSource
     {
         private static readonly IList<SimpleExtraData> repository = new List<SimpleExtraData>()
@@ -42,4 +43,5 @@ namespace Pomona.Example.SimpleExtraSite
             return repository.Cast<T>().AsQueryable();
         }
     }
+    // ENDSAMPLE
 }
