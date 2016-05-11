@@ -9,5 +9,13 @@ namespace Pomona.Samples.MiscSnippets
 {
     public class CustomerHandler
     {
+        private dynamic customerRepo;
+
+        // SAMPLE: misc-get-customer-handler-method
+        public Customer GetCustomer(int id)
+        {
+            return this.customerRepo.GetById(id);
+        }
+        // ENDSAMPLE
     }
 }

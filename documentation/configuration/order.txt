@@ -1,3 +1,2 @@
 rules
-property_mapping
 convention

@@ -7,15 +7,7 @@
 
 namespace Pomona.Samples.MiscSnippets
 {
-    public class Customer
+    public class Mouse
     {
-        public Customer(string name, string password)
-        {
-        }
-
-
-        public string Identifier { get; set; }
-        public string Name { get; set; }
-        public string Password { get; set; }
     }
 }

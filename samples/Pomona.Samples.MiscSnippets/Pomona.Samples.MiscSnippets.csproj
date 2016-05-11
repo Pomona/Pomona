@@ -41,13 +41,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="CrazyConventions.cs" />
     <Compile Include="Customer.cs" />
     <Compile Include="CustomerHandler.cs" />
     <Compile Include="ExludePropertyFluentRule.cs" />
     <Compile Include="FluentRules.cs" />
+    <Compile Include="ICustomerFactory.cs" />
+    <Compile Include="Mouse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">
+      <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
+      <Name>Pomona.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
       <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
       <Name>Pomona</Name>

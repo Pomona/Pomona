@@ -11,16 +11,72 @@ namespace Pomona.Samples.MiscSnippets
 {
     public class MoreRules
     {
-        // SAMPLE: misc-exlude-property-fluent-rule
-        public void ExcludeRule(ITypeMappingConfigurator<Customer> map)
+        #region sample
+
+        // SAMPLE: misc-constructed-using-fluent-rule
+        public void ConstructedUsingRule(ITypeMappingConfigurator<Customer> customer)
         {
-            map.Exclude(x => x.Password);
-        } // ENDSAMPLE
+            customer.ConstructedUsing(c => new Customer(c.Requires().Name, c.Optional().Password));
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-contextful-construction-fluent-rule
+        public void ContextfulConstructionRule(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer.ConstructedUsing(
+                c => c.Context<ICustomerFactory>()
+                      .CreateCustomer(c.Requires().Name, c.Optional().Password));
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-exclude-property-fluent-rule
+        public void ExcludeRule(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer.Exclude(x => x.Password);
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
 
         // SAMPLE: misc-handled-by-fluent-rule
-        public void HandlerRule(ITypeMappingConfigurator<Customer> map)
+        public void HandlerRule(ITypeMappingConfigurator<Customer> customer)
         {
-            map.HandledBy<CustomerHandler>();
-        } // ENDSAMPLE
+            customer.HandledBy<CustomerHandler>();
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-plural-name-fluent-rule
+        public void PluralNameRule(ITypeMappingConfigurator<Mouse> mouse)
+        {
+            mouse.WithPluralName("Mice");
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-value-object-fluent-rule
+        public void ValueObjectRule(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer.AsValueObject();
+        }
+        // ENDSAMPLE
+
+        #endregion
     }
 }

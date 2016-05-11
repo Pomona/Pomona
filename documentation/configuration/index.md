@@ -4,5 +4,5 @@
 Pomona has adopted the philosophy of "convention over configuration" using a
 two-layered system consisting of
 
-* The convention layer, for global rules
-* The fluent rule layer, for per-type overrides
+* <[linkto:configuration/rules;title=The fluent rule layer]>, for per-type and property overrides
+* <[linkto:configuration/convention;title=The convention layer]>, for global rules
