@@ -10,8 +10,7 @@ This example is also available in the Pomona repository in the
 
 ## Installing
 
-We start by creating a new C# console project and install the [Pomona NuGet package]
-(http://www.nuget.org/packages/Pomona/) from the standard NuGet feed.
+We start by creating a new C# console project and install the [Pomona NuGet package](http://www.nuget.org/packages/Pomona/) from the standard NuGet feed.
 
 ```
 PM> Install-Package Pomona
