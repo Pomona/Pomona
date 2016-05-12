@@ -82,6 +82,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Samples.DustyBoxes1", "samples\Pomona.Samples.DustyBoxes1\Pomona.Samples.DustyBoxes1.csproj", "{DFE3AC49-EEBD-48B1-8026-4C03E66D01E5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.Samples.MiscSnippets", "samples\Pomona.Samples.MiscSnippets\Pomona.Samples.MiscSnippets.csproj", "{1E80B5E4-0F92-4134-A795-9D381A34803D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D098F08-B3CA-4122-A7F6-3090F8A17CA1} = {9D098F08-B3CA-4122-A7F6-3090F8A17CA1}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

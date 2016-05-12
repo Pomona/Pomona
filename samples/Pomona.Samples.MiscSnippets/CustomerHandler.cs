@@ -13,6 +13,17 @@ namespace Pomona.Samples.MiscSnippets
 
         #region
 
+        // SAMPLE: misc-delete-customer-handler-method
+        public void Delete(Customer customer)
+        {
+            this.customerRepo.Delete(customer);
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region
+
         // SAMPLE: misc-get-customer-handler-method
         public Customer GetCustomer(int id)
         {

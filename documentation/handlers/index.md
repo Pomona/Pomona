@@ -57,3 +57,10 @@ on a `PATCH`.
 
 Pomona uses a custom JSON patch format, more details can be found in
 <[linkto:json_patch_format]>
+
+## Delete resource
+
+A method named `Delete` or `Delete{Resource}` that either takes a resource
+or id parameter will be used for `DELETE` requests.
+
+<[sample:misc-delete-customer-handler-method]>
