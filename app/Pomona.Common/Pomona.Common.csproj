@@ -125,7 +125,7 @@
     <Compile Include="Internals\MappedReadOnlyList.cs" />
     <Compile Include="Internals\MappedReadOnlyListExtensions.cs" />
     <Compile Include="Internals\ObjectExtensions.cs" />
-    <Compile Include="Internals\OdataFunctionMapping.cs" />
+    <Compile Include="Internals\QueryFunctionMapping.cs" />
     <Compile Include="Internals\ReflectionHelper.cs" />
     <Compile Include="Internals\StreamExtensions.cs" />
     <Compile Include="Internals\StringConversion.cs" />
