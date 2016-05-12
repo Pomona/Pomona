@@ -70,3 +70,29 @@ A few of the supported methods are listed here
 
 A more complete list can be found in `QueryFunctionMapping.cs` of the Pomona
 source code.
+
+## Extended resources and attributes
+
+In some cases it is useful for resources to contain a `Dictionary<string,object>`
+to store dynamic data, which keys might only be known by the client side.
+
+Unfortunately a .NET dictionary is not very convenient to work with in queries,
+and also leads to a lot of clumsy mapping code.
+
+To simplify this Pomona makes it possible to automatically map statically typed
+properties to a resource dictionary by declaring the dictionary property as an
+attribute container.
+
+<[sample:map-property-as-attributes]>
+
+Now we can inherit the client generated interface, and any added properties
+with primitive values will automatically project to `Map`.
+
+<[sample:test-extended-resource]>
+
+After this we can query the resource using the `IExtendedResource3` interface,
+which will automatically redirect `CustomString` to `Map["CustomString"]`,
+and `OtherCustom` to `Map["OtherCustom"]`.
+
+For more details about this feature looking at the `ExtendedResourceClientTests.cs`
+file is recommended.

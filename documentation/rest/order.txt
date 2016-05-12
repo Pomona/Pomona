@@ -1,3 +1,2 @@
 queries
-patch_format
 etags
