@@ -46,7 +46,7 @@ the example below:
 
 ### Group by queries
 
-Aggregate queries must be structured be structured in a way described in
+Aggregate queries must be structured in a way described in
 the example below:
 
 <[sample:client-linq-aggregate-query-structure]>
