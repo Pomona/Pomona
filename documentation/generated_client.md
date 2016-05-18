@@ -90,7 +90,7 @@ with primitive values will automatically project to `Map`.
 
 <[sample:test-extended-resource]>
 
-After this we can query the resource using the `IExtendedResource3` interface,
+After this we can query the resource using the `IExtendedResource` interface,
 which will automatically redirect `CustomString` to `Map["CustomString"]`,
 and `OtherCustom` to `Map["OtherCustom"]`.
 
