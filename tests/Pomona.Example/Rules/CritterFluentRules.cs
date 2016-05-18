@@ -112,7 +112,9 @@ namespace Pomona.Example.Rules
 
         public void Map(ITypeMappingConfigurator<StringToObjectDictionaryContainer> map)
         {
+            // SAMPLE: map-property-as-attributes
             map.Include(x => x.Map, o => o.AsAttributes());
+            // ENDSAMPLE
             map.Include(x => x.ETag, o => o.AsEtag());
         }
 

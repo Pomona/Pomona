@@ -258,7 +258,7 @@ namespace Pomona.Queries
             return ParseBinaryOperator(leftChild,
                                        rightChild,
                                        (l, r) =>
-                                           Expression.Call(OdataFunctionMapping.StringEqualsTakingComparisonTypeMethod,
+                                           Expression.Call(QueryFunctionMapping.StringEqualsTakingComparisonTypeMethod,
                                                            l,
                                                            r,
                                                            Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
@@ -376,7 +376,7 @@ namespace Pomona.Queries
             if (typeof(IDictionary<string, string>).IsAssignableFrom(property.Type))
             {
                 return Expression.Call(
-                    property, OdataFunctionMapping.DictStringStringGetMethod, ParseExpression(node.Children[0]));
+                    property, QueryFunctionMapping.DictStringStringGetMethod, ParseExpression(node.Children[0]));
             }
             throw new NotImplementedException();
         }
@@ -428,7 +428,7 @@ namespace Pomona.Queries
                     throw CreateParseException(node, "Left and right side of in operator does not have matching types.");
             }
 
-            return Expression.Call(OdataFunctionMapping.EnumerableContainsMethod.MakeGenericMethod(compareType),
+            return Expression.Call(QueryFunctionMapping.EnumerableContainsMethod.MakeGenericMethod(compareType),
                                    rightExpr, leftExpr);
         }
 
@@ -509,7 +509,7 @@ namespace Pomona.Queries
         {
             var key = node.Name;
 
-            var method = OdataFunctionMapping.SafeGetMethod.MakeGenericMethod(dictionaryType.GetGenericArguments());
+            var method = QueryFunctionMapping.SafeGetMethod.MakeGenericMethod(dictionaryType.GetGenericArguments());
 
             return Expression.Call(method, memberExpression, Expression.Constant(key));
         }
@@ -613,7 +613,7 @@ namespace Pomona.Queries
 
 
         private bool TryResolveMemberMapping(
-            OdataFunctionMapping.MemberMapping memberMapping,
+            QueryFunctionMapping.MemberMapping memberMapping,
             MethodCallNode node,
             out Expression expression)
         {
@@ -747,7 +747,7 @@ namespace Pomona.Queries
                     return true;
             }
 
-            var memberCandidates = OdataFunctionMapping.GetMemberCandidates(node.Name, node.Children.Count);
+            var memberCandidates = QueryFunctionMapping.GetMemberCandidates(node.Name, node.Children.Count);
 
             foreach (var memberMapping in memberCandidates)
             {

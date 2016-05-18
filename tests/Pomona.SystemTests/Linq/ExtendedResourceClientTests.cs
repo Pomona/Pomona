@@ -253,8 +253,9 @@ namespace Pomona.SystemTests.Linq
         [Test]
         public void Query_ClientSideResourceReturningNoResults_FirstOrDefaultReturnsNull()
         {
-            Assert.That(Client.Query<ITestClientResource>().FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()),
-                        Is.Null);
+            Assert.That(
+                Client.Query<ITestClientResource>()
+                      .FirstOrDefault(x => x.Jalla == Guid.NewGuid().ToString()), Is.Null);
         }
 
 
@@ -621,11 +622,17 @@ namespace Pomona.SystemTests.Linq
         {
         }
 
+        #region sample
+
+        // SAMPLE: test-extended-resource
         public interface IExtendedResource : IDictionaryContainer
         {
             string CustomString { get; set; }
             string OtherCustom { get; set; }
         }
+        // ENDSAMPLE
+
+        #endregion
 
         public interface IExtendedResource2 : ISubtypedDictionaryContainer
         {

@@ -1,8 +1,28 @@
-JSON PATCH Specification
-====================================
+<!--Title:JSON PATCH Specification-->
+<!--Url:json_patch_format-->
 
-Example document:
-```json
+Pomona uses a custom PATCH format, which feels intuitive and straight-forward
+for simple cases, and that also can support more advanced scenarios.
+
+## Property operators:
+
+* `!` - Replaces a property (object or array). When setting to a value type this is always the default operation, making the `!` optional.
+* `*` - Patches the existing object of a property (object or array).
+* `-` - Removes a property.
+
+## Array operators:
+
+* `-@` - Indicates that an object item is removed from array using specificied identifier.
+* `*@` - Indicates that an object item is to be located in array using specified identifier, and then patched.
+* Default operation is to add something to an array.
+
+## Escaping:
+
+Property names starting with `-`, `*`, `!`, `@` and `^` has to be escaped by putting `^` in front of it.
+
+## Examples
+
+```javascript
 {
     "info": { "foo": "fighter", "crow" : "bar" },
     "people" : [
@@ -23,98 +43,89 @@ Example document:
     }
 }
 ```
-Property operators:
-* `!` - Replaces a property (object or array). When setting to a value type this is always the default operation, making the `!` optional.
-* `*` - Patches the existing object of a property (object or array).
-* `-` - Removes a property.
-
-Array operators:
-* `-@` - Indicates that an object item is removed from array using specificied identifier.
-* `*@` - Indicates that an object item is to be located in array using specified identifier, and then patched.
-* Default operation is to add something to an array.
-
-Escaping:
-* Property names starting with `-`, `*`, `!`, `@` and `^` has to be escaped by putting `^` in front of it.
 
 Changing the `info` property (an object):
-```json
+
+```javascript
 {
     "*info" : { "foo" : "miauu" }
 }
 ```
 
 As changing members that are not arrays is the default operation, this also changes the `info` property:
-```json
+
+```javascript
 {
     "info" : { "foo" : "miauu" }
 }
 ```
 
 Replace the whole `info` property:
-```json
+
+```javascript
 {
     "!info" : { "foo" : "unknown", "bar" : "hello" }
 }
 ```
 
 Removing the fish property from attributes:
-```json
+```javascript
 {
     "attributes" : { "-fish" }
 }
 ```
 
 Removing the fish property from attributes (property value is ignored):
-```json
+```javascript
 {
     "attributes" : { "-fish" : {} }
 }
 ```
 
 Replacing the strangely named "-MUST_BE_ESCAPED-" property from attributes requires escaping:
-```json
+```javascript
 {
     "attributes" : { "!^-MUST_BE_ESCAPED-" : "REPLACED!" }
 }
 ```
 
 Remove Joe from the `people` array:
-```json
+```javascript
 {
     "people" : [{ "-@id" : 1 }]
 }
 ```
 
 Change Peter in the `people` array:
-```json
+```javascript
 {
     "people" : [{ "*@id" : 2, "name" : "Peter Pan" }]
 }
 ```
 
 Another way to change Peter in the `people` array (before renaming him to "Peter Pan" as per the above example):
-```json
+```javascript
 {
     "people" : [{ "*@name" : "Peter", "name" : "Peter Pan" }]
 }
 ```
 
 Add Nancy to the `people` array:
-```json
+```javascript
 {
     "people" : [{ "name" : "Nancy" }]
 }
 ```
 
 Replace the whole `people` property:
-```json
+```javascript
 {
     "!people" : [{ "name" : "Peter Pan" }]
 }
 ```
 
 Changing the color of the pet Wendy from black to red, adding the mouse Kipper and deleting Karl:
-```json
+```javascript
 {
     "*people" : [
         {
