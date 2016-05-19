@@ -15,7 +15,7 @@ using System.Text;
 
 namespace Pomona.Common.Internals
 {
-    public class OdataFunctionMapping
+    public class QueryFunctionMapping
     {
         #region MethodCallStyle enum
 
@@ -40,7 +40,7 @@ namespace Pomona.Common.Internals
             new Dictionary<string, List<MemberMapping>>();
 
 
-        static OdataFunctionMapping()
+        static QueryFunctionMapping()
         {
             DictStringStringGetMethod = ReflectionHelper.GetInstanceMethodInfo<IDictionary<string, string>>(x => x[null]);
             EnumerableContainsMethod =

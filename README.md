@@ -30,27 +30,7 @@ as a RESTful web service.
 
 Precompiled Pomona packages are available through NuGet.
 
-A new Pomona service can be created by following the steps below:
-
-1. Add a reference to the [Pomona package](https://www.nuget.org/packages/pomona) using NuGet
-2. Implement your own `IPomonaDataSource`
-3. Inherit from `TypeMappingFilterBase`, and at a minimum implement `GetSourceTypes()` and `GetIdFor()`.
-   They're abstract, so you can't miss them.
-   `GetSourceTypes()` must return the list of what Types to expose to web service.
-4. Inherit `PomonaModule` (which is a Nancy module), and treat this as you normally would treat a Nancy module.
-   Which could mean zero configuration. Just because Nancy is *that* awesome!
-5. Inherit PomonaConfigurationBase and fill in the abstracts.
-
-Look at the Critter example in the source code for details. If you fire up the `Pomona.Example.ServerApp.exe`, it expose the critters on port 2211.
-When ServerApp is running go here with a web browser to see what Pōmōna is all about:
-
-* `http://localhost:2211/critters`
-* `http://localhost:2211/critters?$expand=critter.hat`
-* `http://localhost:2211/Critters.Client.dll` - Generates a client library on-the-fly
-* `http://localhost:2211/Critters.Client.1.0.0.0.nupkg` - Generates a [NuGet Package](http://www.nuget.org/) for the client library on-the-fly
-* `http://localhost:2211/schemas` - Returns the JSON schema for the transformed data model
-
-You can also `POST` to `http://localhost:2211/critter` create a new critter entity.
+There will soon be some documentation, but for now take a look at the Pomona.Example project.
 
 ## Methods supported
 

@@ -24,8 +24,16 @@ namespace Pomona.Example
         {
         }
 
-
-        public override ClientMetadata ClientMetadata => base.ClientMetadata.With("Critters.Client", "CritterClient", "ICritterClient", "Critters.Client");
+        #region sample
+        // SAMPLE: client-metadata-override
+        public override ClientMetadata ClientMetadata =>
+            base.ClientMetadata.With(
+                assemblyName : "Critters.Client",
+                name : "CritterClient",
+                interfaceName : "ICritterClient",
+                @namespace : "Critters.Client");
+        // ENDSAMPLE
+        #endregion
 
 
         public override bool ClientEnumIsGeneratedAsStringEnum(Type enumType)

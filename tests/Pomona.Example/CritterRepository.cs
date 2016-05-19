@@ -480,7 +480,7 @@ namespace Pomona.Example
         {
             protected override Expression VisitMethodCall(MethodCallExpression node)
             {
-                if (node.Method == OdataFunctionMapping.DictStringStringGetMethod)
+                if (node.Method == QueryFunctionMapping.DictStringStringGetMethod)
                 {
                     var method = ReflectionHelper.GetMethodInfo<string, string>(x => GetDictItemOrDefault(null, null));
                     return Expression.Call(method, node.Object, node.Arguments.First());
