@@ -24,7 +24,7 @@ Now that we have a empty project we need some domain model to expose.
 
 <[sample:dusty-game-console]>
 
-*Every resource should have some id, which will be used as part of the URL.*
+*Every resource must have an id, which will be used as part of the URL.*
 
 ### Setting up a module
 

@@ -2,7 +2,7 @@ getting_started
 configuration
 handlers
 type_system
-generated_client
 rest
+generated_client
 json_patch_format
 internals

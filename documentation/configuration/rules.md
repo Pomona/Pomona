@@ -9,6 +9,10 @@ any class.
 Any object containing fluent rules must be returned from the `FluentRuleObjects`
 property of your configuration class to be considered:
 
+Pomona will scan fluent rule objects and look for methods taking one argument
+of type `ITypeMappingConfigurator<T>`. A rule methods will be applied to `T`
+and all subtypes of `T`.
+
 <[sample:misc-config-fluent-rule-objects-overrides]>
 
 # Type options

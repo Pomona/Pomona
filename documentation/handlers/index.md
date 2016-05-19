@@ -6,7 +6,7 @@
 In Pomona a handler is something that handles a HTTP request. It's basically
 the same as what is called a "controller" in many other web frameworks.
 
-We can define one or more handler types per method type, either by using the
+We can define one or more handler types per resource type, either by using the
 `HandledBy<T>(..)` method or by overriding the `GetResourceHandlers` convention.
 
 Methods in the handler class are duck-typed, and resolved using their name
