@@ -235,10 +235,17 @@ namespace Pomona.Example.Rules
         }
 
 
+        #region sample
+
+
+        // SAMPLE: etag-fluent-rule
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)
         {
             map.Include(x => x.ETag, o => o.AsEtag());
         }
+        // ENDSAMPLE
+
+        #endregion
 
 
         public void Map(ITypeMappingConfigurator<CritterCaptureCommand> map)
