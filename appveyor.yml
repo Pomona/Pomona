@@ -3,10 +3,14 @@ install:
 
 before_build:
   - nuget restore
-  - ps: gitversion /l console /output buildserver 
+  - ps: gitversion /l console /output buildserver
 
 build:
   project: Pomona.sln
+
+after_build:
+  - ps: >-
+      ./update-docs.ps1
 
 test:
   assemblies:
