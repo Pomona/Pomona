@@ -55,6 +55,15 @@ namespace Pomona.UnitTests
             Assert.That(url, Is.EqualTo(expectedResourceUrl));
         }
 
+        [Test]
+        public void GetUriFor_resource_without_primary_key_throws_invalidoperationexception()
+        {
+            BaseUri = new Uri("http://whateva");
+            var noPrimaryKeyThing = new NoPrimaryKeyThing() { Foo = "bar" };
+            TestDelegate throwing = () => this.uriResolver.GetUriFor(noPrimaryKeyThing);
+            var exception = Assert.Throws<InvalidOperationException>(throwing);
+            Assert.That(exception.Message, Is.EqualTo("NoPrimaryKeyThing has no Id property or primary key mapping"));
+        }
 
         [SetUp]
         public void SetUp()
