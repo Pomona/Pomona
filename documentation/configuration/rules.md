@@ -19,6 +19,9 @@ and all subtypes of `T`.
 
 Type options are defined through the `ITypeMappingConfigurator<T>` interface.
 
+Rules specified using `ITypeMappingConfigurator<T>` can either be chained, or split
+up in multiple declarations.
+
 ## Ignoring properties
 
 A property can be ignored and hidden from the exposed resource by using the `Exclude` method.
