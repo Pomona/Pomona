@@ -11,6 +11,9 @@ if ($(git rev-parse --abbrev-ref HEAD) -eq "develop")
   git remote -v
   git fetch
   $TempDir = $env:temp + "\" + [System.Guid]::NewGuid().ToString()
+  Write-Output "$TempDir"
+  git --version
+  git config -l
   git worktree add $TempDir gh-pages
   pushd $TempDir
   git reset --hard origin/gh-pages
