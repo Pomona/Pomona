@@ -28,11 +28,11 @@ Now that we have a empty project we need some domain model to expose.
 
 ### Setting up a module
 
-Then we need to create a module,
+Then we need to create a module, which represents the endpoint of our service.
 
 <[sample:dusty-module]>
 
-..and also a corresponding configuration class.
+Additionally we need a corresponding configuration class.
 
 <[sample:dusty-configuration]>
 
@@ -47,7 +47,8 @@ The configuration above have two properties overridden.
 In the `Map` method of the `DustyRules` we defined that `GameConsoleHandler` will
 handle requests for the `GameConsole` resource.
 
-Now we need to actually implement this handler class:
+This is a handler class, which will handle HTTP actions for one or more resources.
+We can now implement `GameConsoleHandler`, like this:
 
 <[sample:dusty-game-console-handler]>
 
