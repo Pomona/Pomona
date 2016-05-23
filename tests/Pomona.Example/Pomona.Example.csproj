@@ -81,6 +81,12 @@
     <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="Handlers\CritterHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="IncorrectSite\IncorrectChildResource.cs" />
+    <Compile Include="IncorrectSite\IncorrectHandler.cs" />
+    <Compile Include="IncorrectSite\IncorrectModule.cs" />
+    <Compile Include="IncorrectSite\IncorrectPomonaConfiguration.cs" />
+    <Compile Include="IncorrectSite\IncorrectResource.cs" />
+    <Compile Include="IncorrectSite\IncorrectTypeMappingFilter.cs" />
     <Compile Include="ModelProxies\BearProxy.cs" />
     <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
