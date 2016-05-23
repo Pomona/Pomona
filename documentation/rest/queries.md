@@ -35,4 +35,4 @@ using the a standard set of query parameters.
 
 ## Grammar
 
-For the complete grammar look at the ANTLR3 grammar file `PomonaQuery.q`.
+For the complete grammar look at the ANTLR3 grammar file [PomonaQuery.q](https://raw.githubusercontent.com/Pomona/Pomona/master/app/Pomona/Queries/PomonaQuery.g).
