@@ -1,5 +1,3 @@
-$ErrorActionPreference = "Stop"
-
 if ($(git rev-parse --abbrev-ref HEAD) -eq "develop")
 {
   $TempDir = $env:temp + "\" + [System.Guid]::NewGuid().ToString()
