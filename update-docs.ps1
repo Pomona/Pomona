@@ -1,5 +1,9 @@
 if ($(git rev-parse --abbrev-ref HEAD) -eq "develop")
 {
+  $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
+  $fileContent += $env:priv_key.Replace(' ', "`n")
+  $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
+  Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
   $TempDir = $env:temp + "\" + [System.Guid]::NewGuid().ToString()
   git clone git@github.com:Pomona/Pomona-gh-pages.git $TempDir -b gh-pages
   Write-Output "$TempDir"
