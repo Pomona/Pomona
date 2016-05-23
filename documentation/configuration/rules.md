@@ -47,7 +47,7 @@ You can learn more about value types in <[linkto:type_system]>
 When Pomona needs to instantiate a resource or value object type during deserialization,
 it uses the empty constructor by default if available.
 
-If we want to instantiate the object using a constructor or method taking parameters,
+If we want to instantiate the object using a non-empty constructor or a method taking parameters,
 we can use the `ConstructedUsing` method.
 
 <[sample:misc-constructed-using-fluent-rule]>
