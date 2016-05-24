@@ -29,7 +29,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pomona.SystemTests.ConsoleA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1FB04DDF-0A84-4B2A-808D-F4BC25D9C68A}"
 	ProjectSection(SolutionItems) = preProject
-		docs\json-patch-format.md = docs\json-patch-format.md
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
