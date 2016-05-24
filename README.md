@@ -26,19 +26,9 @@ as a RESTful web service.
 * Advanced query filtering
 * Simple LINQ provider
 
-## Getting started
+## Documentation
 
-Precompiled Pomona packages are available through NuGet.
-
-There will soon be some documentation, but for now take a look at the Pomona.Example project.
-
-## Methods supported
-
-* GET single resource
-* GET and filter a collection of resources
-* POST a new resource to a collection
-* DELETE an existing resource
-* PATCH an existing resource
+To get started with Pomona [please read the documentation](http://pomona.io).
 
 ## Project links
 
@@ -46,13 +36,6 @@ There will soon be some documentation, but for now take a look at the Pomona.Exa
 * [GitHub page](https://github.com/okb/pomona)
 * [Bug reporting](https://github.com/okb/pomona/issues)
 * [![Join the chat at https://gitter.im/Pomona/Pomona](https://badges.gitter.im/Pomona/Pomona.svg)](https://gitter.im/Pomona/Pomona?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-
-## Further reading
-
-Documentation for Pomona is unfortunately still mostly lacking. Until the situation improves the best reference point are the example model and tests found in the source.
-
-Although used for internal API of production systems, Pōmōna should still be considered a work in progress.
 
 ## Aknowledgements
 

@@ -8,7 +8,7 @@ if ($(git rev-parse --abbrev-ref HEAD) -eq "develop")
   git clone git@github.com:Pomona/Pomona-gh-pages.git $TempDir -b gh-pages
   Write-Output "$TempDir"
   nuget restore
-  .\packages\Storyteller.3.0.0.334-rc\tools\ST.exe doc-export $TempDir\preview\ FileDump -c .\samples\ .\tests\
+  .\packages\Storyteller.3.0.0.334-rc\tools\ST.exe doc-export $TempDir\ FileDump -c .\samples\ .\tests\
   pushd $TempDir
   git status
   git add -A .
