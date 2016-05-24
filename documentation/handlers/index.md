@@ -60,7 +60,7 @@ on a `PATCH`.
 <[sample:misc-patch-customer-handler-method]>
 
 Pomona uses a custom JSON patch format, more details can be found in
-<[linkto:json_patch_format]>
+<[linkto:rest]>
 
 ## Delete resource
 
