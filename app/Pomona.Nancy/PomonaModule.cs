@@ -66,9 +66,16 @@ namespace Pomona.Nancy
 
         private Response GetClientLibrary()
         {
+            byte[] bytes;
+            using (var memstream = new MemoryStream())
+            {
+                ClientLibGenerator.WriteClientLibrary(TypeMapper, memstream);
+                bytes = memstream.ToArray();
+            }
+
             var response = new Response
             {
-                Contents = stream => ClientLibGenerator.WriteClientLibrary(TypeMapper, stream),
+                Contents = stream => stream.Write(bytes, 0, bytes.Length),
                 ContentType = "binary/octet-stream"
             };
 
@@ -79,17 +86,16 @@ namespace Pomona.Nancy
         private Response GetClientNugetPackage()
         {
             var packageBuilder = new ClientNugetPackageBuilder(TypeMapper);
+            byte[] bytes;
+            using (var memstream = new MemoryStream())
+            {
+                packageBuilder.BuildPackage(memstream);
+                bytes = memstream.ToArray();
+            }
+
             var response = new Response
             {
-                Contents = stream =>
-                {
-                    using (var memstream = new MemoryStream())
-                    {
-                        packageBuilder.BuildPackage(memstream);
-                        var bytes = memstream.ToArray();
-                        stream.Write(bytes, 0, bytes.Length);
-                    }
-                },
+                Contents = stream => stream.Write(bytes, 0, bytes.Length),
                 ContentType = "application/zip",
             };
 

@@ -105,6 +105,7 @@
     <Compile Include="AsyncQueryTests.cs" />
     <Compile Include="ChildResourceTests.cs" />
     <Compile Include="CodeGen\ClientGeneratedTypeTests.cs" />
+    <Compile Include="CodeGen\GeneratedClientDownloadTests.cs" />
     <Compile Include="CodeGen\StringEnumTests.cs" />
     <Compile Include="ExceptionHandlingTests.cs" />
     <Compile Include="ExtendedResources\TransformAdditionalPropertiesToAttributesVisitorTests.cs" />

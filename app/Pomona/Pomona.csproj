@@ -116,15 +116,6 @@
     <Compile Include="Documentation\Xml\Serialization\XDocText.cs" />
     <Compile Include="Documentation\Xml\Serialization\XDoc.cs" />
     <Compile Include="Documentation\Xml\XmlDocMapper.cs" />
-    <Compile Include="Fetcher\BatchFetcher.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Fetcher\IBatchFetchDriver.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Fetcher\ParentChildRelation.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\FluentRuleMethod.cs" />
     <Compile Include="FluentMapping\FluentRuleMethodScanner.cs" />

@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -62,6 +63,13 @@ namespace Pomona.Example
         {
             if (typeof(T) == typeof(HandledThing))
                 throw new InvalidOperationException("Error: Should not call data source when querying HandledThing.");
+
+            if (typeof(T) == typeof(NoPrimaryKeyThing))
+            {
+                var noPrimaryKeyThings = new List<T> { new NoPrimaryKeyThing() as T };
+                return noPrimaryKeyThings.AsQueryable();
+            }
+
             return this.store.Query<T>();
         }
     }

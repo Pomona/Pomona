@@ -73,6 +73,10 @@ namespace Pomona.Example.Rules
             map.PatchDenied();
         }
 
+        public void Map(ITypeMappingConfigurator<NoPrimaryKeyThing> map)
+        {
+            
+        }
 
         public void Map(ITypeMappingConfigurator<MusicalCritter> map)
         {

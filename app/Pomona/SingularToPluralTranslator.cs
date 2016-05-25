@@ -18,10 +18,7 @@ namespace Pomona
         private static readonly HashSet<char> consonants;
         private static readonly HashSet<string> sibilantEndings;
 
-        public static Dictionary<string, string> IrregularNouns
-            ;
-
-        public static Dictionary<string, string> SingularToPluralDict;
+        public static Dictionary<string, string> IrregularNouns;
 
         private static readonly string irregularNounsText =
             @"mouse	mice
@@ -109,98 +106,11 @@ tooth	teeth
 office	offices
 valley	valleys
 copy	copies";
-
-        private static readonly string singularToPluralsListText =
-            @"mouse	mice
-woman	women
-house	houses
-ox	oxen
-friend	friends
-sheep	sheep
-door	doors
-church	churches
-potato	potatoes
-cat	cats
-cow	cows
-mosquito	mosquitoes
-man	men
-child	children
-story	stories
-store	stores
-watermelon	watermelons
-sister-in-law	sisters-in-law
-smile	smiles
-meter	meters
-fox	foxes
-cross	crosses
-staple	staples
-farm	farms
-computer	computers
-teacher	teachers
-country	countries
-loaf	loaves
-life	lives
-chief	chiefs
-foot	feet
-deer	deer
-fish	fish
-bus	buses
-thirty	thirties
-bluff	bluffs
-thief	thieves
-home	homes
-sky	skies
-city	cities
-waste	wastes
-problem	problems
-factory	factories
-river	rivers
-turkey	turkeys
-day	days
-tax	taxes
-night	nights
-car	cars
-business	businesses
-spy	spies
-cloud	clouds
-farmer	farmers
-kitten	kittens
-product	products
-highway	highways
-toy	toys
-lady	ladies
-gentleman	gentlemen
-nose	noses
-pepper	peppers
-oven	ovens
-mess	messes
-lion	lions
-owl	owls
-mountain	mountains
-cuff	cuffs
-carpet	carpets
-light	lights
-flower	flowers
-line	lines
-coin	coins
-dollar	dollars
-cupful	cupfuls
-trout	trout
-editor-in-chief	editors-in-chief
-penny	pennies
-scissors	scissors
-pants	pants
-inch	inches
-goose	geese
-tooth	teeth
-office	offices
-valley	valleys
-copy	copies";
+        
 
 
         static SingularToPluralTranslator()
         {
-            SingularToPluralDict = CreateDictionaryFromText(singularToPluralsListText);
             IrregularNouns = CreateDictionaryFromText(irregularNounsText);
 
             consonants = new HashSet<char>("bcdfghjklmnpqrstvxz".ToCharArray());

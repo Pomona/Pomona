@@ -126,6 +126,9 @@ namespace Pomona.Common.TypeSystem
                                               Expression parentExpression,
                                               StringBuilder formatStringBuilder)
         {
+            if (rt.PrimaryId == null)
+                throw new InvalidOperationException($"{rt.Name} has no Id property or primary key mapping");
+
             var parentToChildProperty = rt.ParentToChildProperty;
             if (parentToChildProperty != null)
             {

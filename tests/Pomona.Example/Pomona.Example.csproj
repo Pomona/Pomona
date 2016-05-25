@@ -83,6 +83,12 @@
     <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="Handlers\CritterHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="IncorrectSite\IncorrectChildResource.cs" />
+    <Compile Include="IncorrectSite\IncorrectHandler.cs" />
+    <Compile Include="IncorrectSite\IncorrectModule.cs" />
+    <Compile Include="IncorrectSite\IncorrectPomonaConfiguration.cs" />
+    <Compile Include="IncorrectSite\IncorrectResource.cs" />
+    <Compile Include="IncorrectSite\IncorrectTypeMappingFilter.cs" />
     <Compile Include="ModelProxies\BearProxy.cs" />
     <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
@@ -124,6 +130,7 @@
     <Compile Include="Models\ISetEtaggedEntity.cs" />
     <Compile Include="Models\INonExposedBaseInterface.cs" />
     <Compile Include="Models\SubOrder.cs" />
+    <Compile Include="Models\NoPrimaryKeyThing.cs" />
     <Compile Include="Models\VirtualPropertyThing.cs" />
     <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />

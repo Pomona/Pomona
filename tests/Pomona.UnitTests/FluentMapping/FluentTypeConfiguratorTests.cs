@@ -207,16 +207,7 @@ namespace Pomona.UnitTests.FluentMapping
                 "TODO: Test that explicit inclusion mode throws exception if not all properties are accounted for.");
         }
 
-
-        [Test]
-        public void TestGenerateTemplateFluentRules()
-        {
-            var code =
-                FluentTypeMappingFilter.BuildPropertyMappingTemplate(
-                    CritterRepository.GetEntityTypes().Where(x => !x.IsEnum));
-            Console.Write(code);
-        }
-
+        
 
         [Test]
         public void WithPluralName_OverridesDefaultNameOfType()

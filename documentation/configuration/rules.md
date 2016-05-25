@@ -19,6 +19,9 @@ and all subtypes of `T`.
 
 Type options are defined through the `ITypeMappingConfigurator<T>` interface.
 
+Rules specified using `ITypeMappingConfigurator<T>` can either be chained, or split
+up in multiple declarations.
+
 ## Ignoring properties
 
 A property can be ignored and hidden from the exposed resource by using the `Exclude` method.
@@ -47,7 +50,7 @@ You can learn more about value types in <[linkto:type_system]>
 When Pomona needs to instantiate a resource or value object type during deserialization,
 it uses the empty constructor by default if available.
 
-If we want to instantiate the object using a constructor or method taking parameters,
+If we want to instantiate the object using a non-empty constructor or a method taking parameters,
 we can use the `ConstructedUsing` method.
 
 <[sample:misc-constructed-using-fluent-rule]>
