@@ -78,5 +78,31 @@ namespace Pomona.Samples.MiscSnippets
         // ENDSAMPLE
 
         #endregion
+
+        #region sample
+
+        // SAMPLE: misc-include-property-named
+        public void IncludePropertyNamed(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer.Include(x => x.Identifier, x => x.Named("Id"));
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-include-property-onget-onset-onquery
+        public void IncludePropertyWithCustomAccessors(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer
+                .Include(x => x.Name, x => x
+                    .OnGet(y => y.Name.ToUpper())
+                    .OnSet((c, v) => c.Name = v.ToLower())
+                    .OnQuery(y => y.Name.ToUpper()));
+        }
+        // ENDSAMPLE
+
+        #endregion
     }
 }

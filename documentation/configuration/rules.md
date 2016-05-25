@@ -79,4 +79,21 @@ This value is used to generate the URI for a root resource collection type.
 
 # Property options
 
-TODO!
+We can change how a property will be exposed by using the `Include` method of
+`ITypeMappingConfigurator` with an `options` lambda argument specified.
+
+## Changing exposed name of property
+
+To use a different name for a property when exposed you can use `Named` method.
+
+<[sample:misc-include-property-named]>
+
+## Using custom accessors
+
+By using the following methods we can change how a property is accessed.
+
+* `OnGet`: Used when serializing from resource
+* `OnSet`: Used when deserializing to resource
+* `OnQuery`: For building LINQ queries, usually for properties not recognized by underlying LINQ provider
+
+<[sample:misc-include-property-onget-onset-onquery]>

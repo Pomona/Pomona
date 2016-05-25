@@ -48,7 +48,7 @@
     <Compile Include="CrazyConventions.cs" />
     <Compile Include="Customer.cs" />
     <Compile Include="CustomerHandler.cs" />
-    <Compile Include="ExludePropertyFluentRule.cs" />
+    <Compile Include="MoreRules.cs" />
     <Compile Include="FluentRules.cs" />
     <Compile Include="ICustomerFactory.cs" />
     <Compile Include="Mouse.cs" />
