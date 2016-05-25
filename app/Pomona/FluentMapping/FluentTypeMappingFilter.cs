@@ -44,37 +44,7 @@ namespace Pomona.FluentMapping
 
             ApplyRules(ruleMethods);
         }
-
-
-        public static string BuildPropertyMappingTemplate(IEnumerable<Type> types)
-        {
-            var typesSet = new HashSet<Type>(types);
-            var sb = new StringBuilder();
-            sb.Append(@"using Pomona.Example.Models;
-using Pomona.FluentMapping;
-
-namespace TestNs
-{
-    public class SomeFluentRules
-    {
-");
-
-            foreach (var t in typesSet)
-            {
-                sb.AppendFormat("        public void Map(ITypeMappingConfigurator<{0}> map)\r\n        {{\r\n",
-                                t.FullName);
-                foreach (var p in t.GetProperties())
-                {
-                    if (p.DeclaringType == t || !typesSet.Contains(p.DeclaringType))
-                        sb.AppendFormat("            map.Exclude(x => x.{0});\r\n", p.Name);
-                }
-                sb.Append("        }\r\n\r\n");
-            }
-
-            sb.Append("    }\r\n}\r\n");
-
-            return sb.ToString();
-        }
+        
 
 
         internal TypeMappingOptions GetTypeMapping(Type type)
