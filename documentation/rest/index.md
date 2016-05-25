@@ -83,7 +83,7 @@ boxed.
 }
 ```
 
-# Patching
+## Patching
 
 Pomona uses a custom PATCH format, which feels intuitive and straight-forward
 for simple cases, and that also can support more advanced scenarios.
