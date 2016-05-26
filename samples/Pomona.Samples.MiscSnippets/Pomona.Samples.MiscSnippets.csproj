@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Address.cs" />
     <Compile Include="ClientQueryExamples.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="CrazyConventions.cs" />
