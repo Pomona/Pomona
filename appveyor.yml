@@ -8,10 +8,10 @@ install:
 before_build:
   - nuget restore
   - ps: gitversion /l console /output buildserver
-  - publish_nuget: true
 
 build:
   project: Pomona.sln
+  publish_nuget: true
 
 after_build:
   - ps: >-
