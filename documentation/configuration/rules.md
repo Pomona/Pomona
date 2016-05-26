@@ -97,3 +97,15 @@ By using the following methods we can change how a property is accessed.
 * `OnQuery`: For building LINQ queries, usually for properties not recognized by underlying LINQ provider
 
 <[sample:misc-include-property-onget-onset-onquery]>
+
+## Expand
+
+We can use `Expand` to configure whether, and how, resource(s) referenced by properties are
+included when serializing. It takes one parameter of type `ExpandMode`, which can have the
+following values:
+
+* `ExpandMode.Full`: For properties pointing to a single resource, it means expand that resource.
+  For properties having a list of resources this means expand the list itself and every item.
+* `ExpandMode.Shallow`: Expands as list of references to resources. Only applicable to properties having a collection of resources.
+
+<[sample:misc-expand-property]>

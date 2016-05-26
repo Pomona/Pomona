@@ -5,6 +5,7 @@
 
 #endregion
 
+using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
 namespace Pomona.Samples.MiscSnippets
@@ -100,6 +101,18 @@ namespace Pomona.Samples.MiscSnippets
                     .OnGet(y => y.Name.ToUpper())
                     .OnSet((c, v) => c.Name = v.ToLower())
                     .OnQuery(y => y.Name.ToUpper()));
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-expand-property
+        public void ExpandProperty(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer
+                .Include(x => x.Address, x => x.Expand(ExpandMode.Full));
         }
         // ENDSAMPLE
 

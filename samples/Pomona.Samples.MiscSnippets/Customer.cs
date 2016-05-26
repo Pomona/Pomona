@@ -14,6 +14,8 @@ namespace Pomona.Samples.MiscSnippets
         }
 
 
+        public Address Address { get; set; }
+
         public string Identifier { get; set; }
         public string Name { get; set; }
         public string Password { get; set; }
