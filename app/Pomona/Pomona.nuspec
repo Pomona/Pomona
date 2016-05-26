@@ -18,7 +18,7 @@
             <dependency id="Pomona.Common" version="$version$" />
         </dependencies>
         <frameworkAssemblies>
-          <frameworkAssembly assemblyName="System.Net.Http"  />
+          <frameworkAssembly targetFramework="net45" assemblyName="System.Net.Http"  />
         </frameworkAssemblies>
     </metadata>
     <files>
