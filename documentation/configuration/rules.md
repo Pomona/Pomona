@@ -43,7 +43,7 @@ A value object can be a part of resource or another value object, and has no URI
 
 <[sample:misc-value-object-fluent-rule]>
 
-You can learn more about value types in <[linkto:type_system]>
+You can learn more about value types in <[linkto:internals]>
 
 ## Custom construction of object
 
