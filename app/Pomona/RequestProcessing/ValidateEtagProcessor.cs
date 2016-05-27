@@ -35,15 +35,15 @@ namespace Pomona.RequestProcessing
         }
 
 
-        private PomonaResponse ProcessPatch(PomonaContext context, string ifMatch)
+        private async Task<PomonaResponse> ProcessPatch(PomonaContext context, string ifMatch)
         {
             if (context.Method != HttpMethod.Patch)
                 return null;
-            return ValidateResourceEtag(ifMatch, context.Node);
+            return await ValidateResourceEtag(ifMatch, context.Node);
         }
 
 
-        private PomonaResponse ProcessPostToChildResourceRepository(PomonaContext context, string ifMatch)
+        private async Task<PomonaResponse> ProcessPostToChildResourceRepository(PomonaContext context, string ifMatch)
         {
             var node = context.Node;
             var collectionType = node.ResultType as EnumerableTypeSpec;
@@ -52,12 +52,12 @@ namespace Pomona.RequestProcessing
 
             var parentNode = node.Parent;
             if (parentNode != null)
-                return ValidateResourceEtag(ifMatch, parentNode);
+                return await ValidateResourceEtag(ifMatch, parentNode);
             return null;
         }
 
 
-        private static PomonaResponse ValidateResourceEtag(string ifMatch, UrlSegment node)
+        private static async Task<PomonaResponse> ValidateResourceEtag(string ifMatch, UrlSegment node)
         {
             var resourceType = node.ResultType as ResourceType;
             if (resourceType == null)
@@ -66,7 +66,7 @@ namespace Pomona.RequestProcessing
             if (etagProp == null)
                 throw new InvalidOperationException("Unable to perform If-Match on entity with no etag.");
 
-            if ((string)etagProp.GetValue(node.Value) != ifMatch)
+            if ((string)etagProp.GetValue(await node.GetValueAsync()) != ifMatch)
                 throw new ResourcePreconditionFailedException("Etag of entity did not match If-Match header.");
             return null;
         }
@@ -78,7 +78,7 @@ namespace Pomona.RequestProcessing
             if ((ifMatch = GetIfMatchFromRequest(context)) == null)
                 return null;
 
-            var pomonaResponse = ProcessPatch(context, ifMatch) ?? ProcessPostToChildResourceRepository(context, ifMatch);
+            var pomonaResponse = await ProcessPatch(context, ifMatch) ?? await ProcessPostToChildResourceRepository(context, ifMatch);
             return pomonaResponse;
         }
     }

@@ -20,11 +20,11 @@ namespace Pomona.RequestProcessing
     public abstract class HandlerMethodInvoker<TInvokeState> : RouteAction, IHandlerMethodInvoker
         where TInvokeState : class, new()
     {
-        private static readonly Func<Type, HandlerMethodInvoker<TInvokeState>, PomonaContext, Task, HttpStatusCode?, Task<PomonaResponse>>
-            invokeAndWrapAsyncMethod =
+        private static readonly Func<Type, HandlerMethodInvoker<TInvokeState>, Task, Task<object>>
+            castToObjectTask =
                 GenericInvoker.Instance<HandlerMethodInvoker<TInvokeState>>()
-                              .CreateFunc1<PomonaContext, Task, HttpStatusCode?, Task<PomonaResponse>>(
-                                  x => x.InvokeAndWrapAsync<object>(null, null, null));
+                              .CreateFunc1<Task, Task<object>>(
+                                  x => x.CastToObjectTask<object>(null));
 
 
         protected HandlerMethodInvoker(HandlerMethod method)
@@ -52,7 +52,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected virtual object OnGetArgument(HandlerParameter parameter, PomonaContext context, TInvokeState state)
+        protected virtual async Task<object> OnGetArgument(HandlerParameter parameter, PomonaContext context, TInvokeState state)
         {
             if (parameter.IsResource)
             {
@@ -61,7 +61,7 @@ namespace Pomona.RequestProcessing
                     .Ascendants()
                     .FirstOrDefault(x => x.ResultType == parameter.TypeSpec);
                 if (parentNode != null)
-                    return parentNode.Value;
+                    return await parentNode.GetValueAsync();
             }
 
             if (parameter.Type == typeof(PomonaContext))
@@ -85,7 +85,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected virtual object OnInvoke(object target, PomonaContext context, TInvokeState state)
+        protected virtual async Task<object> OnInvoke(object target, PomonaContext context, TInvokeState state)
         {
             var args = new object[Parameters.Count];
 
@@ -94,61 +94,51 @@ namespace Pomona.RequestProcessing
                 //else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
                 //    args[i] = resourceIdArg;
                 //else
-                args[i] = OnGetArgument(Parameters[i], context, state);
+                args[i] = await OnGetArgument(Parameters[i], context, state);
             }
 
-            return Method.MethodInfo.Invoke(target, args);
-        }
-
-
-        private Task<PomonaResponse> InvokeAndWrap(PomonaContext context,
-                                                   HttpStatusCode? statusCode = null)
-        {
-            var handler = context.Session.GetInstance(Method.MethodInfo.ReflectedType);
-            var result = Invoke(handler, context);
+            var result = Method.MethodInfo.Invoke(target, args);
 
             if (Method.IsAsync)
             {
                 if (Method.UnwrappedReturnType == typeof(void))
                 {
-                    return
-                        ((Task)result).ContinueWith(x => new PomonaResponse(context, PomonaResponse.NoBodyEntity, HttpStatusCode.NoContent));
+                    return await ((Task)result).ContinueWith(x => PomonaResponse.NoBodyEntity);
                 }
-                return invokeAndWrapAsyncMethod(Method.UnwrappedReturnType, this, context, (Task)result, statusCode);
+                return await castToObjectTask(Method.UnwrappedReturnType, this, (Task)result);
             }
-            else
-            {
-                var resultAsResponse = result as PomonaResponse;
-                if (resultAsResponse != null)
-                    return Task.FromResult(resultAsResponse);
-
-                var responseBody = result;
-                if (ReturnType == typeof(void))
-                    responseBody = PomonaResponse.NoBodyEntity;
-
-                if (responseBody == PomonaResponse.NoBodyEntity)
-                    statusCode = HttpStatusCode.NoContent;
-
-                return Task.FromResult(new PomonaResponse(context, responseBody, statusCode ?? HttpStatusCode.OK, context.ExpandedPaths));
-            }
+            return result;
         }
 
 
-        private async Task<PomonaResponse> InvokeAndWrapAsync<TResult>(PomonaContext context,
-                                                                       Task<TResult> task,
-                                                                       HttpStatusCode? statusCode = null)
+        private async Task<object> CastToObjectTask<TResult>(Task<TResult> task)
         {
-            var resultAsResponse = task as Task<PomonaResponse>;
-            if (resultAsResponse != null)
-                return await resultAsResponse;
+            return await task;
+        }
 
-            var responseBody = (object)await task;
+
+        private async Task<PomonaResponse> InvokeAndWrap(PomonaContext context,
+                                                         HttpStatusCode? statusCode = null)
+        {
+            var handler = context.Session.GetInstance(Method.MethodInfo.ReflectedType);
+            var result = await Invoke(handler, context);
+
+            var resultAsResponse = result as PomonaResponse;
+            if (resultAsResponse != null)
+                return resultAsResponse;
+
+            var responseBody = result;
+            if (ReturnType == typeof(void))
+                responseBody = PomonaResponse.NoBodyEntity;
+
+            if (responseBody == PomonaResponse.NoBodyEntity)
+                statusCode = HttpStatusCode.NoContent;
 
             return new PomonaResponse(context, responseBody, statusCode ?? HttpStatusCode.OK, context.ExpandedPaths);
         }
 
 
-        public virtual object Invoke(object target, PomonaContext context)
+        public virtual Task<object> Invoke(object target, PomonaContext context)
         {
             return OnInvoke(target, context, new TInvokeState());
         }

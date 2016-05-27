@@ -5,6 +5,8 @@
 
 #endregion
 
+using System.Threading.Tasks;
+
 using Pomona.Common.TypeSystem;
 
 namespace Pomona.RequestProcessing
@@ -17,10 +19,10 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnInvoke(object target, PomonaContext context, object state)
+        protected override async Task<object> OnInvoke(object target, PomonaContext context, object state)
         {
-            context.Bind(context.Node.ActualResultType, context.Node.Value);
-            return base.OnInvoke(target, context, state);
+            await context.Bind(await context.Node.GetActualResultType(), await context.Node.GetValueAsync());
+            return await base.OnInvoke(target, context, state);
         }
     }
 }

@@ -69,7 +69,7 @@ namespace Pomona
         public string Url => Request.Url;
 
 
-        public object Bind(TypeSpec type = null, object patchedObject = null)
+        public async Task<object> Bind(TypeSpec type = null, object patchedObject = null)
         {
             if (this.deserializedBody == null)
             {
@@ -79,7 +79,7 @@ namespace Pomona
                 if (Method == HttpMethod.Patch)
                 {
                     // TODO: spread async further out
-                    var response = Task.Run(() => Node.Session.Dispatch(new PomonaContext(Node, executeQueryable : true))).Result;
+                    var response = await Node.Session.Dispatch(new PomonaContext(Node, executeQueryable : true));
                     patchedObject = patchedObject
                                     ?? response.Entity;
                     if (patchedObject != null)

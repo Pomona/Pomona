@@ -115,10 +115,10 @@ namespace Pomona
         }
 
 
-        public virtual Task<PomonaResponse> Dispatch(PomonaRequest request)
+        public virtual async Task<PomonaResponse> Dispatch(PomonaRequest request)
         {
-            var finalSegmentMatch = new PomonaRouteResolver(Factory.Routes).Resolve(this, request);
-            return Dispatch(new PomonaContext(finalSegmentMatch, request, executeQueryable : true));
+            var finalSegmentMatch = await new PomonaRouteResolver(Factory.Routes).Resolve(this, request);
+            return await Dispatch(new PomonaContext(finalSegmentMatch, request, executeQueryable : true));
         }
 
 

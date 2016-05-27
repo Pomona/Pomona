@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -81,13 +82,13 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolvePatch(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, Task<PomonaResponse>> ResolvePatch(Route route, ResourceType resourceItemType)
         {
             if (route.IsSingle)
             {
-                return pr =>
+                return async pr =>
                 {
-                    var patchedObject = pr.Bind();
+                    var patchedObject = await pr.Bind();
                     return
                         new PomonaResponse(pr,
                                            GetDataSource(pr.Session).Patch(patchedObject.GetType(),
@@ -98,7 +99,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolvePost(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, Task<PomonaResponse>> ResolvePost(Route route, ResourceType resourceItemType)
         {
             if (route.NodeType == PathNodeType.Collection)
                 return ResolvePostToCollection(route, resourceItemType);
@@ -106,14 +107,14 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolvePostToCollection(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, Task<PomonaResponse>> ResolvePostToCollection(Route route, ResourceType resourceItemType)
         {
             if (route.ResultItemType is ResourceType && route.ResultType.IsCollection
                 && route.Root() is DataSourceRootRoute)
             {
-                return pr =>
+                return async pr =>
                 {
-                    var form = pr.Bind(resourceItemType);
+                    var form = await pr.Bind(resourceItemType);
                     return new PomonaResponse(pr, GetDataSource(pr.Session).Post(form.GetType(), form));
                 };
             }

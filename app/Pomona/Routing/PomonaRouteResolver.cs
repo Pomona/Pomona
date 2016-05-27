@@ -7,6 +7,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 
@@ -40,7 +41,7 @@ namespace Pomona.Routing
         }
 
 
-        public UrlSegment Resolve(IPomonaSession session, PomonaRequest request)
+        public async Task<UrlSegment> Resolve(IPomonaSession session, PomonaRequest request)
         {
             var match = GetMatch(session, request.RelativePath);
 
@@ -54,7 +55,7 @@ namespace Pomona.Routing
                 var node = match.Root.NextConflict;
                 while (node != null)
                 {
-                    var actualResultType = node.ActualResultType;
+                    var actualResultType = await node.GetActualResultType();
                     // Reduce using input type difference
                     var validSelection =
                         node.Children.Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))

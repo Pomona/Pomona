@@ -60,25 +60,6 @@ namespace Pomona.Routing
         }
 
 
-        /// <summary>
-        /// The actual result type, not only the expected one.
-        /// </summary>
-        public TypeSpec ActualResultType
-        {
-            get
-            {
-                if (this.actualResultType == null)
-                {
-                    this.actualResultType = ResultItemType
-                        .Maybe()
-                        .Switch(x => x.Case<ResourceType>(y => !y.MergedTypes.Any()).Then(y => (TypeSpec)y))
-                        .OrDefault(
-                            () => Value != null ? Session.TypeResolver.FromType(Value.GetType()) : ResultType);
-                }
-                return this.actualResultType;
-            }
-        }
-
         public ICollection<UrlSegment> Children
         {
             get
@@ -155,6 +136,17 @@ namespace Pomona.Routing
         }
 
 
+        public async Task<object> GetValueAsync()
+        {
+            if (!this.valueIsLoaded)
+            {
+                this.value = await Session.Get(this);
+                this.valueIsLoaded = true;
+            }
+            return this.value;
+        }
+
+
         public IQueryable Query()
         {
             // TODO: Spread out async, return Task<IQueryable> instead
@@ -168,6 +160,28 @@ namespace Pomona.Routing
                                this.AscendantsAndSelf().Select(
                                    x =>
                                        $"{x.GetPrefix()}{x.PathSegment}({x.GetTypeStringOfRoute()})").Reverse());
+        }
+
+
+        /// <summary>
+        /// The actual result type, not only the expected one.
+        /// </summary>
+        internal async Task<TypeSpec> GetActualResultType()
+        {
+            if (this.actualResultType == null)
+            {
+                var resultItemTypeAsResourceType = ResultItemType as ResourceType;
+                if (resultItemTypeAsResourceType != null && !resultItemTypeAsResourceType.MergedTypes.Any())
+                {
+                    this.actualResultType = ResultItemType;
+                }
+                else
+                {
+                    var val = await GetValueAsync();
+                    this.actualResultType = val != null ? Session.TypeResolver.FromType(val.GetType()) : ResultType;
+                }
+            }
+            return this.actualResultType;
         }
 
 

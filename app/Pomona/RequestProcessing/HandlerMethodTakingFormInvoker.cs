@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.RequestProcessing
 {
@@ -38,20 +39,20 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnGetArgument(HandlerParameter parameter, PomonaContext context, InvokeState state)
+        protected override async Task<object> OnGetArgument(HandlerParameter parameter, PomonaContext context, InvokeState state)
         {
             if (parameter == this.targetResourceParameter)
-                return context.Node.Value;
+                return await context.Node.GetValueAsync();
             if (parameter == this.formParameter)
                 return state.Form;
-            return base.OnGetArgument(parameter, context, state);
+            return await base.OnGetArgument(parameter, context, state);
         }
 
 
-        protected override object OnInvoke(object target, PomonaContext context, InvokeState state)
+        protected override async Task<object> OnInvoke(object target, PomonaContext context, InvokeState state)
         {
-            state.Form = context.Bind(this.formParameter.TypeSpec);
-            return base.OnInvoke(target, context, state);
+            state.Form = await context.Bind(this.formParameter.TypeSpec);
+            return await base.OnInvoke(target, context, state);
         }
 
         #region Nested type: InvokeState

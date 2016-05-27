@@ -48,7 +48,6 @@ namespace Pomona.Nancy
                                             ((IDictionary<string, object>)context.Request.Query).ToDictionary(x => x.Key,
                                                                                                               x => x.Value.ToString()));
 
-            // TODO: Spread async further in
             return await this.session.Dispatch(request);
         }
     }
