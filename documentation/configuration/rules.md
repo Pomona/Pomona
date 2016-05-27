@@ -43,7 +43,7 @@ A value object can be a part of resource or another value object, and has no URI
 
 <[sample:misc-value-object-fluent-rule]>
 
-You can learn more about value types in <[linkto:type_system]>
+You can learn more about value types in <[linkto:internals]>
 
 ## Custom construction of object
 
@@ -79,4 +79,33 @@ This value is used to generate the URI for a root resource collection type.
 
 # Property options
 
-TODO!
+We can change how a property will be exposed by using the `Include` method of
+`ITypeMappingConfigurator` with an `options` lambda argument specified.
+
+## Changing exposed name of property
+
+To use a different name for a property when exposed you can use `Named` method.
+
+<[sample:misc-include-property-named]>
+
+## Using custom accessors
+
+By using the following methods we can change how a property is accessed.
+
+* `OnGet`: Used when serializing from resource
+* `OnSet`: Used when deserializing to resource
+* `OnQuery`: For building LINQ queries, usually for properties not recognized by underlying LINQ provider
+
+<[sample:misc-include-property-onget-onset-onquery]>
+
+## Expand
+
+We can use `Expand` to configure whether, and how, resource(s) referenced by properties are
+included when serializing. It takes one parameter of type `ExpandMode`, which can have the
+following values:
+
+* `ExpandMode.Full`: For properties pointing to a single resource, it means expand that resource.
+  For properties having a list of resources this means expand the list itself and every item.
+* `ExpandMode.Shallow`: Expands as list of references to resources. Only applicable to properties having a collection of resources.
+
+<[sample:misc-expand-property]>

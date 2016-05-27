@@ -376,7 +376,7 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
-        public void TypeWasAddedInTransformAssemblyHooko()
+        public void TypeWasAddedInTransformAssemblyHook()
         {
             Assert.That(ClientAssembly.GetTypes().Any(x => x.FullName == "Donkey.Kong"), Is.True);
         }

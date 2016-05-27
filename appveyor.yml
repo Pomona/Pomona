@@ -11,6 +11,7 @@ before_build:
 
 build:
   project: Pomona.sln
+  publish_nuget: true
 
 after_build:
   - ps: >-

@@ -5,6 +5,7 @@
 
 #endregion
 
+using Pomona.Common.TypeSystem;
 using Pomona.FluentMapping;
 
 namespace Pomona.Samples.MiscSnippets
@@ -74,6 +75,44 @@ namespace Pomona.Samples.MiscSnippets
         public void ValueObjectRule(ITypeMappingConfigurator<Customer> customer)
         {
             customer.AsValueObject();
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-include-property-named
+        public void IncludePropertyNamed(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer.Include(x => x.Identifier, x => x.Named("Id"));
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-include-property-onget-onset-onquery
+        public void IncludePropertyWithCustomAccessors(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer
+                .Include(x => x.Name, x => x
+                    .OnGet(y => y.Name.ToUpper())
+                    .OnSet((c, v) => c.Name = v.ToLower())
+                    .OnQuery(y => y.Name.ToUpper()));
+        }
+        // ENDSAMPLE
+
+        #endregion
+
+        #region sample
+
+        // SAMPLE: misc-expand-property
+        public void ExpandProperty(ITypeMappingConfigurator<Customer> customer)
+        {
+            customer
+                .Include(x => x.Address, x => x.Expand(ExpandMode.Full));
         }
         // ENDSAMPLE
 

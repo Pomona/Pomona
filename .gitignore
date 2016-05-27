@@ -85,3 +85,7 @@ app/Pomona/QueriesPomona.csproj.AntlrGeneratedCodeFileListAbsolute.txt
 *.sln.GhostDoc.xml
 project.lock.json
 .vs
+
+# ANTLR tokens file
+*.tokens
+
