@@ -72,8 +72,6 @@ namespace Pomona.Routing
 
         public string Description => ToString();
 
-        public bool Exists => Value != null;
-
         public IEnumerable<UrlSegment> FinalMatchCandidates
         {
             get { return Leafs.Where(x => x.IsLastSegment); }
@@ -129,13 +127,6 @@ namespace Pomona.Routing
         public IPomonaSession Session => this.tree.Session;
 
 
-        public object Get()
-        {
-            // TODO: Spread out async, return Task<object> instead
-            return Task.Run(() => Session.Get(this)).Result;
-        }
-
-
         public async Task<object> GetValueAsync()
         {
             if (!this.valueIsLoaded)
@@ -144,13 +135,6 @@ namespace Pomona.Routing
                 this.valueIsLoaded = true;
             }
             return this.value;
-        }
-
-
-        public IQueryable Query()
-        {
-            // TODO: Spread out async, return Task<IQueryable> instead
-            return Task.Run(() => Session.Query(this)).Result;
         }
 
 
@@ -163,10 +147,16 @@ namespace Pomona.Routing
         }
 
 
+        internal async Task<bool> ExistsAsync()
+        {
+            return await GetValueAsync() != null;
+        }
+
+
         /// <summary>
         /// The actual result type, not only the expected one.
         /// </summary>
-        internal async Task<TypeSpec> GetActualResultType()
+        internal async Task<TypeSpec> GetActualResultTypeAsync()
         {
             if (this.actualResultType == null)
             {
@@ -182,6 +172,13 @@ namespace Pomona.Routing
                 }
             }
             return this.actualResultType;
+        }
+
+
+        internal Task<IQueryable> QueryAsync()
+        {
+            // TODO: Spread out async, return Task<IQueryable> instead
+            return Session.Query(this);
         }
 
 
@@ -227,7 +224,7 @@ namespace Pomona.Routing
             {
                 if (!this.valueIsLoaded)
                 {
-                    this.value = Get();
+                    this.value = Task.Run(() => Session.Get(this)).Result;
                     this.valueIsLoaded = true;
                 }
                 return this.value;

@@ -55,7 +55,7 @@ namespace Pomona.Routing
                 var node = match.Root.NextConflict;
                 while (node != null)
                 {
-                    var actualResultType = await node.GetActualResultType();
+                    var actualResultType = await node.GetActualResultTypeAsync();
                     // Reduce using input type difference
                     var validSelection =
                         node.Children.Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))

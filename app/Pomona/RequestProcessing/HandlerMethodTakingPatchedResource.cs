@@ -21,7 +21,7 @@ namespace Pomona.RequestProcessing
 
         protected override async Task<object> OnInvoke(object target, PomonaContext context, object state)
         {
-            await context.Bind(await context.Node.GetActualResultType(), await context.Node.GetValueAsync());
+            await context.Bind(await context.Node.GetActualResultTypeAsync(), await context.Node.GetValueAsync());
             return await base.OnInvoke(target, context, state);
         }
     }
