@@ -11,11 +11,11 @@ Pomona was born out of frustrations with the difficulties of exposing a complex 
 as a RESTful web service.
 
 ## Build status
-||Windows (AppVeyor)|Linux (Travis)|
+||Windows (AppVeyor)|Linux (Travis)|Version
 |:--:|:--:|:--:|
-|**develop**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/develop?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/develop)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=develop)](https://travis-ci.org/Pomona/Pomona)|
-|**master**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/master?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/master)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=master)](https://travis-ci.org/Pomona/Pomona)|
-|**future**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/future?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/future)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=future)](https://travis-ci.org/Pomona/Pomona)|
+|**develop**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/develop?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/develop)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=develop)](https://travis-ci.org/Pomona/Pomona)|[![NuGet](https://img.shields.io/nuget/vpre/Pomona.svg)](https://www.nuget.org/packages/Pomona)|
+|**master**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/master?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/master)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=master)](https://travis-ci.org/Pomona/Pomona)|[![NuGet Prerelease](https://img.shields.io/nuget/v/Pomona.svg)](https://www.nuget.org/packages/Pomona)
+|**future**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/future?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/future)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=future)](https://travis-ci.org/Pomona/Pomona)|[![NuGet Prerelease](https://img.shields.io/nuget/vpre/Pomona.svg?branch=future)](https://www.nuget.org/packages/Pomona)
 
 
 ## Highlights
