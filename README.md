@@ -1,4 +1,4 @@
-![Pōmōna](https://raw.githubusercontent.com/okb/Pomona/gh-pages/images/pomona-icon-512.png)
+![Pōmōna](http://pomona.io/content/images/pomona-icon-210.png)
 
 # Pomona
 
