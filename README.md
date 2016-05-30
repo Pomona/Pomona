@@ -30,6 +30,13 @@ as a RESTful web service.
 
 To get started with Pomona [please read the documentation](http://pomona.io).
 
+## Contributing
+
+Do you want to contribute to Pomona? Lovely! Contributions of any kind are
+**highly** appreciated! Just make sure you've read and agreed to the
+[contribution guidelines](https://github.com/Pomona/Pomona/blob/develop/CONTRIBUTING.md)
+before submitting a pull request.
+
 ## Project links
 
 * [Homepage](http://pomona.io)
