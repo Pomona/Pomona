@@ -12,6 +12,7 @@ business domain model as a RESTful web service.
 
 |                |        **master**         |      **develop**     |      **future**     |
 | -------------: | :-----------------------: | :------------------: | :-----------------: |
+|     **GitHub** | [![GitHub release][1]][2] |           -          |           -         |
 |      **NuGet** |      [![NuGet][3]][4]     |   [![NuGet][5]][6]   |           -         |
 |     **Travis** |     [![Master][7]][8]     | [![Develop][9]][10]  | [![Future][11]][12] |
 |   **AppVeyor** |    [![Master][13]][14]    | [![Develop][15]][16] | [![Future][17]][18] |
@@ -88,6 +89,9 @@ Thanks to:
 * [Cecil](http://www.mono-project.com/Cecil) for IL generation in client.
 * [JetBrains](http://jetbrains.com/) for providing the Pomona project with an [Open Source License](https://www.jetbrains.com/support/community/#section=open-source) of [ReSharper](https://www.jetbrains.com/resharper/).
 
+
+ [1]: https://img.shields.io/github/release/Pomona/Pomona.svg
+ [2]: https://github.com/Pomona/Pomona/releases/latest
  [3]: https://img.shields.io/nuget/v/Pomona.svg
  [4]: https://www.nuget.org/packages/Pomona
  [5]: https://img.shields.io/nuget/vpre/Pomona.svg
