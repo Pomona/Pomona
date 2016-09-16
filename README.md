@@ -10,12 +10,13 @@ exposed as HTTP resources.
 Pomona was born out of frustrations with the difficulties of exposing a complex
 business domain model as a RESTful web service.
 
-|                |        **master**         |      **develop**     |      **future**     |
-| -------------: | :-----------------------: | :------------------: | :-----------------: |
-|     **GitHub** | [![GitHub release][1]][2] |           -          |           -         |
-|      **NuGet** |      [![NuGet][3]][4]     |   [![NuGet][5]][6]   |           -         |
-|     **Travis** |     [![Master][7]][8]     | [![Develop][9]][10]  | [![Future][11]][12] |
-|   **AppVeyor** |    [![Master][13]][14]    | [![Develop][15]][16] | [![Future][17]][18] |
+|                |        **master**         |       **develop**       |        **future**       |
+| -------------: | :-----------------------: | :---------------------: | :---------------------: |
+|     **GitHub** | [![GitHub release][1]][2] |            -            |             -           |
+|      **NuGet** |      [![NuGet][3]][4]     |    [![NuGet][5]][6]     |             -           |
+|     **Travis** |     [![Master][7]][8]     |  [![Develop][9]][10]    |   [![Future][11]][12]   |
+|   **AppVeyor** |    [![Master][13]][14]    |  [![Develop][15]][16]   |   [![Future][17]][18]   |
+| **Codefactor** |  [![Codefactor][19]][20]  | [![Codefactor][21]][22] | [![Codefactor][23]][24] |
 
 ## Table of Contents
 
@@ -108,3 +109,9 @@ Thanks to:
 [16]: https://ci.appveyor.com/project/Pomona/Pomona/branch/develop
 [17]: https://img.shields.io/appveyor/ci/Pomona/Pomona/future.svg
 [18]: https://ci.appveyor.com/project/Pomona/Pomona/branch/future
+[19]: https://www.codefactor.io/repository/github/pomona/pomona/badge/master
+[20]: https://www.codefactor.io/repository/github/pomona/pomona/overview/master
+[21]: https://www.codefactor.io/repository/github/pomona/pomona/badge/develop
+[22]: https://www.codefactor.io/repository/github/pomona/pomona/overview/develop
+[23]: https://www.codefactor.io/repository/github/pomona/pomona/badge/future
+[24]: https://www.codefactor.io/repository/github/pomona/pomona/overview/future
