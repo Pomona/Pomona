@@ -10,11 +10,13 @@ exposed as HTTP resources.
 Pomona was born out of frustrations with the difficulties of exposing a complex
 business domain model as a RESTful web service.
 
-||Windows (AppVeyor)|Linux (Travis)|Version|
-|:--:|:--:|:--:|:--:|
-|**develop**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/develop?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/develop)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=develop)](https://travis-ci.org/Pomona/Pomona)|[![NuGet](https://img.shields.io/nuget/vpre/Pomona.svg)](https://www.nuget.org/packages/Pomona)|
-|**master**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/master?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/master)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=master)](https://travis-ci.org/Pomona/Pomona)|[![NuGet Prerelease](https://img.shields.io/nuget/v/Pomona.svg)](https://www.nuget.org/packages/Pomona)
-|**future**|[![Build Status](https://ci.appveyor.com/api/projects/status/vj3cw49n499u6046/branch/future?svg=true)](https://ci.appveyor.com/project/Pomona/pomona/branch/future)|[![Build Status](https://travis-ci.org/Pomona/Pomona.svg?branch=future)](https://travis-ci.org/Pomona/Pomona)|[![NuGet Prerelease](https://img.shields.io/nuget/vpre/Pomona.svg?branch=future)](https://www.nuget.org/packages/Pomona)
+|                |        **master**         |       **develop**       |        **future**       |
+| -------------: | :-----------------------: | :---------------------: | :---------------------: |
+|     **GitHub** | [![GitHub release][1]][2] |            -            |             -           |
+|      **NuGet** |      [![NuGet][3]][4]     |    [![NuGet][5]][6]     |             -           |
+|     **Travis** |     [![Master][7]][8]     |  [![Develop][9]][10]    |   [![Future][11]][12]   |
+|   **AppVeyor** |    [![Master][13]][14]    |  [![Develop][15]][16]   |   [![Future][17]][18]   |
+| **Codefactor** |  [![Codefactor][19]][20]  | [![Codefactor][21]][22] | [![Codefactor][23]][24] |
 
 ## Table of Contents
 
@@ -87,3 +89,29 @@ Thanks to:
 * [NUnit](http://www.nunit.org/) for testing.
 * [Cecil](http://www.mono-project.com/Cecil) for IL generation in client.
 * [JetBrains](http://jetbrains.com/) for providing the Pomona project with an [Open Source License](https://www.jetbrains.com/support/community/#section=open-source) of [ReSharper](https://www.jetbrains.com/resharper/).
+
+
+ [1]: https://img.shields.io/github/release/Pomona/Pomona.svg
+ [2]: https://github.com/Pomona/Pomona/releases/latest
+ [3]: https://img.shields.io/nuget/v/Pomona.svg
+ [4]: https://www.nuget.org/packages/Pomona
+ [5]: https://img.shields.io/nuget/vpre/Pomona.svg
+ [6]: https://www.nuget.org/packages/Pomona
+ [7]: https://travis-ci.org/Pomona/Pomona.svg?branch=master
+ [8]: https://travis-ci.org/Pomona/Pomona
+ [9]: https://travis-ci.org/Pomona/Pomona.svg?branch=develop
+[10]: https://travis-ci.org/Pomona/Pomona
+[11]: https://travis-ci.org/Pomona/Pomona.svg?branch=future
+[12]: https://travis-ci.org/Pomona/Pomona
+[13]: https://img.shields.io/appveyor/ci/Pomona/Pomona/master.svg
+[14]: https://ci.appveyor.com/project/Pomona/Pomona/branch/master
+[15]: https://img.shields.io/appveyor/ci/Pomona/Pomona/develop.svg
+[16]: https://ci.appveyor.com/project/Pomona/Pomona/branch/develop
+[17]: https://img.shields.io/appveyor/ci/Pomona/Pomona/future.svg
+[18]: https://ci.appveyor.com/project/Pomona/Pomona/branch/future
+[19]: https://www.codefactor.io/repository/github/pomona/pomona/badge/master
+[20]: https://www.codefactor.io/repository/github/pomona/pomona/overview/master
+[21]: https://www.codefactor.io/repository/github/pomona/pomona/badge/develop
+[22]: https://www.codefactor.io/repository/github/pomona/pomona/overview/develop
+[23]: https://www.codefactor.io/repository/github/pomona/pomona/badge/future
+[24]: https://www.codefactor.io/repository/github/pomona/pomona/overview/future
