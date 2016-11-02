@@ -110,7 +110,7 @@ namespace Pomona
         }
 
 
-        internal PomonaConfigurationBase GetConfiguration()
+        protected virtual PomonaConfigurationBase GetConfiguration()
         {
             var pomonaConfigAttr = GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
             if (pomonaConfigAttr == null)
