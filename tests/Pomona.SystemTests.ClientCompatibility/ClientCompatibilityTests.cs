@@ -29,14 +29,15 @@ namespace Pomona.SystemTests.ClientCompatibility
     public class ClientCompatibilityTests
     {
         [Test]
+        [Category("FailsOnFileShare")]
         public void All_references_from_old_assembly_are_valid()
         {
             var exceptions = new List<AssertionException>();
             try
             {
                 const string pomonaCommonAssemblyName = "Pomona.Common";
-                var clientAssembly = AssemblyDefinition.ReadAssembly(typeof(CritterClient).Assembly.CodeBaseAbsolutePath());
-                var pomonaCommonModule = AssemblyDefinition.ReadAssembly(typeof(IPomonaClient).Assembly.CodeBaseAbsolutePath()).MainModule;
+                var clientAssembly = AssemblyDefinition.ReadAssembly(typeof(CritterClient).Assembly.GetPhysicalLocation());
+                var pomonaCommonModule = AssemblyDefinition.ReadAssembly(typeof(IPomonaClient).Assembly.GetPhysicalLocation()).MainModule;
 
                 var typeReferences = clientAssembly.MainModule
                                                    .GetTypeReferences()
