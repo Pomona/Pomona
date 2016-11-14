@@ -507,12 +507,12 @@ namespace Pomona.Common.Linq
                     return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
                     if (value is Guid)
-                        return $"guid'{((Guid)value)}'";
+                        return $"guid'{(Guid)value}'";
                     if (value is Type)
                         return GetExternalTypeName((Type)value);
                     break;
                 case TypeCode.Boolean:
-                    return ((bool)value) ? "true" : "false";
+                    return (bool)value ? "true" : "false";
                 default:
                     break;
             }
@@ -723,11 +723,10 @@ namespace Pomona.Common.Linq
         }
 
 
-        private bool TryMapKnownOdataFunction(
-            Expression origNode,
-            MemberInfo member,
-            IEnumerable<Expression> arguments,
-            out Expression odataExpression)
+        private bool TryMapKnownOdataFunction(Expression origNode,
+                                              MemberInfo member,
+                                              IEnumerable<Expression> arguments,
+                                              out Expression odataExpression)
         {
             ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref member, ref arguments);
 

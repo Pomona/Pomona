@@ -66,11 +66,10 @@ namespace Pomona.SystemTests
         }
 
 
-        public IList<TResource> TestQuery<TResource, TEntity>(
-            Expression<Func<TResource, bool>> resourcePredicate,
-            Func<TEntity, bool> entityPredicate,
-            string message = null,
-            int? expectedResultCount = null)
+        public IList<TResource> TestQuery<TResource, TEntity>(Expression<Func<TResource, bool>> resourcePredicate,
+                                                              Func<TEntity, bool> entityPredicate,
+                                                              string message = null,
+                                                              int? expectedResultCount = null)
             where TResource : IEntityBase
             where TEntity : EntityBase
         {

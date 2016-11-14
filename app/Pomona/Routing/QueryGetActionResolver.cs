@@ -45,19 +45,16 @@ namespace Pomona.Routing
         {
             var idProp = route.IdProperty;
             var idType = idProp.PropertyType;
-            return
-                pr =>
-                {
-                    var segmentValue = pr.Node.PathSegment.Parse(idType);
-                    return new PomonaResponse(pr,
-                                              pr.Node.Parent
-                                                .Query()
-                                                .WhereEx(
-                                                    ex =>
-                                                        ex.Apply(idProp.CreateGetterExpression)
-                                                        == Ex.Const(segmentValue, idType))
-                                                .WrapActionResult(QueryProjection.FirstOrDefault));
-                };
+            return pr =>
+            {
+                var segmentValue = pr.Node.PathSegment.Parse(idType);
+                var segmentExpression = Ex.Const(segmentValue, idType);
+                var whereExpression = pr.Node.Parent
+                                        .Query()
+                                        .WhereEx(ex => ex.Apply(idProp.CreateGetterExpression) == segmentExpression);
+                var queryableResult = whereExpression.WrapActionResult(QueryProjection.FirstOrDefault);
+                return new PomonaResponse(pr, queryableResult);
+            };
         }
 
 

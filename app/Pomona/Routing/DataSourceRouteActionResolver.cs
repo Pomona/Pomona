@@ -17,17 +17,18 @@ namespace Pomona.Routing
 {
     public class DataSourceRouteActionResolver : IRouteActionResolver
     {
-        private IPomonaDataSource GetDataSource(IPomonaSession session)
+        private static IPomonaDataSource GetDataSource(IPomonaSession session)
         {
-            var dataSourceType =
-                session.Routes.MaybeAs<DataSourceRootRoute>().Select(x => x.DataSource).OrDefault(
-                    typeof(IPomonaDataSource));
+            var dataSourceType = session.Routes
+                .MaybeAs<DataSourceRootRoute>()
+                .Select(x => x.DataSource)
+                .OrDefault(typeof(IPomonaDataSource));
             var dataSource = (IPomonaDataSource)session.GetInstance(dataSourceType);
             return dataSource;
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
+        private static Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
         {
             if (route.ResultType.IsCollection)
                 return ResolveGetCollection(route, resourceType);
@@ -35,7 +36,7 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolveGetCollection(Route route, ResourceType resourceType)
+        private static Func<PomonaContext, PomonaResponse> ResolveGetCollection(Route route, ResourceType resourceType)
         {
             var dataSourceCollectionRoute = route as DataSourceCollectionRoute;
             if (dataSourceCollectionRoute != null)
@@ -48,7 +49,9 @@ namespace Pomona.Routing
                         && pr.AcceptType.TryExtractTypeArguments(typeof(IQueryable<>), out qTypeArgs))
                         elementType = qTypeArgs[0];
 
-                    return new PomonaResponse(pr, GetDataSource(pr.Session).Query(elementType));
+                    var dataSource = GetDataSource(pr.Session);
+                    var entity = dataSource.Query(elementType);
+                    return new PomonaResponse(pr, entity);
                 };
             }
             return null;
@@ -61,36 +64,32 @@ namespace Pomona.Routing
             {
                 var request = pr;
                 var uriResolver = request.Session.GetInstance<IUriResolver>();
-                var repos =
-                    new SortedDictionary<string, string>(route.Children.OfType<ILiteralRoute>().ToDictionary(
-                        x => x.MatchValue,
-                        x => uriResolver.RelativeToAbsoluteUri(x.MatchValue)));
-
-                return new PomonaResponse(repos,
-                                          resultType :
-                                              request.TypeMapper.FromType<IDictionary<string, string>>());
+                var dictionary = route.Children.OfType<ILiteralRoute>()
+                                      .ToDictionary(x => x.MatchValue, x => uriResolver.RelativeToAbsoluteUri(x.MatchValue));
+                var repos = new SortedDictionary<string, string>(dictionary);
+                var resultType = request.TypeMapper.FromType<IDictionary<string, string>>();
+                return new PomonaResponse(repos, resultType : resultType);
             };
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolvePatch(Route route, ResourceType resourceItemType)
+        private static Func<PomonaContext, PomonaResponse> ResolvePatch(Route route, ResourceType resourceItemType)
         {
             if (route.IsSingle)
             {
                 return pr =>
                 {
                     var patchedObject = pr.Bind();
-                    return
-                        new PomonaResponse(pr,
-                                           GetDataSource(pr.Session).Patch(patchedObject.GetType(),
-                                                                           patchedObject));
+                    var dataSource = GetDataSource(pr.Session);
+                    var patchedType = patchedObject.GetType();
+                    return new PomonaResponse(pr, dataSource.Patch(patchedType, patchedObject));
                 };
             }
             return null;
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolvePost(Route route, ResourceType resourceItemType)
+        private static Func<PomonaContext, PomonaResponse> ResolvePost(Route route, ResourceType resourceItemType)
         {
             if (route.NodeType == PathNodeType.Collection)
                 return ResolvePostToCollection(route, resourceItemType);
@@ -98,25 +97,27 @@ namespace Pomona.Routing
         }
 
 
-        private Func<PomonaContext, PomonaResponse> ResolvePostToCollection(Route route, ResourceType resourceItemType)
+        private static Func<PomonaContext, PomonaResponse> ResolvePostToCollection(Route route, ResourceType resourceItemType)
         {
-            if (route.ResultItemType is ResourceType && route.ResultType.IsCollection
+            if (route.ResultItemType is ResourceType
+                && route.ResultType.IsCollection
                 && route.Root() is DataSourceRootRoute)
             {
                 return pr =>
                 {
                     var form = pr.Bind(resourceItemType);
-                    return new PomonaResponse(pr, GetDataSource(pr.Session).Post(form.GetType(), form));
+                    var dataSource = GetDataSource(pr.Session);
+                    var entity = dataSource.Post(form.GetType(), form);
+                    return new PomonaResponse(pr, entity);
                 };
             }
             return null;
         }
 
 
-        public virtual IEnumerable<RouteAction> Resolve(Route route,
-                                                        HttpMethod method)
+        public virtual IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
         {
-            DataSourceRootRoute rootRoute = route as DataSourceRootRoute;
+            var rootRoute = route as DataSourceRootRoute;
             if (rootRoute != null)
                 yield return ResolveGetRootResource(rootRoute);
 

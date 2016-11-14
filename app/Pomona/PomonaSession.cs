@@ -38,8 +38,10 @@ namespace Pomona
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
+
             if (context.Session != this)
                 throw new ArgumentException("Request session is not same as this.");
+            
             var savedOuterContext = CurrentContext;
             try
             {
@@ -55,7 +57,8 @@ namespace Pomona
                 {
                     var route = context.Route;
                     var resultType = route.ResultType;
-                    if (typeof(IQueryable).IsAssignableFrom(context.AcceptType) && route.IsSingle
+                    if (typeof(IQueryable).IsAssignableFrom(context.AcceptType)
+                        && route.IsSingle
                         && resultType.Type.IsInstanceOfType(resultEntity))
                     {
                         var array = Array.CreateInstance(resultType, 1);
@@ -113,8 +116,8 @@ namespace Pomona
                 {
                     var actualResultType = node.ActualResultType;
                     // Reduce using input type difference
-                    var validSelection =
-                        node.Children.Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
+                    var validSelection = node.Children
+                            .Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
                             .SingleOrDefaultIfMultiple();
                     if (validSelection == null)
                         throw new ResourceNotFoundException("No route alternative found due to conflict.");
@@ -129,10 +132,11 @@ namespace Pomona
 
         private PomonaQuery ParseQuery(PomonaContext context, Type rootType, int? defaultPageSize = null)
         {
-            return new PomonaHttpQueryTransformer(TypeMapper,
-                                                  new QueryExpressionParser(
-                                                      new QueryTypeResolver(TypeMapper)))
-                .TransformRequest(context, (ResourceType)TypeMapper.FromType(rootType), defaultPageSize);
+            var queryPropertyResolver = new QueryTypeResolver(TypeMapper);
+            var queryExpressionParser = new QueryExpressionParser(queryPropertyResolver);
+            var queryTransformer = new PomonaHttpQueryTransformer(TypeMapper, queryExpressionParser);
+            var structuredType = (ResourceType)TypeMapper.FromType(rootType);
+            return queryTransformer.TransformRequest(context, structuredType, defaultPageSize);
         }
 
 
@@ -176,30 +180,21 @@ namespace Pomona
             // TODO: This should instead be injected to IOC container:
             if (typeof(T) == typeof(ISerializationContextProvider))
             {
-                return
-                    (T)(object)new ServerSerializationContextProvider(TypeMapper,
-                                                                      GetInstance<IUriResolver>(),
-                                                                      GetInstance<IResourceResolver>(),
-                                                                      this);
+                return (T)(object)new ServerSerializationContextProvider(TypeMapper,
+                                                                         GetInstance<IUriResolver>(),
+                                                                         GetInstance<IResourceResolver>(),
+                                                                         this);
             }
 
             if (typeof(T) == typeof(ITextDeserializer))
-            {
-                return
-                    (T)
-                        Factory.SerializerFactory.GetDeserializer(
-                            GetInstance<ISerializationContextProvider>());
-            }
+                return (T)Factory.SerializerFactory.GetDeserializer(GetInstance<ISerializationContextProvider>());
+
             if (typeof(T) == typeof(ITextSerializer))
-            {
-                return
-                    (T)
-                        Factory.SerializerFactory.GetSerializer(
-                            GetInstance<ISerializationContextProvider>());
-            }
+                return (T)Factory.SerializerFactory.GetSerializer(GetInstance<ISerializationContextProvider>());
 
             if (typeof(T).IsAssignableFrom(GetType()))
                 return (T)((object)this);
+
             return this.container.GetInstance<T>();
         }
 

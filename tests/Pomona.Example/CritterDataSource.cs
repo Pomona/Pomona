@@ -43,6 +43,7 @@ namespace Pomona.Example
         {
             if (typeof(T) == typeof(FailingThing))
                 throw new Exception("Stupid exception from failing thing;");
+
             if (typeof(T) == typeof(HandledThing) || typeof(T) == typeof(HandledChild))
             {
                 throw new InvalidOperationException(
@@ -50,7 +51,7 @@ namespace Pomona.Example
             }
 
             var newCritter = newObject as Critter;
-            if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
+            if (newCritter?.Name?.Length > 50)
                 throw new ModelValidationException("Critter can't have name longer than 50 characters.");
 
             return this.store.Post(newObject);

@@ -29,6 +29,7 @@ namespace Pomona.SystemTests
             Repository.CreateRandomData(critterCount : 4, alwaysHasEnemies : true);
             var critterId = CritterEntities.OrderByDescending(x => x.Enemies.Count).Select(x => x.Id).First();
             var critterResource = Client.Critters.Get(critterId);
+
             Assert.That(critterResource.Enemies.IsLoaded(), Is.True);
             foreach (var enemy in critterResource.Enemies)
                 Assert.That(enemy.IsLoaded(), Is.False);
@@ -42,9 +43,8 @@ namespace Pomona.SystemTests
                 CritterEntities.OfType<MusicalCritter>().First();
             var bandName = firstMusicalCritter.BandName;
 
-            TestQuery<ICritter, Critter>(
-                x => x is IMusicalCritter && ((IMusicalCritter)x).BandName == bandName,
-                x => x is MusicalCritter && ((MusicalCritter)x).BandName == bandName);
+            TestQuery<ICritter, Critter>(x => x is IMusicalCritter && ((IMusicalCritter)x).BandName == bandName,
+                                         x => x is MusicalCritter && ((MusicalCritter)x).BandName == bandName);
         }
 
 
@@ -95,9 +95,8 @@ namespace Pomona.SystemTests
             {
                 x.Name = name;
             });
-            var results = TestQuery<ICritter, Critter>(
-                x => x.Name == name,
-                x => x.Name == name);
+            var results = TestQuery<ICritter, Critter>(x => x.Name == name,
+                                                       x => x.Name == name);
             Assert.That(results, Has.Count.EqualTo(1));
         }
 
@@ -127,9 +126,14 @@ namespace Pomona.SystemTests
         public void QueryCritter_OrderByThenBy_ReturnsCrittersInCorrectOrder()
         {
             Repository.CreateRandomData(40);
-            var fetchedCritters =
-                Client.Critters.Query().Expand(x => x.Weapons).OrderByDescending(x => x.Weapons.Count).ThenBy(x => x.Id)
-                      .Take(1000).ToList();
+            var fetchedCritters = Client.Critters
+                                        .Query()
+                                        .Expand(x => x.Weapons)
+                                        .OrderByDescending(x => x.Weapons.Count)
+                                        .ThenBy(x => x.Id)
+                                        .Take(1000)
+                                        .ToList();
+
             var expected = fetchedCritters.OrderByDescending(x => x.Weapons.Count).ThenBy(x => x.Id).ToList();
             Assert.That(fetchedCritters.SequenceEqual(expected));
         }
@@ -139,9 +143,14 @@ namespace Pomona.SystemTests
         public void QueryCritter_OrderByThenByDescending_ReturnsCrittersInCorrectOrder()
         {
             Repository.CreateRandomData(40);
-            var fetchedCritters =
-                Client.Critters.Query().Expand(x => x.Weapons).OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id)
-                      .Take(1000).ToList();
+            var fetchedCritters = Client.Critters
+                                        .Query()
+                                        .Expand(x => x.Weapons)
+                                        .OrderBy(x => x.Weapons.Count)
+                                        .ThenByDescending(x => x.Id)
+                                        .Take(1000)
+                                        .ToList();
+
             var expected = fetchedCritters.OrderBy(x => x.Weapons.Count).ThenByDescending(x => x.Id).ToList();
             Assert.That(fetchedCritters.SequenceEqual(expected));
         }
@@ -197,9 +206,8 @@ namespace Pomona.SystemTests
         {
             var fromTime = DateTime.UtcNow.AddDays(-5);
             var toTime = DateTime.UtcNow.AddDays(-2);
-            TestQuery<ICritter, Critter>(
-                x => x.CreatedOn > fromTime && x.CreatedOn <= toTime,
-                x => x.CreatedOn > fromTime && x.CreatedOn <= toTime);
+            TestQuery<ICritter, Critter>(x => x.CreatedOn > fromTime && x.CreatedOn <= toTime,
+                                         x => x.CreatedOn > fromTime && x.CreatedOn <= toTime);
         }
 
 
@@ -225,9 +233,8 @@ namespace Pomona.SystemTests
 
             var critters = Client.Query<ICritter>(x => x.Id >= minId && x.Id <= maxId);
 
-            Assert.That(
-                critters.OrderBy(x => x.Id).Select(x => x.Id),
-                Is.EquivalentTo(orderedCritters.Select(x => x.Id)));
+            Assert.That(critters.OrderBy(x => x.Id).Select(x => x.Id),
+                        Is.EquivalentTo(orderedCritters.Select(x => x.Id)));
         }
 
 

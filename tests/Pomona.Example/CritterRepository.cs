@@ -350,10 +350,14 @@ namespace Pomona.Example
                 }
                 return (IList<T>)list;
             }
+
             if (tt.ParentToChildProperty == null)
                 throw new InvalidOperationException("Expected a parent-child assosciation.");
-            var parents =
-                (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
+
+            var parents = (IEnumerable<object>)getEntityListMethod
+                .MakeGenericMethod(tt.ParentResourceType)
+                .Invoke(this, null);
+
             if (tt.ParentToChildProperty.PropertyType.IsCollection)
                 return parents.SelectMany(p => ((IEnumerable)tt.ParentToChildProperty.GetValue(p)).OfType<T>()).ToList();
             return parents.Select(p => (T)tt.ParentToChildProperty.GetValue(p)).ToList();
@@ -418,8 +422,7 @@ namespace Pomona.Example
         public object Patch<T>(T updatedObject)
         {
             var etagEntity = updatedObject as ISetEtaggedEntity;
-            if (etagEntity != null)
-                etagEntity.SetEtag(Guid.NewGuid().ToString());
+            etagEntity?.SetEtag(Guid.NewGuid().ToString());
 
             Save(updatedObject);
 
