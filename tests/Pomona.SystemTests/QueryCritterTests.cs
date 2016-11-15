@@ -216,10 +216,8 @@ namespace Pomona.SystemTests
         {
             var firstCritter = Repository.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
-            var fetchedCritter = Client.Query<ICritter>(x => x.CreatedOn == createdOn).ToList();
-
-            Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
-            Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
+            TestQuery<ICritter, Critter>(x => x.CreatedOn == createdOn,
+                                         x => x.CreatedOn == createdOn);
         }
 
 
@@ -238,10 +236,8 @@ namespace Pomona.SystemTests
         {
             var firstCritter = Repository.List<Critter>().First();
             var createdOnOffset = firstCritter.CreatedOnOffset;
-            var fetchedCritter = Client.Query<ICritter>(x => x.CreatedOnOffset == createdOnOffset).ToList();
-
-            Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
-            Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
+            TestQuery<ICritter, Critter>(x => x.CreatedOnOffset == createdOnOffset,
+                                         x => x.CreatedOnOffset == createdOnOffset);
         }
 
 

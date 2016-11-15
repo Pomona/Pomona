@@ -78,10 +78,12 @@ namespace Pomona.SystemTests
             Assert.That(callingMethod.Name, Does.StartWith("Query" + typeof(TEntity).Name));
 
             var allEntities = Repository.List<TEntity>();
-            var entities =
-                allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
+            var entities = allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
             var fetchedResources = Client.Query<TResource>().Where(resourcePredicate).ToList();
-            Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)), message);
+            var fetchedResourceIds = fetchedResources.Select(x => x.Id);
+            var entityIds = entities.Select(x => x.Id);
+
+            Assert.That(fetchedResourceIds, Is.EquivalentTo(entityIds), message);
 
             if (expectedResultCount.HasValue)
             {
