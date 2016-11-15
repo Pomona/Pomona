@@ -116,6 +116,12 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             }
             catch (Exception exception)
             {
+                if (exception.UnableToLoadAssemblyFromFileShare(dllName))
+                {
+                    Console.WriteLine($"ERROR! The file '{dllName}' seems to be pointing to a file share, which Mono.Cecil is unable to resolve during build time, for weird and unbeknownst reasons.");
+                    return 0;
+                }
+
                 Console.WriteLine(exception);
                 return 1;
             }

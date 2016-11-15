@@ -42,6 +42,8 @@ namespace Pomona.Example.Models
 
         public DateTime CreatedOn { get; set; }
 
+        public DateTimeOffset CreatedOnOffset { get; set; }
+
         /// <summary>
         /// List of <see cref="Critter"/> enemies.
         /// </summary>

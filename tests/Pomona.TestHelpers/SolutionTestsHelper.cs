@@ -18,6 +18,7 @@ using System.Xml.XPath;
 
 using NUnit.Framework;
 
+using Pomona.Common;
 using Pomona.Common.Internals;
 
 using Ude;
@@ -45,17 +46,11 @@ namespace Pomona.TestHelpers
             if (assembly == null)
                 throw new ArgumentNullException(nameof(assembly));
 
-            if (String.IsNullOrEmpty(assembly.CodeBase))
-                throw new ArgumentException($"The assembly '{assembly}' has no code base.", nameof(assembly));
-
-            UriBuilder uri = new UriBuilder(assembly.CodeBase);
-            string unescapeDataString = Uri.UnescapeDataString(uri.Path);
-            string assemblyPath = Path.GetFullPath(unescapeDataString);
+            var assemblyPath = assembly.GetPhysicalLocation();
 
             if (String.IsNullOrEmpty(assemblyPath))
             {
-                throw new FileNotFoundException(
-                    $"Could not find a physical path for '{assembly.CodeBase}'.");
+                throw new FileNotFoundException($"Could not find a physical path for '{assembly}'.");
             }
 
             FileInfo assemblyFile = new FileInfo(assemblyPath);

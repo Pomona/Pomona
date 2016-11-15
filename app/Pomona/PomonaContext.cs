@@ -120,13 +120,14 @@ namespace Pomona
 
             using (var textReader = new StreamReader(Request.Body))
             {
-                return Session.GetInstance<ITextDeserializer>().Deserialize(textReader,
-                                                                            new DeserializeOptions()
-                                                                            {
-                                                                                Target = patchedObject,
-                                                                                ExpectedBaseType = expectedBaseType,
-                                                                                TargetNode = Node
-                                                                            });
+                var deserializer = Session.GetInstance<ITextDeserializer>();
+                var options = new DeserializeOptions()
+                {
+                    Target = patchedObject,
+                    ExpectedBaseType = expectedBaseType,
+                    TargetNode = Node
+                };
+                return deserializer.Deserialize(textReader, options);
             }
         }
 

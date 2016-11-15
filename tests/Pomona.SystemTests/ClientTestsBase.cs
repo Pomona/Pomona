@@ -66,23 +66,24 @@ namespace Pomona.SystemTests
         }
 
 
-        public IList<TResource> TestQuery<TResource, TEntity>(
-            Expression<Func<TResource, bool>> resourcePredicate,
-            Func<TEntity, bool> entityPredicate,
-            string message = null,
-            int? expectedResultCount = null)
+        public IList<TResource> TestQuery<TResource, TEntity>(Expression<Func<TResource, bool>> resourcePredicate,
+                                                              Func<TEntity, bool> entityPredicate,
+                                                              string message = null,
+                                                              int? expectedResultCount = null)
             where TResource : IEntityBase
             where TEntity : EntityBase
         {
             var callingStackFrame = new StackFrame(1);
             var callingMethod = callingStackFrame.GetMethod();
-            Assert.That(callingMethod.Name, Is.StringStarting("Query" + typeof(TEntity).Name));
+            Assert.That(callingMethod.Name, Does.StartWith("Query" + typeof(TEntity).Name));
 
             var allEntities = Repository.List<TEntity>();
-            var entities =
-                allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
+            var entities = allEntities.Where(entityPredicate).OrderBy(x => x.Id).ToList();
             var fetchedResources = Client.Query<TResource>().Where(resourcePredicate).ToList();
-            Assert.That(fetchedResources.Select(x => x.Id), Is.EquivalentTo(entities.Select(x => x.Id)), message);
+            var fetchedResourceIds = fetchedResources.Select(x => x.Id);
+            var entityIds = entities.Select(x => x.Id);
+
+            Assert.That(fetchedResourceIds, Is.EquivalentTo(entityIds), message);
 
             if (expectedResultCount.HasValue)
             {

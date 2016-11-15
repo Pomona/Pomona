@@ -212,7 +212,8 @@ namespace Pomona
             {
                 try
                 {
-                    var pomonaResponse = (PomonaResponse)handler(x);
+                    var response = handler(x);
+                    var pomonaResponse = (PomonaResponse)response;
 
                     if ((int)pomonaResponse.StatusCode >= 400)
                         SetErrorHandled();
@@ -226,9 +227,8 @@ namespace Pomona
                         throw;
 
                     SetErrorHandled();
-                    return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity,
-                                              error.StatusCode,
-                                              responseHeaders : error.ResponseHeaders);
+                    var entity = error.Entity ?? PomonaResponse.NoBodyEntity;
+                    return new PomonaResponse(entity, error.StatusCode, responseHeaders : error.ResponseHeaders);
                 }
             };
         }
@@ -318,8 +318,10 @@ namespace Pomona
             {
                 if (typeof(T) == GetType())
                     return (T)((object)this.module);
+
                 if (typeof(T) == typeof(IPomonaDataSource) && this.dataSource != null)
                     return (T)this.dataSource;
+
                 if (typeof(T) == typeof(IPomonaErrorHandler))
                     return (T)((object)this.module);
 

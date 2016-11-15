@@ -65,26 +65,26 @@ namespace Pomona.Queries
         }
 
 
-        public LambdaExpression ToLambdaExpression(
-            ParameterExpression thisParam,
-            IEnumerable<ParameterExpression> lamdbaParameters,
-            IEnumerable<ParameterExpression> outerParameters,
-            NodeBase node)
+        public LambdaExpression ToLambdaExpression(ParameterExpression thisParameter,
+                                                   IEnumerable<ParameterExpression> lamdbaParameters,
+                                                   IEnumerable<ParameterExpression> outerParameters,
+                                                   NodeBase node)
         {
-            if (thisParam == null)
-                throw new ArgumentNullException(nameof(thisParam));
+            if (thisParameter == null)
+                throw new ArgumentNullException(nameof(thisParameter));
+
             if (lamdbaParameters == null)
                 throw new ArgumentNullException(nameof(lamdbaParameters));
             try
             {
-                this.thisParam = thisParam;
-                this.parameters =
-                    lamdbaParameters
-                        .Where(x => x != thisParam)
+                this.thisParam = thisParameter;
+                var parameterList = lamdbaParameters as IList<ParameterExpression> ?? lamdbaParameters.ToList();
+                this.parameters = parameterList
+                        .Where(x => x != thisParameter)
                         .Concat(outerParameters ?? Enumerable.Empty<ParameterExpression>())
                         .ToDictionary(x => x.Name, x => x);
 
-                return Expression.Lambda(ParseExpression(node), lamdbaParameters);
+                return Expression.Lambda(ParseExpression(node), parameterList);
             }
             finally
             {
@@ -99,7 +99,7 @@ namespace Pomona.Queries
                                                QueryParseErrorReason? errorReason = null,
                                                string memberName = null)
         {
-            if (node != null && node.ParserNode != null && this.parsedString != null)
+            if (node?.ParserNode != null && this.parsedString != null)
             {
                 return QueryParseException.Create(node.ParserNode,
                                                   message,
@@ -123,7 +123,7 @@ namespace Pomona.Queries
             if (!prop.Flags.HasFlag(PropertyFlags.AllowsFiltering) || !prop.AccessMode.HasFlag(HttpMethod.Get))
             {
                 throw CreateParseException(currentNode,
-                                           "Property " + prop.JsonName + " is not allowed for query.",
+                                           $"Property {prop.JsonName} is not allowed for query.",
                                            errorReason : QueryParseErrorReason.MemberNotAllowedInQuery,
                                            memberName : prop.JsonName);
             }
@@ -146,21 +146,23 @@ namespace Pomona.Queries
                 var index = 0;
                 foreach (var elementValue in arrayElements.OfType<ConstantExpression>().Select(x => x.Value))
                     array.SetValue(elementValue, index++);
+
                 return Expression.Constant(array);
             }
 
             // Box value elements
             if (elementType == typeof(object))
             {
-                arrayElements =
-                    arrayElements.Select(x => x.Type.IsValueType ? Expression.Convert(x, elementType) : x).ToList();
+                arrayElements = arrayElements
+                    .Select(x => x.Type.IsValueType ? Expression.Convert(x, elementType) : x)
+                    .ToList();
             }
 
             return Expression.NewArrayInit(elementType, arrayElements);
         }
 
 
-        private Expression ParseBinaryOperator(BinaryOperatorNode binaryOperatorNode, Expression memberExpression)
+        private Expression ParseBinaryOperator(BinaryOperatorNode binaryOperatorNode)
         {
             var rightNode = binaryOperatorNode.Right;
             var leftNode = binaryOperatorNode.Left;
@@ -172,8 +174,7 @@ namespace Pomona.Queries
                     var origCallNode = (MethodCallNode)rightNode;
                     // Rewrite extension method call to static method call of tree:
                     // We do this by taking inserting the first node before arg nodes of extension method call.
-                    var staticMethodArgs = leftNode.WrapAsEnumerable()
-                                                   .Concat(rightNode.Children);
+                    var staticMethodArgs = leftNode.WrapAsEnumerable().Concat(rightNode.Children);
                     var staticMethodCall = new MethodCallNode(origCallNode.Name, staticMethodArgs);
 
                     return ParseExpression(staticMethodCall);
@@ -187,8 +188,7 @@ namespace Pomona.Queries
                 if (rightNode.NodeType != NodeType.TypeNameLiteral)
                     throw CreateParseException(binaryOperatorNode, "Right side of as operator is required to be a type literal.");
 
-                return Expression.TypeAs(ParseExpression(leftNode),
-                                         ResolveType((TypeNameNode)rightNode));
+                return Expression.TypeAs(ParseExpression(leftNode), ResolveType((TypeNameNode)rightNode));
             }
             if (binaryOperatorNode.NodeType == NodeType.In)
                 return ParseInOperator(binaryOperatorNode);
@@ -229,8 +229,7 @@ namespace Pomona.Queries
                 case NodeType.CaseInsensitiveEqual:
                     return ParseCaseInsensitiveEqualOperator(leftChild, rightChild);
                 default:
-                    throw new NotImplementedException(
-                        "Don't know how to handle node type " + binaryOperatorNode.NodeType);
+                    throw new NotImplementedException($"Don't know how to handle node type {binaryOperatorNode.NodeType}.");
             }
         }
 
@@ -255,13 +254,11 @@ namespace Pomona.Queries
 
         private Expression ParseCaseInsensitiveEqualOperator(Expression leftChild, Expression rightChild)
         {
+            var ignoreCase = Expression.Constant(StringComparison.InvariantCultureIgnoreCase);
+            var comparisonTypeMethod = QueryFunctionMapping.StringEqualsTakingComparisonTypeMethod;
             return ParseBinaryOperator(leftChild,
                                        rightChild,
-                                       (l, r) =>
-                                           Expression.Call(QueryFunctionMapping.StringEqualsTakingComparisonTypeMethod,
-                                                           l,
-                                                           r,
-                                                           Expression.Constant(StringComparison.InvariantCultureIgnoreCase)));
+                                       (l, r) => Expression.Call(comparisonTypeMethod, l, r, ignoreCase));
         }
 
 
@@ -280,9 +277,7 @@ namespace Pomona.Queries
             if (ifTrue.Type != ifFalse.Type)
                 PeformImplicitConversionForNodePair(ref ifTrue, ref ifFalse);
 
-            expression = Expression.Condition(testExpr,
-                                              ifTrue,
-                                              ifFalse);
+            expression = Expression.Condition(testExpr, ifTrue, ifFalse);
         }
 
 
@@ -302,8 +297,10 @@ namespace Pomona.Queries
 
             if (node.NodeType == NodeType.Symbol)
             {
-                var dictionaryInterface =
-                    memberExpression.Type.GetInterfacesOfGeneric(typeof(IDictionary<,>)).FirstOrDefault();
+                var dictionaryInterface = memberExpression.Type
+                                                          .GetInterfacesOfGeneric(typeof(IDictionary<,>))
+                                                          .FirstOrDefault();
+
                 if (node.Children.Count == 0 && dictionaryInterface != null)
                     return ResolveDictionaryAccess((SymbolNode)node, memberExpression, dictionaryInterface);
 
@@ -313,7 +310,7 @@ namespace Pomona.Queries
             var binaryOperatorNode = node as BinaryOperatorNode;
 
             if (binaryOperatorNode != null)
-                return ParseBinaryOperator(binaryOperatorNode, memberExpression);
+                return ParseBinaryOperator(binaryOperatorNode);
 
             if (node.NodeType == NodeType.GuidLiteral)
             {
@@ -325,6 +322,12 @@ namespace Pomona.Queries
             {
                 var dateTimeNode = (DateTimeNode)node;
                 return Expression.Constant(dateTimeNode.Value);
+            }
+
+            if (node.NodeType == NodeType.DateTimeOffsetLiteral)
+            {
+                var dateTimeOffsetNode = (DateTimeOffsetNode)node;
+                return Expression.Constant(dateTimeOffsetNode.Value);
             }
 
             if (node.NodeType == NodeType.StringLiteral)
@@ -357,7 +360,7 @@ namespace Pomona.Queries
             if (node.NodeType == NodeType.Lambda)
             {
                 var lambdaNode = (LambdaNode)node;
-                return ParseLambda(lambdaNode, memberExpression, expectedType);
+                return ParseLambda(lambdaNode, expectedType);
             }
 
             if (node.NodeType == NodeType.Not)
@@ -433,13 +436,12 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ParseLambda(LambdaNode lambdaNode, Expression memberExpression, Type expectedType)
+        private Expression ParseLambda(LambdaNode lambdaNode, Type expectedType)
         {
             if (expectedType.UniqueToken() == typeof(Expression<>).UniqueToken())
             {
                 // Quote if expression
-                return Expression.Quote(
-                    ParseLambda(lambdaNode, memberExpression, expectedType.GetGenericArguments()[0]));
+                return Expression.Quote(ParseLambda(lambdaNode, expectedType.GetGenericArguments()[0]));
             }
 
             var nestedConverter = new NodeTreeToExpressionConverter(this.propertyResolver, this.parsedString);
@@ -456,9 +458,10 @@ namespace Pomona.Queries
             var funcTypeArgs = expectedType.GetGenericArguments();
 
             // TODO: Support multiple lambda args..(?)
-            var lambdaParams =
-                lambdaNode.Argument.WrapAsEnumerable().Select(
-                    (x, idx) => Expression.Parameter(funcTypeArgs[idx], x.Name)).ToList();
+            var lambdaParams = lambdaNode.Argument
+                                         .WrapAsEnumerable()
+                                         .Select((x, idx) => Expression.Parameter(funcTypeArgs[idx], x.Name))
+                                         .ToList();
 
             return nestedConverter.ToLambdaExpression(this.thisParam, lambdaParams, this.parameters.Values, lambdaNode.Body);
         }
@@ -468,22 +471,24 @@ namespace Pomona.Queries
         {
             if (memberExpression == null)
                 throw new ArgumentNullException(nameof(memberExpression));
+
             if (memberExpression == this.thisParam)
             {
                 if (node.HasArguments)
                 {
                     Expression expression;
-                    if (TryResolveOdataExpression(node, memberExpression, out expression))
+                    if (TryResolveOdataExpression(node, out expression))
                         return expression;
                 }
             }
+
             throw CreateParseException(node, "Could not recognize method " + node.Name);
         }
 
 
-        private void PeformImplicitConversionForNodePair(ref Expression left,
-                                                         ref Expression right,
-                                                         bool callSwappedRecursively = true)
+        private static void PeformImplicitConversionForNodePair(ref Expression left,
+                                                                ref Expression right,
+                                                                bool callSwappedRecursively = true)
         {
             var leftType = left.Type;
 
@@ -505,7 +510,7 @@ namespace Pomona.Queries
         }
 
 
-        private Expression ResolveDictionaryAccess(SymbolNode node, Expression memberExpression, Type dictionaryType)
+        private static Expression ResolveDictionaryAccess(SymbolNode node, Expression memberExpression, Type dictionaryType)
         {
             var key = node.Name;
 
@@ -544,7 +549,7 @@ namespace Pomona.Queries
         }
 
 
-        private void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
+        private static void TryDetectAndConvertEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
         {
             if (left.Type.IsEnum && right.NodeType == ExpressionType.Constant && right.Type == typeof(string))
             {
@@ -552,9 +557,8 @@ namespace Pomona.Queries
                 var enumUnderlyingType = enumType.GetEnumUnderlyingType();
                 left = Expression.Convert(left, enumUnderlyingType);
                 var enumStringValue = (string)((ConstantExpression)right).Value;
-                var enumIntvalue = Convert.ChangeType(
-                    Enum.Parse(enumType, enumStringValue),
-                    enumUnderlyingType);
+                var enumValue = Enum.Parse(enumType, enumStringValue);
+                var enumIntvalue = Convert.ChangeType(enumValue, enumUnderlyingType);
                 right = Expression.Constant(enumIntvalue, enumUnderlyingType);
                 return;
             }
@@ -564,19 +568,20 @@ namespace Pomona.Queries
         }
 
 
-        private void TryDetectAndConvertNullableEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
+        private static void TryDetectAndConvertNullableEnumComparison(ref Expression left, ref Expression right, bool tryAgainSwapped)
         {
             Type[] nullableTypeArgs;
-            if (right.NodeType == ExpressionType.Constant && right.Type == typeof(string)
-                && left.Type.TryExtractTypeArguments(typeof(Nullable<>), out nullableTypeArgs) && nullableTypeArgs[0].IsEnum)
+            if (right.NodeType == ExpressionType.Constant
+                && right.Type == typeof(string)
+                && left.Type.TryExtractTypeArguments(typeof(Nullable<>), out nullableTypeArgs)
+                && nullableTypeArgs[0].IsEnum)
             {
                 var enumType = nullableTypeArgs[0];
                 var enumUnderlyingType = typeof(Nullable<>).MakeGenericType(enumType.GetEnumUnderlyingType());
                 left = Expression.Convert(left, enumUnderlyingType);
                 var enumStringValue = (string)((ConstantExpression)right).Value;
-                var enumIntvalue = Convert.ChangeType(
-                    Enum.Parse(enumType, enumStringValue),
-                    enumType);
+                var enumValue = Enum.Parse(enumType, enumStringValue);
+                var enumIntvalue = Convert.ChangeType(enumValue, enumType);
                 right = Expression.Convert(Expression.Constant(enumIntvalue, enumType), enumUnderlyingType);
                 return;
             }
@@ -586,11 +591,11 @@ namespace Pomona.Queries
         }
 
 
-        private bool TryResolveGenericInstanceMethod<TMemberInfo>(Expression instance, ref TMemberInfo member)
+        private static bool TryResolveGenericInstanceMethod<TMemberInfo>(Expression instance, ref TMemberInfo member)
             where TMemberInfo : MemberInfo
         {
             var declaringType = member.DeclaringType;
-            if (declaringType.IsGenericTypeDefinition)
+            if (declaringType?.IsGenericTypeDefinition == true)
             {
                 Type[] typeArgs;
                 if (instance.Type.TryExtractTypeArguments(declaringType, out typeArgs))
@@ -612,10 +617,9 @@ namespace Pomona.Queries
         }
 
 
-        private bool TryResolveMemberMapping(
-            QueryFunctionMapping.MemberMapping memberMapping,
-            MethodCallNode node,
-            out Expression expression)
+        private bool TryResolveMemberMapping(QueryFunctionMapping.MemberMapping memberMapping,
+                                             MethodCallNode node,
+                                             out Expression expression)
         {
             expression = null;
             var reorderedArgs = memberMapping.ReorderArguments(node.Children);
@@ -638,7 +642,7 @@ namespace Pomona.Queries
                 if (methodParameters.Length != reorderedArgs.Count - argArrayOffset)
                 {
                     var message =
-                        $"Number parameters count ({methodParameters.Length}) for method {method.DeclaringType.FullName}.{method.Name} does not match provided argument count ({(reorderedArgs.Count - argArrayOffset)})";
+                        $"Number parameters count ({methodParameters.Length}) for method {method.DeclaringType?.FullName}.{method.Name} does not match provided argument count ({reorderedArgs.Count - argArrayOffset})";
                     throw CreateParseException(node, message);
                 }
 
@@ -704,10 +708,7 @@ namespace Pomona.Queries
         }
 
 
-        private bool TryResolveOdataExpression(
-            MethodCallNode node,
-            Expression memberExpression,
-            out Expression expression)
+        private bool TryResolveOdataExpression(MethodCallNode node, out Expression expression)
         {
             expression = null;
 
@@ -715,9 +716,9 @@ namespace Pomona.Queries
             {
                 case "isof":
                 case "cast":
-                    //var 
                     if (node.Children.Count > 2 || node.Children.Count < 1)
                         throw CreateParseException(node, "Only one or two arguments to cast operator is allowed.");
+
                     TypeNameNode castTypeArg;
                     Expression operand;
 
