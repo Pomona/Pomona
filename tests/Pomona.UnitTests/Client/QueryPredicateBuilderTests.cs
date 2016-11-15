@@ -205,8 +205,8 @@ namespace Pomona.UnitTests.Client
         [Test]
         public void BuildDateTimeOffset_ReturnsCorrectString()
         {
-            var dt = new DateTimeOffset(2012, 10, 22, 5, 32, 45, TimeSpan.FromHours(5));
-            AssertBuild(x => x.BirthDayOffset == dt, "birthDayOffset eq datetime'2012-10-22T05:32:45+05:00'");
+            var dt = new DateTimeOffset(2012, 10, 22, 5, 32, 45, 123, TimeSpan.FromHours(5));
+            AssertBuild(x => x.BirthDayOffset == dt, "birthDayOffset eq datetime'2012-10-22T05:32:45.1230000+05:00'");
         }
 
 
@@ -214,7 +214,7 @@ namespace Pomona.UnitTests.Client
         public void BuildDateTimeOffsetUtc_ReturnsCorrectString()
         {
             var dt = new DateTimeOffset(2012, 10, 22, 5, 32, 45, TimeSpan.FromHours(0));
-            AssertBuild(x => x.BirthDayOffset == dt, "birthDayOffset eq datetime'2012-10-22T05:32:45+00:00'");
+            AssertBuild(x => x.BirthDayOffset == dt, "birthDayOffset eq datetime'2012-10-22T05:32:45.0000000+00:00'");
         }
 
 

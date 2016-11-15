@@ -518,7 +518,7 @@ namespace Pomona.Common.Linq
             }
 
             if (typeof(DateTimeOffset).IsAssignableFrom(valueType))
-                return $"datetime'{(DateTimeOffset)value:yyyy-MM-ddTHH:mm:sszzzz}'";
+                return $"datetime'{(DateTimeOffset)value:O}'";
 
             if (typeof(IStringEnum).IsAssignableFrom(valueType))
                 return EncodeString(value.ToString());
