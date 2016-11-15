@@ -202,17 +202,17 @@ namespace Pomona.SystemTests
 
 
         [Test]
-        public void QueryCritter_WithDateBetween_ReturnsCorrectResult()
+        public void QueryCritter_WithDateTimeBetween_ReturnsCorrectResult()
         {
-            var fromTime = DateTime.UtcNow.AddDays(-5);
-            var toTime = DateTime.UtcNow.AddDays(-2);
-            TestQuery<ICritter, Critter>(x => x.CreatedOn > fromTime && x.CreatedOn <= toTime,
-                                         x => x.CreatedOn > fromTime && x.CreatedOn <= toTime);
+            var from = DateTime.UtcNow.AddDays(-5);
+            var to = DateTime.UtcNow.AddDays(-2);
+            TestQuery<ICritter, Critter>(x => x.CreatedOn > from && x.CreatedOn <= to,
+                                         x => x.CreatedOn > from && x.CreatedOn <= to);
         }
 
 
         [Test]
-        public void QueryCritter_WithDateEquals_ReturnsCorrectResult()
+        public void QueryCritter_WithDateTimeEquals_ReturnsCorrectResult()
         {
             var firstCritter = Repository.List<Critter>().First();
             var createdOn = firstCritter.CreatedOn;
@@ -226,10 +226,10 @@ namespace Pomona.SystemTests
         [Test]
         public void QueryCritter_WithDateTimeOffsetBetween_ReturnsCorrectResult()
         {
-            var fromTime = DateTimeOffset.Now.AddDays(-5);
-            var toTime = DateTimeOffset.Now.AddDays(-2);
-            TestQuery<ICritter, Critter>(x => x.CreatedOnOffset > fromTime && x.CreatedOnOffset <= toTime,
-                                         x => x.CreatedOnOffset > fromTime && x.CreatedOnOffset <= toTime);
+            var from = DateTimeOffset.Now.AddDays(-5);
+            var to = DateTimeOffset.Now.AddDays(-2);
+            TestQuery<ICritter, Critter>(x => x.CreatedOnOffset > from && x.CreatedOnOffset <= to,
+                                         x => x.CreatedOnOffset > from && x.CreatedOnOffset <= to);
         }
 
 
