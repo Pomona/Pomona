@@ -224,6 +224,28 @@ namespace Pomona.SystemTests
 
 
         [Test]
+        public void QueryCritter_WithDateTimeOffsetBetween_ReturnsCorrectResult()
+        {
+            var fromTime = DateTimeOffset.Now.AddDays(-5);
+            var toTime = DateTimeOffset.Now.AddDays(-2);
+            TestQuery<ICritter, Critter>(x => x.CreatedOnOffset > fromTime && x.CreatedOnOffset <= toTime,
+                                         x => x.CreatedOnOffset > fromTime && x.CreatedOnOffset <= toTime);
+        }
+
+
+        [Test]
+        public void QueryCritter_WithDateTimeOffsetEquals_ReturnsCorrectResult()
+        {
+            var firstCritter = Repository.List<Critter>().First();
+            var createdOnOffset = firstCritter.CreatedOnOffset;
+            var fetchedCritter = Client.Query<ICritter>(x => x.CreatedOnOffset == createdOnOffset).ToList();
+
+            Assert.That(fetchedCritter, Has.Count.GreaterThanOrEqualTo(1));
+            Assert.That(fetchedCritter.First().Id, Is.EqualTo(firstCritter.Id));
+        }
+
+
+        [Test]
         public void QueryCritter_WithIdBetween_ReturnsCorrectResult()
         {
             var orderedCritters = CritterEntities.OrderBy(x => x.Id).Skip(2).Take(5).

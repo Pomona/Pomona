@@ -517,8 +517,12 @@ namespace Pomona.Common.Linq
                     break;
             }
 
+            if (typeof(DateTimeOffset).IsAssignableFrom(valueType))
+                return $"datetime'{(DateTimeOffset)value:yyyy-MM-ddTHH:mm:sszzzz}'";
+
             if (typeof(IStringEnum).IsAssignableFrom(valueType))
                 return EncodeString(value.ToString());
+
             return null;
         }
 

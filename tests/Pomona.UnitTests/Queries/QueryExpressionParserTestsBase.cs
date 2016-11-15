@@ -85,6 +85,7 @@ namespace Pomona.UnitTests.Queries
             public IList<string> SomeStrings { get; set; }
             public string Text { get; set; }
             public DateTime Time { get; set; }
+            public DateTimeOffset TimeOffset { get; set; }
             public object UnknownProperty { get; set; }
         }
 

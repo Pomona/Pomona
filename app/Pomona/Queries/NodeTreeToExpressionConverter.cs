@@ -324,6 +324,12 @@ namespace Pomona.Queries
                 return Expression.Constant(dateTimeNode.Value);
             }
 
+            if (node.NodeType == NodeType.DateTimeOffsetLiteral)
+            {
+                var dateTimeOffsetNode = (DateTimeOffsetNode)node;
+                return Expression.Constant(dateTimeOffsetNode.Value);
+            }
+
             if (node.NodeType == NodeType.StringLiteral)
             {
                 var stringNode = (StringNode)node;

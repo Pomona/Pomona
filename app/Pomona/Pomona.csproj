@@ -175,6 +175,7 @@
     <Compile Include="PomonaSession.cs" />
     <Compile Include="PomonaSessionExtensions.cs" />
     <Compile Include="PomonaSessionFactory.cs" />
+    <Compile Include="Queries\DateTimeOffsetNode.cs" />
     <Compile Include="Queries\DefaultQueryExecutor.cs" />
     <Compile Include="Queries\IQueryableResolver.cs" />
     <Compile Include="Queries\IQueryExecutor.cs" />

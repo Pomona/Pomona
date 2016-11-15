@@ -23,6 +23,7 @@ namespace Pomona.Common.Internals
             typeof(float),
             typeof(decimal),
             typeof(DateTime),
+            typeof(DateTimeOffset),
             typeof(object),
             typeof(bool),
             typeof(Guid),

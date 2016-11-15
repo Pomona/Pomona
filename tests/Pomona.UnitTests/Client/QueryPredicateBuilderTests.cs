@@ -203,6 +203,22 @@ namespace Pomona.UnitTests.Client
 
 
         [Test]
+        public void BuildDateTimeOffset_ReturnsCorrectString()
+        {
+            var dt = new DateTimeOffset(2012, 10, 22, 5, 32, 45, TimeSpan.FromHours(5));
+            AssertBuild(x => x.BirthDayOffset == dt, "birthDayOffset eq datetime'2012-10-22T05:32:45+05:00'");
+        }
+
+
+        [Test]
+        public void BuildDateTimeOffsetUtc_ReturnsCorrectString()
+        {
+            var dt = new DateTimeOffset(2012, 10, 22, 5, 32, 45, TimeSpan.FromHours(0));
+            AssertBuild(x => x.BirthDayOffset == dt, "birthDayOffset eq datetime'2012-10-22T05:32:45+00:00'");
+        }
+
+
+        [Test]
         public void BuildDateTimeUtc_ReturnsCorrectString()
         {
             var dt = new DateTime(2012, 10, 22, 5, 32, 45, DateTimeKind.Utc);

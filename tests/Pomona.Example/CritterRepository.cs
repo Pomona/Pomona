@@ -100,6 +100,7 @@ namespace Pomona.Example
                 critter = new Critter();
 
             critter.CreatedOn = DateTime.UtcNow.AddDays(-rng.NextDouble() * 50.0);
+            critter.CreatedOnOffset = critter.CreatedOn;
 
             critter.Name = Words.GetAnimalWithPersonality(rng);
 
@@ -329,9 +330,13 @@ namespace Pomona.Example
         private Type GetBaseUriType<T>()
         {
             var transformedType = (StructuredType)TypeMapper.FromType<T>();
-            var mappedTypeInstance =
-                (transformedType.Maybe().OfType<ResourceType>().Select(x => (StructuredType)x.UriBaseType).OrDefault(
-                    () => transformedType)).Type;
+            var mappedTypeInstance = transformedType
+                .Maybe()
+                .OfType<ResourceType>()
+                .Select(x => (StructuredType)x.UriBaseType)
+                .OrDefault(() => transformedType)
+                .Type;
+
             return mappedTypeInstance;
         }
 
@@ -348,6 +353,7 @@ namespace Pomona.Example
                     list = new List<T>();
                     this.entityLists[type] = list;
                 }
+
                 return (IList<T>)list;
             }
 
@@ -360,6 +366,7 @@ namespace Pomona.Example
 
             if (tt.ParentToChildProperty.PropertyType.IsCollection)
                 return parents.SelectMany(p => ((IEnumerable)tt.ParentToChildProperty.GetValue(p)).OfType<T>()).ToList();
+
             return parents.Select(p => (T)tt.ParentToChildProperty.GetValue(p)).ToList();
         }
 
@@ -473,7 +480,15 @@ namespace Pomona.Example
             //var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
             //throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
 
-            return GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
+            var queryable = GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
+
+            /*if (typeof(TEntity) == typeof(Critter))
+            {
+                var createdOn = queryable.Cast<Critter>().Select(c => c.CreatedOnOffset).ToList();
+                Console.WriteLine(createdOn);
+            }*/
+
+            return queryable;
         }
 
 
