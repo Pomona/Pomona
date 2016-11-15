@@ -198,16 +198,16 @@ namespace Pomona.Common.Linq
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            if (node.Method.UniqueToken() == OdataFunctionMapping.StringEqualsTakingComparisonTypeMethod.UniqueToken())
+            if (node.Method.UniqueToken() == QueryFunctionMapping.StringEqualsTakingComparisonTypeMethod.UniqueToken())
                 return VisitStringEqualsTakingComparisonTypeCall(node);
 
-            if (node.Method.UniqueToken() == OdataFunctionMapping.EnumerableContainsMethod.UniqueToken())
+            if (node.Method.UniqueToken() == QueryFunctionMapping.EnumerableContainsMethod.UniqueToken())
                 return Format(node, "{0} in {1}", Visit(node.Arguments[1]), Visit(node.Arguments[0]));
 
-            if (node.Method.UniqueToken() == OdataFunctionMapping.ListContainsMethod.UniqueToken())
+            if (node.Method.UniqueToken() == QueryFunctionMapping.ListContainsMethod.UniqueToken())
                 return Format(node, "{0} in {1}", Visit(node.Arguments[0]), Visit(node.Object));
 
-            if (node.Method.UniqueToken() == OdataFunctionMapping.DictStringStringGetMethod.UniqueToken())
+            if (node.Method.UniqueToken() == QueryFunctionMapping.DictStringStringGetMethod.UniqueToken())
             {
                 var quotedKey = Visit(node.Arguments[0]);
                 //var key = DecodeQuotedString(quotedKey);
@@ -216,7 +216,7 @@ namespace Pomona.Common.Linq
                     return string.Format("{0}.{1}", Build(callExpr.Object), key);*/
                 return Format(node, "{0}[{1}]", Visit(node.Object), quotedKey);
             }
-            if (node.Method.UniqueToken() == OdataFunctionMapping.SafeGetMethod.UniqueToken())
+            if (node.Method.UniqueToken() == QueryFunctionMapping.SafeGetMethod.UniqueToken())
             {
                 var constantKeyExpr = node.Arguments[1] as ConstantExpression;
                 if (constantKeyExpr != null && constantKeyExpr.Type == typeof(string) &&
@@ -507,18 +507,22 @@ namespace Pomona.Common.Linq
                     return ((decimal)value).ToString(CultureInfo.InvariantCulture) + "m";
                 case TypeCode.Object:
                     if (value is Guid)
-                        return $"guid'{((Guid)value)}'";
+                        return $"guid'{(Guid)value}'";
                     if (value is Type)
                         return GetExternalTypeName((Type)value);
                     break;
                 case TypeCode.Boolean:
-                    return ((bool)value) ? "true" : "false";
+                    return (bool)value ? "true" : "false";
                 default:
                     break;
             }
 
+            if (typeof(DateTimeOffset).IsAssignableFrom(valueType))
+                return $"datetime'{(DateTimeOffset)value:O}'";
+
             if (typeof(IStringEnum).IsAssignableFrom(valueType))
                 return EncodeString(value.ToString());
+
             return null;
         }
 
@@ -723,23 +727,22 @@ namespace Pomona.Common.Linq
         }
 
 
-        private bool TryMapKnownOdataFunction(
-            Expression origNode,
-            MemberInfo member,
-            IEnumerable<Expression> arguments,
-            out Expression odataExpression)
+        private bool TryMapKnownOdataFunction(Expression origNode,
+                                              MemberInfo member,
+                                              IEnumerable<Expression> arguments,
+                                              out Expression odataExpression)
         {
             ReplaceQueryableMethodWithCorrespondingEnumerableMethod(ref member, ref arguments);
 
-            OdataFunctionMapping.MemberMapping memberMapping;
-            if (!OdataFunctionMapping.TryGetMemberMapping(member, out memberMapping))
+            QueryFunctionMapping.MemberMapping memberMapping;
+            if (!QueryFunctionMapping.TryGetMemberMapping(member, out memberMapping))
             {
                 odataExpression = null;
                 return false;
             }
 
             var odataArguments = arguments.Select(Visit).Cast<object>().ToArray();
-            var callFormat = memberMapping.PreferredCallStyle == OdataFunctionMapping.MethodCallStyle.Chained
+            var callFormat = memberMapping.PreferredCallStyle == QueryFunctionMapping.MethodCallStyle.Chained
                 ? memberMapping.ChainedCallFormat
                 : memberMapping.StaticCallFormat;
 

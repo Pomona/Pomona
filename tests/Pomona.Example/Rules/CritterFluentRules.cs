@@ -91,6 +91,10 @@ namespace Pomona.Example.Rules
             map.PatchDenied();
         }
 
+        public void Map(ITypeMappingConfigurator<NoPrimaryKeyThing> map)
+        {
+            
+        }
 
         public void Map(ITypeMappingConfigurator<MusicalCritter> map)
         {
@@ -112,7 +116,9 @@ namespace Pomona.Example.Rules
 
         public void Map(ITypeMappingConfigurator<StringToObjectDictionaryContainer> map)
         {
+            // SAMPLE: map-property-as-attributes
             map.Include(x => x.Map, o => o.AsAttributes());
+            // ENDSAMPLE
             map.Include(x => x.ETag, o => o.AsEtag());
         }
 
@@ -233,10 +239,17 @@ namespace Pomona.Example.Rules
         }
 
 
+        #region sample
+
+
+        // SAMPLE: etag-fluent-rule
         public void Map(ITypeMappingConfigurator<EtaggedEntity> map)
         {
             map.Include(x => x.ETag, o => o.AsEtag());
         }
+        // ENDSAMPLE
+
+        #endregion
 
 
         public void Map(ITypeMappingConfigurator<CritterCaptureCommand> map)

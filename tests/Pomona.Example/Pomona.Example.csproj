@@ -13,7 +13,8 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <NuGetPackageImportStamp>95a3649c</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -80,6 +81,12 @@
     <Compile Include="HandledThingsHandler.cs" />
     <Compile Include="Handlers\CritterHandler.cs" />
     <Compile Include="IHiddenInterface.cs" />
+    <Compile Include="IncorrectSite\IncorrectChildResource.cs" />
+    <Compile Include="IncorrectSite\IncorrectHandler.cs" />
+    <Compile Include="IncorrectSite\IncorrectModule.cs" />
+    <Compile Include="IncorrectSite\IncorrectPomonaConfiguration.cs" />
+    <Compile Include="IncorrectSite\IncorrectResource.cs" />
+    <Compile Include="IncorrectSite\IncorrectTypeMappingFilter.cs" />
     <Compile Include="ModelProxies\BearProxy.cs" />
     <Compile Include="Models\AbstractOnServerAnimal.cs" />
     <Compile Include="Models\AbstractAnimal.cs" />
@@ -121,6 +128,7 @@
     <Compile Include="Models\ISetEtaggedEntity.cs" />
     <Compile Include="Models\INonExposedBaseInterface.cs" />
     <Compile Include="Models\SubOrder.cs" />
+    <Compile Include="Models\NoPrimaryKeyThing.cs" />
     <Compile Include="Models\VirtualPropertyThing.cs" />
     <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
@@ -195,13 +203,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets') And '$(OS)' != 'Unix'" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets'))" />
   </Target>
-  <Import Project="..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets') And '$(OS)' != 'Unix'" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

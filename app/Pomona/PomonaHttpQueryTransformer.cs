@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Pomona.Common.Linq.NonGeneric;
 using Pomona.Common.TypeSystem;
 using Pomona.Queries;
 
@@ -31,6 +32,23 @@ namespace Pomona
         }
 
         #region IHttpQueryTransformer Members
+
+        private static readonly Dictionary<string, QueryProjection> projectionMap =
+            new Dictionary<string, QueryProjection>(StringComparer.OrdinalIgnoreCase)
+            {
+                { nameof(QueryProjection.First), QueryProjection.First },
+                { nameof(QueryProjection.FirstOrDefault), QueryProjection.FirstOrDefault },
+                { nameof(QueryProjection.Single), QueryProjection.Single },
+                { nameof(QueryProjection.SingleOrDefault), QueryProjection.SingleOrDefault },
+                { nameof(QueryProjection.Max), QueryProjection.Max },
+                { nameof(QueryProjection.Min), QueryProjection.Min },
+                { nameof(QueryProjection.Sum), QueryProjection.Sum },
+                { nameof(QueryProjection.Count), QueryProjection.Count },
+                { nameof(QueryProjection.Last), QueryProjection.Last },
+                { nameof(QueryProjection.LastOrDefault), QueryProjection.LastOrDefault },
+                { nameof(QueryProjection.Any), QueryProjection.Any }
+            };
+
 
         public PomonaQuery TransformRequest(PomonaContext context, StructuredType rootType, int? defaultTop = null)
         {
@@ -82,8 +100,10 @@ namespace Pomona
             if (context.Query["$projection"].HasValue)
             {
                 var projectionString = (string)context.Query["$projection"];
-                PomonaQuery.ProjectionType projection;
-                if (!Enum.TryParse(projectionString, true, out projection))
+                query.Projection = projectionMap[projectionString];
+
+                QueryProjection projection;
+                if (!projectionMap.TryGetValue(projectionString, out projection))
                 {
                     throw new QueryParseException("\"" + projectionString +
                                                   "\" is not a valid value for query parameter $projection",
@@ -92,6 +112,10 @@ namespace Pomona
                                                   null);
                 }
                 query.Projection = projection;
+            }
+            else
+            {
+                query.Projection = QueryProjection.AsEnumerable;
             }
 
             if (context.Query["$select"].HasValue)
@@ -128,12 +152,12 @@ namespace Pomona
             if (query.SelectExpression != null)
                 elementType = this.typeMapper.FromType(query.SelectExpression.ReturnType);
 
-            if (query.Projection == PomonaQuery.ProjectionType.First
-                || query.Projection == PomonaQuery.ProjectionType.FirstOrDefault
-                || query.Projection == PomonaQuery.ProjectionType.Single
-                || query.Projection == PomonaQuery.ProjectionType.SingleOrDefault
-                || query.Projection == PomonaQuery.ProjectionType.Last
-                || query.Projection == PomonaQuery.ProjectionType.LastOrDefault)
+            if (query.Projection == QueryProjection.First
+                || query.Projection == QueryProjection.FirstOrDefault
+                || query.Projection == QueryProjection.Single
+                || query.Projection == QueryProjection.SingleOrDefault
+                || query.Projection == QueryProjection.Last
+                || query.Projection == QueryProjection.LastOrDefault)
                 query.ResultType = elementType;
         }
 

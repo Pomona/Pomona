@@ -250,7 +250,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PeVerify_ClientWithEmbeddedPomonaCommon_HasExitCode0()
         {
-            var origDllPath = ClientAssembly.CodeBaseAbsolutePath();
+            var origDllPath = ClientAssembly.GetPhysicalLocation();
             var dllDir = Path.GetDirectoryName(origDllPath);
             var clientWithEmbeddedStuffName = Path.Combine(dllDir, "../../../../lib/IndependentCritters.dll");
             var newDllPath = Path.Combine(dllDir, "TempCopiedIndependentCrittersDll.tmp");
@@ -263,7 +263,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PeVerify_HasExitCode0()
         {
-            PeVerify(typeof(ICritter).Assembly.CodeBaseAbsolutePath());
+            PeVerify(typeof(ICritter).Assembly.GetPhysicalLocation());
         }
 
 
@@ -271,7 +271,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test(Description = "This test has been added since more errors are discovered when dll has been renamed.")]
         public void PeVerify_RenamedToAnotherDllName_StillHasExitCode0()
         {
-            var origDllPath = ClientAssembly.CodeBaseAbsolutePath();
+            var origDllPath = ClientAssembly.GetPhysicalLocation();
             Console.WriteLine(Path.GetDirectoryName(origDllPath));
             var newDllPath = Path.Combine(Path.GetDirectoryName(origDllPath), "TempCopiedClientLib.tmp");
             File.Copy(origDllPath, newDllPath, true);
@@ -284,7 +284,7 @@ namespace Pomona.SystemTests.CodeGen
         [Test]
         public void PomonaCommonHaveZeroReferencesToEmitNamespace()
         {
-            var assembly = AssemblyDefinition.ReadAssembly(ClientAssembly.CodeBaseAbsolutePath());
+            var assembly = AssemblyDefinition.ReadAssembly(ClientAssembly.GetPhysicalLocation());
             var trefs =
                 assembly.MainModule.GetTypeReferences().Where(x => x.Namespace == "System.Reflection.Emit").ToList();
             Assert.That(trefs, Is.Empty);
@@ -376,7 +376,7 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
-        public void TypeWasAddedInTransformAssemblyHooko()
+        public void TypeWasAddedInTransformAssemblyHook()
         {
             Assert.That(ClientAssembly.GetTypes().Any(x => x.FullName == "Donkey.Kong"), Is.True);
         }

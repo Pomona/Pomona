@@ -28,6 +28,7 @@ namespace Pomona.Queries
         GreaterThanOrEqual,
         LessThanOrEqual,
         DateTimeLiteral,
+        DateTimeOffsetLiteral,
         Dot,
         Modulo,
         NotEqual,

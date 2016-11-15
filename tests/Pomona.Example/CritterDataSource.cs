@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Nancy.Validation;
@@ -42,6 +43,7 @@ namespace Pomona.Example
         {
             if (typeof(T) == typeof(FailingThing))
                 throw new Exception("Stupid exception from failing thing;");
+
             if (typeof(T) == typeof(HandledThing) || typeof(T) == typeof(HandledChild))
             {
                 throw new InvalidOperationException(
@@ -49,7 +51,7 @@ namespace Pomona.Example
             }
 
             var newCritter = newObject as Critter;
-            if (newCritter != null && newCritter.Name != null && newCritter.Name.Length > 50)
+            if (newCritter?.Name?.Length > 50)
                 throw new ModelValidationException("Critter can't have name longer than 50 characters.");
 
             return this.store.Post(newObject);
@@ -61,6 +63,13 @@ namespace Pomona.Example
         {
             if (typeof(T) == typeof(HandledThing))
                 throw new InvalidOperationException("Error: Should not call data source when querying HandledThing.");
+
+            if (typeof(T) == typeof(NoPrimaryKeyThing))
+            {
+                var noPrimaryKeyThings = new List<T> { new NoPrimaryKeyThing() as T };
+                return noPrimaryKeyThings.AsQueryable();
+            }
+
             return this.store.Query<T>();
         }
     }

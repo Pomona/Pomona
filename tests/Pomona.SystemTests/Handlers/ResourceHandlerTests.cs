@@ -83,14 +83,6 @@ namespace Pomona.SystemTests.Handlers
         }
 
 
-        [Category("TODO")]
-        [Test]
-        public void PostFormToHandledThing_CallsHandlerPostToResourceMethod()
-        {
-            Assert.Fail("NOT YET IMPLEMENTED");
-        }
-
-
         [Test]
         public void PostHandledThing_CallsHandlerPostMethod()
         {

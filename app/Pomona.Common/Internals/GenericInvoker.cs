@@ -268,10 +268,9 @@ namespace Pomona.Common.Internals
 
         public T GetDelegate(Type[] typeArgs)
         {
-            return this.methodInstanceCache.GetOrAdd(typeArgs,
-                                                     k =>
-                                                         CreateCallWrapper(this.methodDefinition.MakeGenericMethod(k), inArgs, delReturnType)
-                                                         .Compile());
+            return this.methodInstanceCache
+                       .GetOrAdd(typeArgs,
+                                 k => CreateCallWrapper(this.methodDefinition.MakeGenericMethod(k), inArgs, delReturnType).Compile());
         }
 
 

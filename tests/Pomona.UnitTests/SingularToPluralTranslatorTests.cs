@@ -27,9 +27,9 @@ namespace Pomona.UnitTests
             var failedTranslationCount = 0;
             var redundantInIrregularDictCount = 0;
 
-            Console.WriteLine("Number of words to translate " + SingularToPluralTranslator.SingularToPluralDict.Count);
+            Console.WriteLine("Number of words to translate " + SingularToPluralTranslator.IrregularNouns.Count);
 
-            foreach (var kvp in SingularToPluralTranslator.SingularToPluralDict)
+            foreach (var kvp in SingularToPluralTranslator.IrregularNouns)
             {
                 var singular = kvp.Key;
                 var expectedPlural = kvp.Value;

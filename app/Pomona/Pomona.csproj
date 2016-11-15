@@ -15,7 +15,8 @@
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <NuGetPackageImportStamp>7630244f</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -120,15 +121,6 @@
     <Compile Include="Documentation\Xml\Serialization\XDocText.cs" />
     <Compile Include="Documentation\Xml\Serialization\XDoc.cs" />
     <Compile Include="Documentation\Xml\XmlDocMapper.cs" />
-    <Compile Include="Fetcher\BatchFetcher.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Fetcher\IBatchFetchDriver.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Fetcher\ParentChildRelation.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
     <Compile Include="FluentMapping\FluentRuleMethod.cs" />
     <Compile Include="FluentMapping\FluentRuleMethodScanner.cs" />
@@ -183,6 +175,7 @@
     <Compile Include="PomonaSession.cs" />
     <Compile Include="PomonaSessionExtensions.cs" />
     <Compile Include="PomonaSessionFactory.cs" />
+    <Compile Include="Queries\DateTimeOffsetNode.cs" />
     <Compile Include="Queries\DefaultQueryExecutor.cs" />
     <Compile Include="Queries\IQueryableResolver.cs" />
     <Compile Include="Queries\IQueryExecutor.cs" />
@@ -292,7 +285,6 @@
       <Name>Pomona.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup Condition=" '$(OS)' != 'Unix' ">
     <!-- Folder containing AntlrBuildTask.dll -->
@@ -302,13 +294,13 @@
     <AntlrToolPath>$(SolutionDir)\tools\AntlrDotnet\Antlr3.exe</AntlrToolPath>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\tools\AntlrDotnet\Antlr3.targets" Condition=" '$(OS)' != 'Unix' " />
+  <Import Project="..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets') And '$(OS)' != 'Unix'" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\GitVersionTask.3.5.3\build\dotnet\GitVersionTask.targets'))" />
   </Target>
-  <Import Project="..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.3.4.1\build\dotnet\GitVersionTask.targets') And '$(OS)' != 'Unix'" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
 

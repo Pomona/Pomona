@@ -13,6 +13,7 @@ using System.Xml.Linq;
 
 using NUnit.Framework;
 
+using Pomona.Common;
 using Pomona.Common.Internals;
 using Pomona.Documentation.Xml.Serialization;
 using Pomona.Example.Models;
@@ -46,9 +47,7 @@ namespace Pomona.UnitTests.Documentation
 
         private XDoc LoadXmlDoc()
         {
-            var uri = new UriBuilder(GetType().Assembly.CodeBase);
-            var unescapeDataString = Uri.UnescapeDataString(uri.Path);
-            var assemblyPath = Path.GetFullPath(unescapeDataString);
+            var assemblyPath = GetType().Assembly.GetPhysicalLocation();
             var assemblyFile = new FileInfo(assemblyPath);
             var xmlFilePath = Path.Combine(assemblyFile.DirectoryName, "Pomona.Example.xml");
             Assert.That(File.Exists(xmlFilePath), xmlFilePath + " does not exist");
