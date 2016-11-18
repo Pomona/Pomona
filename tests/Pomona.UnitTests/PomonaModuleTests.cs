@@ -29,6 +29,16 @@ namespace Pomona.UnitTests
         }
 
 
+        [Test]
+        public void GetQueryTransformer_OnCreateSession_ReturnsQueryTransformer()
+        {
+            var session = new NoCustomDataSourceModule().CreateSession();
+            var queryTransformer = session.GetQueryTransformer();
+
+            Assert.That(queryTransformer, Is.Not.Null);
+        }
+
+
         public class Dummy
         {
             public int Id { get; set; }
@@ -60,6 +70,10 @@ namespace Pomona.UnitTests
         [PomonaConfiguration(typeof(NoCustomDataSourceConfiguration))]
         private class NoCustomDataSourceModule : PomonaModule
         {
+            public IPomonaSession CreateSession()
+            {
+                return new NoCustomDataSourceConfiguration().CreateSessionFactory().CreateSession(Container);
+            }
         }
     }
 }
