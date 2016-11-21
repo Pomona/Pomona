@@ -19,6 +19,7 @@ namespace Pomona
         {
             if (nancyContext == null)
                 throw new ArgumentNullException(nameof(nancyContext));
+
             NancyContext = nancyContext;
         }
 

@@ -24,8 +24,8 @@ namespace Pomona
     public abstract class PomonaModule : NancyModule, IPomonaErrorHandler
     {
         private IContainer container;
-        private IPomonaDataSource dataSource;
-        private IPomonaSessionFactory sessionFactory;
+        private readonly IPomonaDataSource dataSource;
+        private readonly IPomonaSessionFactory sessionFactory;
 
 
         protected PomonaModule(string modulePath = "/")
@@ -57,21 +57,54 @@ namespace Pomona
                                IPomonaDataSource dataSource = null)
             : base(modulePath)
         {
-            Initialize(sessionFactory, dataSource);
-        }
+            if (sessionFactory == null)
+                sessionFactory = PomonaModuleConfigurationBinder.Current.GetFactory(this);
 
+            this.sessionFactory = sessionFactory;
+            this.dataSource = dataSource;
 
-        protected IContainer Container
-        {
-            get
+            // HACK TO SUPPORT NANCY TESTING (set a valid host name)
+            Before += ctx =>
             {
-                if (this.container == null)
-                    this.container = new ModuleContainer(Context, this.dataSource, this);
-                return this.container;
-            }
+                if (String.IsNullOrEmpty(ctx.Request.Url.HostName))
+                    ctx.Request.Url.HostName = "test";
+                return null;
+            };
+
+            foreach (var route in this.sessionFactory.Routes.Children)
+                RegisterRoutesFor((ResourceType)route.ResultItemType);
+
+            // For root resource links!
+            Register(Get, "/", x => ProcessRequest());
+
+            Get[PomonaRouteMetadataProvider.JsonSchema, "/schemas"] = x => GetSchemas();
+
+            var clientAssemblyFileName = $"/{TypeMapper.Filter.ClientMetadata.AssemblyName}.dll";
+            Get[PomonaRouteMetadataProvider.ClientAssembly, clientAssemblyFileName] = x => GetClientLibrary();
+
+            RegisterClientNugetPackageRoute();
+
+            RegisterSerializationProvider(TypeMapper);
+
+            Context = new NancyContext();
         }
+
+
+        protected IContainer Container => this.container ?? (this.container = new ModuleContainer(Context, this.dataSource, this));
 
         private TypeMapper TypeMapper => this.sessionFactory.TypeMapper;
+
+
+        public virtual PomonaConfigurationBase GetConfiguration()
+        {
+            var pomonaConfigAttr = GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
+            if (pomonaConfigAttr == null)
+            {
+                throw new InvalidOperationException(
+                    "Unable to find config for pomona module (has no [ModuleBinding] attribute attached).");
+            }
+            return (PomonaConfigurationBase)Activator.CreateInstance(pomonaConfigAttr.ConfigurationType);
+        }
 
 
         protected virtual void OnConfiguration(IConfigurator config)
@@ -107,18 +140,6 @@ namespace Pomona
                 return exception.InnerException != null ? UnwrapException(exception.InnerException) : exception;
 
             return exception;
-        }
-
-
-        public virtual PomonaConfigurationBase GetConfiguration()
-        {
-            var pomonaConfigAttr = GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
-            if (pomonaConfigAttr == null)
-            {
-                throw new InvalidOperationException(
-                    "Unable to find config for pomona module (has no [ModuleBinding] attribute attached).");
-            }
-            return (PomonaConfigurationBase)Activator.CreateInstance(pomonaConfigAttr.ConfigurationType);
         }
 
 
@@ -170,39 +191,6 @@ namespace Pomona
             response.ContentType = "application/json; charset=utf-8";
 
             return response;
-        }
-
-
-        private void Initialize(IPomonaSessionFactory sessionFactory, IPomonaDataSource dataSource)
-        {
-            if (sessionFactory == null)
-                sessionFactory = PomonaModuleConfigurationBinder.Current.GetFactory(this);
-
-            this.sessionFactory = sessionFactory;
-            this.dataSource = dataSource;
-
-            // HACK TO SUPPORT NANCY TESTING (set a valid host name)
-            Before += ctx =>
-            {
-                if (String.IsNullOrEmpty(ctx.Request.Url.HostName))
-                    ctx.Request.Url.HostName = "test";
-                return null;
-            };
-
-            foreach (var route in this.sessionFactory.Routes.Children)
-                RegisterRoutesFor((ResourceType)route.ResultItemType);
-
-            // For root resource links!
-            Register(Get, "/", x => ProcessRequest());
-
-            Get[PomonaRouteMetadataProvider.JsonSchema, "/schemas"] = x => GetSchemas();
-
-            var clientAssemblyFileName = $"/{TypeMapper.Filter.ClientMetadata.AssemblyName}.dll";
-            Get[PomonaRouteMetadataProvider.ClientAssembly, clientAssemblyFileName] = x => GetClientLibrary();
-
-            RegisterClientNugetPackageRoute();
-
-            RegisterSerializationProvider(TypeMapper);
         }
 
 
