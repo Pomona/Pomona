@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using Antlr.Runtime.Tree;
 
@@ -18,6 +19,8 @@ namespace Pomona.Queries
     {
         private static readonly HashSet<NodeType> binaryNodeTypes;
         private static readonly Dictionary<int, NodeType> nodeTypeDict;
+
+        private static readonly Regex dateTimeOffsetRegex;
 
 
         static PomonaQueryTreeParser()
@@ -63,6 +66,8 @@ namespace Pomona.Queries
                 { PomonaQueryParser.IN_OP, NodeType.In },
                 { PomonaQueryParser.IEQ_OP, NodeType.CaseInsensitiveEqual }
             };
+
+            dateTimeOffsetRegex = new Regex(@"\+\d{2}:\d{2}$", RegexOptions.Compiled);
         }
 
 
@@ -79,6 +84,21 @@ namespace Pomona.Queries
             var childCount = tree.ChildCount;
             for (var i = 0; i < childCount; i++)
                 yield return tree.GetChild(i);
+        }
+
+
+        private static NodeBase GetDateTimeNode(string value)
+        {
+            if (dateTimeOffsetRegex.IsMatch(value))
+            {
+                const DateTimeStyles dateTimeStyles = DateTimeStyles.AssumeUniversal | DateTimeStyles.RoundtripKind;
+                var dateTimeOffset = DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, dateTimeStyles);
+
+                return new DateTimeOffsetNode(dateTimeOffset);
+            }
+
+            var dateTime = DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+            return new DateTimeNode(dateTime);
         }
 
 
@@ -135,9 +155,7 @@ namespace Pomona.Queries
                     case "guid":
                         return new GuidNode(Guid.Parse(value));
                     case "datetime":
-                        return
-                            new DateTimeNode(
-                                DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind));
+                        return GetDateTimeNode(value);
                 }
             }
 

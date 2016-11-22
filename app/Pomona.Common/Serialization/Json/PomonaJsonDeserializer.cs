@@ -519,10 +519,10 @@ namespace Pomona.Common.Serialization.Json
                 }
 
                 var context = this.contextProvider.GetDeserializationContext(options);
-                return Deserialize(textReader,
-                                   returnTypeSpecified ? context.GetClassMapping(options.ExpectedBaseType) : null,
-                                   context,
-                                   options.Target);
+                var expectedBaseType = returnTypeSpecified
+                    ? context.GetClassMapping(options.ExpectedBaseType)
+                    : null;
+                return Deserialize(textReader, expectedBaseType, context, options.Target);
             }
             catch (JsonSerializationException jsonEx)
             {

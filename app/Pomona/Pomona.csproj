@@ -160,8 +160,11 @@
     <Compile Include="PomonaSession.cs" />
     <Compile Include="PomonaSessionExtensions.cs" />
     <Compile Include="PomonaSessionFactory.cs" />
+    <Compile Include="Queries\DateTimeOffsetNode.cs" />
     <Compile Include="Queries\DefaultQueryExecutor.cs" />
     <Compile Include="Queries\IQueryExecutor.cs" />
+    <Compile Include="Queries\PomonaQueryLexer.cs" />
+    <Compile Include="Queries\PomonaQueryParser.cs" />
     <Compile Include="Queries\QueryParseErrorReason.cs" />
     <Compile Include="RequestProcessing\DefaultHandlerMethodInvoker.cs" />
     <Compile Include="RequestProcessing\HandlerMethodInvocationException.cs" />
@@ -187,8 +190,6 @@
     <Compile Include="Queries\LambdaNode.cs" />
     <Compile Include="Queries\MethodCallNode.cs" />
     <Compile Include="Queries\NotNode.cs" />
-    <Compile Include="Queries\PomonaQueryLexer.cs" />
-    <Compile Include="Queries\PomonaQueryParser.cs" />
     <Compile Include="Queries\QueryParseException.cs" />
     <Compile Include="Queries\TypeNameNode.cs" />
     <Compile Include="ResourceNotFoundException.cs" />

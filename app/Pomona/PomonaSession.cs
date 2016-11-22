@@ -47,8 +47,10 @@ namespace Pomona
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
+
             if (context.Session != this)
                 throw new ArgumentException("Request session is not same as this.");
+            
             var savedOuterContext = CurrentContext;
             try
             {
@@ -64,7 +66,8 @@ namespace Pomona
                 {
                     var route = context.Route;
                     var resultType = route.ResultType;
-                    if (typeof(IQueryable).IsAssignableFrom(context.AcceptType) && route.IsSingle
+                    if (typeof(IQueryable).IsAssignableFrom(context.AcceptType)
+                        && route.IsSingle
                         && resultType.Type.IsInstanceOfType(resultEntity))
                     {
                         var array = Array.CreateInstance(resultType, 1);
@@ -108,10 +111,11 @@ namespace Pomona
 
         private PomonaQuery ParseQuery(PomonaContext context, Type rootType, int? defaultPageSize = null)
         {
-            return new PomonaHttpQueryTransformer(TypeResolver,
-                                                  new QueryExpressionParser(
-                                                      new QueryTypeResolver(TypeResolver)))
-                .TransformRequest(context, (ResourceType)TypeResolver.FromType(rootType), defaultPageSize);
+            var queryPropertyResolver = new QueryTypeResolver(TypeResolver);
+            var queryExpressionParser = new QueryExpressionParser(queryPropertyResolver);
+            var queryTransformer = new PomonaHttpQueryTransformer(TypeResolver, queryExpressionParser);
+            var structuredType = (ResourceType)TypeResolver.FromType(rootType);
+            return queryTransformer.TransformRequest(context, structuredType, defaultPageSize);
         }
 
 
@@ -148,6 +152,7 @@ namespace Pomona
         {
             if (typeof(T).IsAssignableFrom(GetType()))
                 return (T)((object)this);
+
             return this.container.GetInstance<T>();
         }
 

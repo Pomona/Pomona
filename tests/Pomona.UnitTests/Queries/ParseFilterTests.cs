@@ -134,6 +134,18 @@ namespace Pomona.UnitTests.Queries
 
 
         [Test]
+        public void Parse_DateTimeOffsetConstant_CreatesCorrectExpression()
+        {
+            var dateTimeString = "2000-12-12T12:00+01:00";
+            var expectedTimeOffset = DateTimeOffset.Parse(dateTimeString);
+            var expr = this.parser.Parse<Dummy>($"TimeOffset eq datetime'{dateTimeString}'");
+            var binExpr = AssertCast<BinaryExpression>(expr.Body);
+            var leftTimeConstant = AssertIsConstant<DateTimeOffset>(binExpr.Right);
+            Assert.That(leftTimeConstant, Is.EqualTo(expectedTimeOffset));
+        }
+
+
+        [Test]
         public void Parse_DictAccess_CreatesCorrectExpression()
         {
             var expr = this.parser.Parse<Dummy>("attributes['foo'] eq 'bar'");

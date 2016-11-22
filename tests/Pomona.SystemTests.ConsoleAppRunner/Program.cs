@@ -25,7 +25,7 @@ namespace CritterClientTests.ConsoleAppRunner
 
             var critterTests = new CritterTests();
 
-            critterTests.FixtureSetUp();
+            critterTests.OneTimeSetUp();
 
             var tests = typeof(CritterTests).GetMethods().Select(
                 x => new
@@ -52,7 +52,7 @@ namespace CritterClientTests.ConsoleAppRunner
                 }
             }
 
-            critterTests.FixtureTearDown();
+            critterTests.OneTimeTearDown();
         }
     }
 }

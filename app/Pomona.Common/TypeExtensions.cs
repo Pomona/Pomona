@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -19,11 +20,21 @@ namespace Pomona.Common
 {
     public static class TypeExtensions
     {
-        public static string CodeBaseAbsolutePath(this Assembly assembly)
+        public static string GetPhysicalLocation(this Assembly assembly)
         {
             if (assembly == null)
                 throw new ArgumentNullException(nameof(assembly));
-            return new Uri(assembly.CodeBase).AbsolutePath;
+
+            var assemblyPath = assembly.Location;
+
+            if (String.IsNullOrEmpty(assemblyPath))
+            {
+                var uri = new UriBuilder(assembly.CodeBase);
+                var unescapeDataString = Uri.UnescapeDataString(uri.Path);
+                assemblyPath = Path.GetFullPath(unescapeDataString);
+            }
+
+            return assemblyPath;
         }
 
 

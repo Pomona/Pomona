@@ -20,6 +20,7 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (projection == null)
                 throw new ArgumentNullException(nameof(projection));
 
@@ -31,14 +32,15 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    QueryableMethods.GroupBy.MakeGenericMethod(source.ElementType, keySelector.ReturnType),
-                    new Expression[] { source.Expression, Expression.Quote(keySelector) }
-                    ));
+
+            var method = QueryableMethods.GroupBy.MakeGenericMethod(source.ElementType, keySelector.ReturnType);
+            var quotedKeySelector = Expression.Quote(keySelector);
+            var arguments = new[] { source.Expression, quotedKeySelector };
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -49,12 +51,10 @@ namespace Pomona.Common.Linq.NonGeneric
             if (resultType == null)
                 throw new ArgumentNullException(nameof(resultType));
 
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.OfType).MakeGenericMethod(resultType),
-                    new Expression[] { source.Expression }
-                    ));
+            var method = QueryableMethods.OfType.MakeGenericMethod(resultType);
+            var arguments = source.Expression;
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -62,8 +62,10 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (resultType == null)
                 throw new ArgumentNullException(nameof(resultType));
+
             if (source.ElementType == resultType)
                 return source;
 
@@ -75,15 +77,15 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
 
-            return (IOrderedQueryable)source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.OrderBy).MakeGenericMethod(source.ElementType, keySelector.ReturnType),
-                    new Expression[] { source.Expression, Expression.Quote(keySelector) }
-                    ));
+            var method = QueryableMethods.OrderBy.MakeGenericMethod(source.ElementType, keySelector.ReturnType);
+            var quotedKeySelector = Expression.Quote(keySelector);
+            var arguments = new Expression[] { source.Expression, quotedKeySelector };
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return (IOrderedQueryable)source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -93,6 +95,7 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
 
@@ -106,15 +109,15 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
 
-            return (IOrderedQueryable)source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.OrderByDescending).MakeGenericMethod(source.ElementType, keySelector.ReturnType),
-                    new Expression[] { source.Expression, Expression.Quote(keySelector) }
-                    ));
+            var method = QueryableMethods.OrderByDescending.MakeGenericMethod(source.ElementType, keySelector.ReturnType);
+            var quotedKeySelector = Expression.Quote(keySelector);
+            var arguments = new[] { source.Expression, quotedKeySelector };
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return (IOrderedQueryable)source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -122,14 +125,15 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (selector == null)
                 throw new ArgumentNullException(nameof(selector));
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.Select).MakeGenericMethod(source.ElementType, selector.ReturnType),
-                    new Expression[] { source.Expression, Expression.Quote(selector) }
-                    ));
+
+            var quotedSelector = Expression.Quote(selector);
+            var arguments = new[] { source.Expression, quotedSelector };
+            var method = QueryableMethods.Select.MakeGenericMethod(source.ElementType, selector.ReturnType);
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -137,17 +141,19 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (selector == null)
                 throw new ArgumentNullException(nameof(selector));
+
             Type selectorItemType;
             if (!selector.ReturnType.TryGetEnumerableElementType(out selectorItemType))
                 throw new ArgumentException("The return type of selector is not an IEnumerable<T>", nameof(selector));
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.SelectMany).MakeGenericMethod(source.ElementType, selectorItemType),
-                    new Expression[] { source.Expression, Expression.Quote(selector) }
-                    ));
+
+            var method = QueryableMethods.SelectMany.MakeGenericMethod(source.ElementType, selectorItemType);
+            var quotedSelector = Expression.Quote(selector);
+            var arguments = new[] { source.Expression, quotedSelector };
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -155,12 +161,12 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    QueryableMethods.Skip.MakeGenericMethod(source.ElementType),
-                    new Expression[] { source.Expression, Expression.Constant(count) }
-                    ));
+
+            var countExpression = Expression.Constant(count);
+            var arguments = new[] { source.Expression, countExpression };
+            var method = QueryableMethods.Skip.MakeGenericMethod(source.ElementType);
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -177,6 +183,7 @@ namespace Pomona.Common.Linq.NonGeneric
                                                      null);
             if (method == null)
                 throw new NotSupportedException("Unable to apply Sum to " + iqType);
+
             return method.Invoke(null, new object[] { source });
         }
 
@@ -185,12 +192,12 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    QueryableMethods.Take.MakeGenericMethod(source.ElementType),
-                    new Expression[] { source.Expression, Expression.Constant(count) }
-                    ));
+
+            var method = QueryableMethods.Take.MakeGenericMethod(source.ElementType);
+            var countExpression = Expression.Constant(count);
+            var arguments = new[] { source.Expression, countExpression };
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -198,15 +205,14 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
 
-            return (IOrderedQueryable)source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.ThenBy).MakeGenericMethod(source.ElementType, keySelector.ReturnType),
-                    new Expression[] { source.Expression, Expression.Quote(keySelector) }
-                    ));
+            var arguments = new[] { source.Expression, Expression.Quote(keySelector) };
+            var method = QueryableMethods.ThenBy.MakeGenericMethod(source.ElementType, keySelector.ReturnType);
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return (IOrderedQueryable)source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -216,10 +222,13 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
 
-            return sortOrder == SortOrder.Descending ? source.ThenByDescending(keySelector) : source.ThenBy(keySelector);
+            return sortOrder == SortOrder.Descending
+                ? source.ThenByDescending(keySelector)
+                : source.ThenBy(keySelector);
         }
 
 
@@ -227,15 +236,15 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (keySelector == null)
                 throw new ArgumentNullException(nameof(keySelector));
 
-            return (IOrderedQueryable)source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.ThenByDescending).MakeGenericMethod(source.ElementType, keySelector.ReturnType),
-                    new Expression[] { source.Expression, Expression.Quote(keySelector) }
-                    ));
+            var method = QueryableMethods.ThenByDescending.MakeGenericMethod(source.ElementType, keySelector.ReturnType);
+            var quotedKeySelector = Expression.Quote(keySelector);
+            var arguments = new[] { source.Expression, quotedKeySelector };
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return (IOrderedQueryable)source.Provider.CreateQuery(methodCallExpression);
         }
 
 
@@ -243,14 +252,15 @@ namespace Pomona.Common.Linq.NonGeneric
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            return source.Provider.CreateQuery(
-                Expression.Call(
-                    null,
-                    (QueryableMethods.Where).MakeGenericMethod(source.ElementType),
-                    new Expression[] { source.Expression, Expression.Quote(predicate) }
-                    ));
+
+            var method = QueryableMethods.Where.MakeGenericMethod(source.ElementType);
+            var quotedPredicate = Expression.Quote(predicate);
+            var arguments = new[] { source.Expression, quotedPredicate };
+            var methodCallExpression = Expression.Call(null, method, arguments);
+            return source.Provider.CreateQuery(methodCallExpression);
         }
     }
 }

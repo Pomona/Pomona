@@ -10,6 +10,8 @@ using the a standard set of query parameters.
 * `$groupby`: group by expression
 * `$select`: selector expression(s)
 * `$orderby`: ordering expression(s)
+* `$skip`: number of items to skip
+* `$take`: number of items to return
 * `$projection`: projection, can be one of the following
 * `$expand`: property paths to expand
 

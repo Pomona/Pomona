@@ -53,6 +53,7 @@ namespace Pomona.UnitTests.Client
 
         public class TestResource : IClientResource
         {
+            public DateTimeOffset BirthDayOffset { get; set; }
             public IDictionary<string, string> Attributes { get; set; }
             public DateTime Birthday { get; set; }
             public string Bonga { get; set; }
