@@ -102,6 +102,7 @@ namespace Pomona.Example
                 critter = new Critter();
 
             critter.CreatedOn = DateTime.UtcNow.AddDays(-rng.NextDouble() * 50.0);
+            critter.CreatedOnOffset = critter.CreatedOn;
 
             critter.Name = Words.GetAnimalWithPersonality(rng);
 
@@ -331,9 +332,13 @@ namespace Pomona.Example
         private Type GetBaseUriType<T>()
         {
             var transformedType = (StructuredType)TypeMapper.FromType<T>();
-            var mappedTypeInstance =
-                (transformedType.Maybe().OfType<ResourceType>().Select(x => (StructuredType)x.UriBaseType).OrDefault(
-                    () => transformedType)).Type;
+            var mappedTypeInstance = transformedType
+                .Maybe()
+                .OfType<ResourceType>()
+                .Select(x => (StructuredType)x.UriBaseType)
+                .OrDefault(() => transformedType)
+                .Type;
+
             return mappedTypeInstance;
         }
 
@@ -350,14 +355,20 @@ namespace Pomona.Example
                     list = new List<T>();
                     this.entityLists[type] = list;
                 }
+
                 return (IList<T>)list;
             }
+
             if (tt.ParentToChildProperty == null)
                 throw new InvalidOperationException("Expected a parent-child assosciation.");
-            var parents =
-                (IEnumerable<object>)getEntityListMethod.MakeGenericMethod(tt.ParentResourceType).Invoke(this, null);
+
+            var parents = (IEnumerable<object>)getEntityListMethod
+                .MakeGenericMethod(tt.ParentResourceType)
+                .Invoke(this, null);
+
             if (tt.ParentToChildProperty.PropertyType.IsCollection)
                 return parents.SelectMany(p => ((IEnumerable)tt.ParentToChildProperty.GetValue(p)).OfType<T>()).ToList();
+
             return parents.Select(p => (T)tt.ParentToChildProperty.GetValue(p)).ToList();
         }
 
@@ -420,8 +431,7 @@ namespace Pomona.Example
         public object Patch<T>(T updatedObject)
         {
             var etagEntity = updatedObject as ISetEtaggedEntity;
-            if (etagEntity != null)
-                etagEntity.SetEtag(Guid.NewGuid().ToString());
+            etagEntity?.SetEtag(Guid.NewGuid().ToString());
 
             Save(updatedObject);
 
@@ -472,7 +482,15 @@ namespace Pomona.Example
             //var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
             //throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
 
-            return GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
+            var queryable = GetEntityList<TEntityBase>().OfType<TEntity>().AsQueryable();
+
+            /*if (typeof(TEntity) == typeof(Critter))
+            {
+                var createdOn = queryable.Cast<Critter>().Select(c => c.CreatedOnOffset).ToList();
+                Console.WriteLine(createdOn);
+            }*/
+
+            return queryable;
         }
 
 

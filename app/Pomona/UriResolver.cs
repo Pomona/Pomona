@@ -22,8 +22,10 @@ namespace Pomona
         {
             if (typeResolver == null)
                 throw new ArgumentNullException(nameof(typeResolver));
+
             if (baseUriProvider == null)
                 throw new ArgumentNullException(nameof(baseUriProvider));
+
             this.typeResolver = typeResolver;
             this.baseUriProvider = baseUriProvider;
         }
@@ -69,19 +71,29 @@ namespace Pomona
 
         public virtual string RelativeToAbsoluteUri(string path)
         {
-            var baseUri = this.baseUriProvider.BaseUri.ToString();
-            return $"{baseUri}{((baseUri.EndsWith("/") || path == string.Empty) ? string.Empty : "/")}{path}";
+            var baseUrl = GetBaseUrl();
+            return $"{baseUrl}{((baseUrl.EndsWith("/") || path == string.Empty) ? string.Empty : "/")}{path}";
         }
 
 
         public string ToRelativePath(string url)
         {
-            var baseUrl = this.baseUriProvider.BaseUri.ToString().TrimEnd('/');
-            if (
-                !(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase)
+            var baseUrl = GetBaseUrl().TrimEnd('/');
+            if (!(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase)
                   && (baseUrl.Length == url.Length || url[baseUrl.Length] == '/')))
                 throw new ArgumentException("Url does not have the correct base url.", nameof(url));
             return url.Substring(baseUrl.Length);
+        }
+
+
+        private string GetBaseUrl()
+        {
+            var baseUri = this.baseUriProvider.BaseUri;
+
+            if (baseUri == null)
+                throw new InvalidOperationException($"{this.baseUriProvider.GetType()}.BaseUri is null.");
+
+            return baseUri.ToString();
         }
     }
 }

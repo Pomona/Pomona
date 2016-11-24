@@ -26,6 +26,7 @@ namespace Pomona.Nancy
         {
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
+
             this.session = session;
         }
 
@@ -37,14 +38,13 @@ namespace Pomona.Nancy
             if (modulePath == null)
                 throw new ArgumentNullException(nameof(modulePath));
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var httpMethod =
-                (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);
-
+            var httpMethod = (HttpMethod)Enum.Parse(typeof(HttpMethod), context.Request.Method, true);
             var moduleRelativePath = context.Request.Path.Substring(modulePath.Length);
-            var request = new PomonaRequest(context.Request.Url.ToString(), moduleRelativePath, httpMethod,
-                                            context.Request.Headers, context.Request.Body,
+            var request = new PomonaRequest(context.Request.Url.ToString(),
+                                            moduleRelativePath,
+                                            httpMethod,
+                                            context.Request.Headers,
+                                            context.Request.Body,
                                             ((IDictionary<string, object>)context.Request.Query).ToDictionary(x => x.Key,
                                                                                                               x => x.Value.ToString()));
 

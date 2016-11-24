@@ -57,7 +57,9 @@ namespace Pomona.Routing
                         && pr.AcceptType.TryExtractTypeArguments(typeof(IQueryable<>), out qTypeArgs))
                         elementType = qTypeArgs[0];
 
-                    return new PomonaResponse(pr, GetDataSource(pr.Session).Query(elementType));
+                    var dataSource = GetDataSource(pr.Session);
+                    var entity = dataSource.Query(elementType);
+                    return new PomonaResponse(pr, entity);
                 };
             }
             return null;
@@ -70,14 +72,11 @@ namespace Pomona.Routing
             {
                 var request = pr;
                 var uriResolver = request.Session.UriResolver;
-                var repos =
-                    new SortedDictionary<string, string>(route.Children.OfType<ILiteralRoute>().ToDictionary(
-                        x => x.MatchValue,
-                        x => uriResolver.RelativeToAbsoluteUri(x.MatchValue)));
-
-                return new PomonaResponse(repos,
-                                          resultType :
-                                              request.TypeMapper.FromType<IDictionary<string, string>>());
+                var dictionary = route.Children.OfType<ILiteralRoute>()
+                                      .ToDictionary(x => x.MatchValue, x => uriResolver.RelativeToAbsoluteUri(x.MatchValue));
+                var repos = new SortedDictionary<string, string>(dictionary);
+                var resultType = request.TypeMapper.FromType<IDictionary<string, string>>();
+                return new PomonaResponse(repos, resultType : resultType);
             };
         }
 
@@ -89,10 +88,9 @@ namespace Pomona.Routing
                 return async pr =>
                 {
                     var patchedObject = await pr.Bind();
-                    return
-                        new PomonaResponse(pr,
-                                           GetDataSource(pr.Session).Patch(patchedObject.GetType(),
-                                                                           patchedObject));
+                    var dataSource = GetDataSource(pr.Session);
+                    var patchedType = patchedObject.GetType();
+                    return new PomonaResponse(pr, dataSource.Patch(patchedType, patchedObject));
                 };
             }
             return null;
@@ -109,23 +107,25 @@ namespace Pomona.Routing
 
         private Func<PomonaContext, Task<PomonaResponse>> ResolvePostToCollection(Route route, ResourceType resourceItemType)
         {
-            if (route.ResultItemType is ResourceType && route.ResultType.IsCollection
+            if (route.ResultItemType is ResourceType
+                && route.ResultType.IsCollection
                 && route.Root() is DataSourceRootRoute)
             {
                 return async pr =>
                 {
                     var form = await pr.Bind(resourceItemType);
-                    return new PomonaResponse(pr, GetDataSource(pr.Session).Post(form.GetType(), form));
+                    var dataSource = GetDataSource(pr.Session);
+                    var entity = dataSource.Post(form.GetType(), form);
+                    return new PomonaResponse(pr, entity);
                 };
             }
             return null;
         }
 
 
-        public virtual IEnumerable<RouteAction> Resolve(Route route,
-                                                        HttpMethod method)
+        public virtual IEnumerable<RouteAction> Resolve(Route route, HttpMethod method)
         {
-            DataSourceRootRoute rootRoute = route as DataSourceRootRoute;
+            var rootRoute = route as DataSourceRootRoute;
             if (rootRoute != null)
                 yield return ResolveGetRootResource(rootRoute);
 

@@ -123,7 +123,7 @@ namespace Pomona.SystemTests.Linq
             // Should load uri when retrieving name
             var name = lazyCritter.Name;
             var afterLoadUri = ((IHasResourceUri)lazyCritter).Uri;
-            Assert.That(afterLoadUri, Is.Not.StringContaining(predicate));
+            Assert.That(afterLoadUri, Does.Not.Contain(predicate));
             Console.WriteLine(afterLoadUri);
             Assert.That(name, Is.EqualTo(expected.Name));
         }

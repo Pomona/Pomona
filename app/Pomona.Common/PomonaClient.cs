@@ -74,9 +74,7 @@ namespace Pomona.Common
                                              HttpResponseMessage response,
                                              Exception thrownException = null)
         {
-            var eh = RequestCompleted;
-            if (eh != null)
-                eh(this, new ClientRequestLogEventArgs(request, response, thrownException));
+            RequestCompleted?.Invoke(this, new ClientRequestLogEventArgs(request, response, thrownException));
         }
 
 
@@ -97,21 +95,27 @@ namespace Pomona.Common
 
         private static IRequestDispatcher CreateDefaultRequestDispatcher(ClientTypeMapper typeMapper, IWebClient webClient = null)
         {
-            return new RequestDispatcher(
-                typeMapper,
-                webClient ?? new HttpWebClient(),
-                new PomonaJsonSerializerFactory());
+            var client = webClient ?? new HttpWebClient();
+            var serializerFactory = new PomonaJsonSerializerFactory();
+            return new RequestDispatcher(typeMapper, client, serializerFactory);
+        }
+
+
+        private IResourceLoader GetResourceLoader(RequestOptions requestOptions)
+        {
+            if (requestOptions?.ResourceLoader != null)
+                return requestOptions.ResourceLoader;
+
+            if (Settings.LazyMode == LazyMode.Disabled)
+                return new DisabledResourceLoader();
+
+            return new DefaultResourceLoader(this);
         }
 
 
         private ClientSerializationContextProvider GetSerializationContextProvider(RequestOptions requestOptions)
         {
-            var resourceLoader = requestOptions == null || requestOptions.ResourceLoader == null
-                ? Settings.LazyMode == LazyMode.Disabled
-                    ? (IResourceLoader)new DisabledResourceLoader()
-                    : new DefaultResourceLoader(this)
-                : requestOptions.ResourceLoader;
-
+            var resourceLoader = GetResourceLoader(requestOptions);
             return new ClientSerializationContextProvider(this.typeMapper, this, resourceLoader);
         }
 
@@ -226,9 +230,7 @@ namespace Pomona.Common
             if (uri == null)
                 throw new ArgumentNullException(nameof(uri));
 
-            return
-                this.typeMapper.WrapExtendedQuery<T>(
-                    st => new RestQueryProvider(this).CreateQuery(uri, st));
+            return this.typeMapper.WrapExtendedQuery<T>(st => new RestQueryProvider(this).CreateQuery(uri, st));
         }
 
 

@@ -100,8 +100,12 @@ namespace Pomona
 
                 if (skipAndTakeAfterExecute)
                 {
-                    limitedQueryable =
-                        ((IEnumerable)queryable).Cast<object>().Skip(Skip).Take(Top).Cast(queryable.ElementType).ToListDetectType();
+                    limitedQueryable = ((IEnumerable)queryable)
+                        .Cast<object>()
+                        .Skip(Skip)
+                        .Take(Top)
+                        .Cast(queryable.ElementType)
+                        .ToListDetectType();
                 }
                 else
                 {

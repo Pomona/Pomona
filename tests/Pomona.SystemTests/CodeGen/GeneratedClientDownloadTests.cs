@@ -32,11 +32,12 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
+        [Category("FailsOnFileShare")]
         public void GetClientDll_ConfigurationIsCorrect_ReturnsClientDll()
         {
             var uri = new Uri(new Uri(Client.BaseUri), "Critters.Client.dll");
             var response = WebClient.SendSync(new HttpRequestMessage(HttpMethod.Get, uri));
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), $"Failed to download <{uri}>.");
             Assert.That(response.Content.Headers.ContentType.MediaType, Is.EqualTo("binary/octet-stream"));
             Assert.That(response.Content.Headers.ContentLength, Is.GreaterThan(0));
         }
@@ -53,11 +54,12 @@ namespace Pomona.SystemTests.CodeGen
 
 
         [Test]
+        [Category("FailsOnFileShare")]
         public void GetClientNupkg_ConfigurationIsCorrect_ReturnsClientNupkg()
         {
             var uri = new Uri(new Uri(Client.BaseUri), "client.nupkg");
             var response = WebClient.SendSync(new HttpRequestMessage(HttpMethod.Get, uri));
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), $"Failed to download <{uri}>.");
             Assert.That(response.Content.Headers.ContentType.MediaType, Is.EqualTo("application/zip"));
             Assert.That(response.Content.Headers.ContentLength, Is.GreaterThan(0));
         }

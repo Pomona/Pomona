@@ -52,7 +52,7 @@ namespace Pomona.SystemTests
         }
 
 
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Init()
         {
             this.nancyContext = new NancyContext();

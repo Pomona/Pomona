@@ -19,6 +19,7 @@ namespace Pomona.UnitTests.Nuget
     public class ClientNugetPackageBuilderTests : SessionTestsBase
     {
         [Test]
+        [Category("FailsOnFileShare")]
         public void BuildPackage_DoesNotThrowAnyExceptions()
         {
             var packageBuilder = new ClientNugetPackageBuilder(TypeMapper);

@@ -48,8 +48,8 @@ namespace Pomona.NHibernate3.Tests
 
         #region Setup/Teardown
 
-        [TestFixtureSetUp]
-        public void FixtureSetUp()
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
             this.sessionFactory = Fluently.Configure()
                                           .Database(CsharpSqliteConfiguration.Standard.InMemory)

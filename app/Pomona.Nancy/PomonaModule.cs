@@ -52,7 +52,7 @@ namespace Pomona.Nancy
         }
 
 
-        internal PomonaConfigurationBase GetConfiguration()
+        public virtual PomonaConfigurationBase GetConfiguration()
         {
             var pomonaConfigAttr = GetType().GetFirstOrDefaultAttribute<PomonaConfigurationAttribute>(true);
             if (pomonaConfigAttr == null)
@@ -165,9 +165,8 @@ namespace Pomona.Nancy
                         throw;
 
                     SetErrorHandled();
-                    return new PomonaResponse(error.Entity ?? PomonaResponse.NoBodyEntity,
-                                              error.StatusCode,
-                                              responseHeaders : error.ResponseHeaders);
+                    var entity = error.Entity ?? PomonaResponse.NoBodyEntity;
+                    return new PomonaResponse(entity, error.StatusCode, responseHeaders : error.ResponseHeaders);
                 }
             };
         }
