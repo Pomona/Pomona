@@ -129,6 +129,7 @@
     <Compile Include="Models\INonExposedBaseInterface.cs" />
     <Compile Include="Models\SubOrder.cs" />
     <Compile Include="Models\NoPrimaryKeyThing.cs" />
+    <Compile Include="Models\ThingWithInterface.cs" />
     <Compile Include="Models\VirtualPropertyThing.cs" />
     <Compile Include="Models\SetCollectionContainer.cs" />
     <Compile Include="Models\HasReadOnlyDictionaryProperty.cs" />
