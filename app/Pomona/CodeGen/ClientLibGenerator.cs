@@ -1109,8 +1109,14 @@ namespace Pomona.CodeGen
                 return resourceInfo.CustomRepositoryInterface;
             }
 
-            TypeReference propTypeRef = GetTypeReference(prop.PropertyType);
-            return propTypeRef;
+            try
+            {
+                return GetTypeReference(prop.PropertyType);
+            }
+            catch (Exception exception)
+            {
+                throw new InvalidOperationException($"Unable to get type reference for property {prop.Name} on {prop.DeclaringType} returning {prop.PropertyType}.", exception);
+            }
         }
 
 
