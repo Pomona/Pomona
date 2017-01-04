@@ -97,12 +97,21 @@ namespace Pomona.FluentMapping
                                           Func<TypeMappingOptions, T> ifMappingExist,
                                           Func<T> ifMappingMissing)
         {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
             TypeMappingOptions typeMappingOptions;
             object result = null;
+
+            if (type.FullName == null)
+                throw new InvalidOperationException($"{type} has a null FullName.");
+
             if (this.typeMappingDict.TryGetValue(type.FullName, out typeMappingOptions))
                 result = ifMappingExist(typeMappingOptions);
+
             if (result == null)
                 return ifMappingMissing();
+
             return (T)result;
         }
 
