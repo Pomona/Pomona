@@ -1069,7 +1069,24 @@ namespace Pomona.CodeGen
             var assemblyResolver = new DefaultAssemblyResolver();
 
             // Fix for having path to bin directory when running ASP.NET app.
-            var extraSearchDir = Path.GetDirectoryName(new Uri(GetType().Assembly.CodeBase).AbsolutePath);
+            var assembly = GetType().Assembly;
+            var codeBaseUri = new Uri(assembly.CodeBase);
+            var extraSearchDir = Path.GetDirectoryName(codeBaseUri.AbsolutePath);
+
+            try
+            {
+                if (!Directory.Exists(extraSearchDir))
+                    throw new DirectoryNotFoundException($"{extraSearchDir} ({codeBaseUri}) not found");
+            }
+            catch (DirectoryNotFoundException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                throw new DirectoryNotFoundException($"{extraSearchDir} ({codeBaseUri}) not found", exception);
+            }
+
             assemblyResolver.AddSearchDirectory(extraSearchDir);
             return assemblyResolver;
         }
