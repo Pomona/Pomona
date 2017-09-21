@@ -87,7 +87,7 @@ namespace Pomona.UnitTests.Serialization.Json
 
             // This will wrap a JsonSerializationException for now.
             Assert.That(ex.Message, Does.StartWith("Could not convert string to boolean: blahrg"));
-            Assert.That(ex.InnerException, Is.InstanceOf<JsonSerializationException>());
+            Assert.That(ex.InnerException, Is.InstanceOf<JsonReaderException>());
         }
 
 
