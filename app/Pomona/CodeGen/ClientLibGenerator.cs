@@ -1071,7 +1071,8 @@ namespace Pomona.CodeGen
             // Fix for having path to bin directory when running ASP.NET app.
             var assembly = GetType().Assembly;
             var codeBaseUri = new Uri(assembly.CodeBase);
-            var extraSearchDir = Path.GetDirectoryName(codeBaseUri.AbsolutePath);
+            var unescapedPath = Uri.UnescapeDataString(codeBaseUri.AbsolutePath);
+            var extraSearchDir = Path.GetDirectoryName(unescapedPath);
 
             try
             {
