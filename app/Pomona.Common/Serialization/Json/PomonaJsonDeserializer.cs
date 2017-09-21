@@ -524,9 +524,13 @@ namespace Pomona.Common.Serialization.Json
                     : null;
                 return Deserialize(textReader, expectedBaseType, context, options.Target);
             }
-            catch (JsonSerializationException jsonEx)
+            catch (JsonReaderException exception)
             {
-                throw new PomonaSerializationException(jsonEx.Message, jsonEx);
+                throw new PomonaSerializationException(exception.Message, exception);
+            }
+            catch (JsonSerializationException exception)
+            {
+                throw new PomonaSerializationException(exception.Message, exception);
             }
         }
 
