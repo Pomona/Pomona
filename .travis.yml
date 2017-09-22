@@ -4,8 +4,8 @@ sudo: false
 install:
  - nuget restore Pomona.sln
 script:
- - xbuild Pomona.sln /property:Configuration="Release" /verbosity:detailed
- - mono ./packages/NUnit.ConsoleRunner.3.5.0/tools/nunit3-console.exe ./tests/Pomona.UnitTests/bin/Release/Pomona.UnitTests.dll ./tests/Pomona.SystemTests/bin/Release/Pomona.SystemTests.dll --where "cat != TODO && cat != WindowsRequired"
+ - xbuild Pomona.sln /property:Configuration="Release" /verbosity:minimal
+ - mono ./packages/NUnit.ConsoleRunner.3.7.0/tools/nunit3-console.exe ./tests/Pomona.UnitTests/bin/Release/Pomona.UnitTests.dll ./tests/Pomona.SystemTests/bin/Release/Pomona.SystemTests.dll --where "cat != TODO && cat != WindowsRequired"
 notifications:
   webhooks:
     urls:
