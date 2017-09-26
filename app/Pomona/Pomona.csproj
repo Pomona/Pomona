@@ -1,73 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{EE396A59-956E-4DEE-B222-991F2274ED67}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Pomona</RootNamespace>
-    <AssemblyName>Pomona</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <NoWarn>3021</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>3021</NoWarn>
+    <TargetFrameworks>net45</TargetFrameworks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UpdateAssemblyInfo>true</UpdateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
+      <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
+      <Name>Pomona.Common</Name>
+    </ProjectReference>
     <Reference Include="Antlr3.Runtime">
       <HintPath>..\..\lib\Antlr3\Antlr3.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.Mdb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.Pdb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.Rocks.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="NuGet.Core, Version=2.2.31210.9045, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Core.2.2.0\lib\net40-Client\NuGet.Core.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -75,219 +19,26 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="System.Net.Http" Version="4.0.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.0.0" />
+    <PackageReference Include="Mono.Cecil" Version="0.9.6.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="NuGet.Core" Version="2.2.0" />
+    <PackageReference Include="GitVersionTask" Version="4.0.0-beta0012" PrivateAssets="all" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\Shared\CommonAssemblyInfo.cs">
-      <Link>Properties\CommonAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="CodeGen\AnonymousTypeBuilder.cs" />
-    <Compile Include="CodeGen\CecilExtensions.cs" />
-    <Compile Include="CodeGen\ClientLibGenerator.cs" />
-    <Compile Include="CodeGen\CustomClientLibraryTypeAttribute.cs" />
-    <Compile Include="ClientMetadata.cs" />
-    <Compile Include="CodeGen\ClientNugetPackageBuilder.cs" />
-    <Compile Include="CodeGen\ClientTypeExtensions.cs" />
-    <Compile Include="CodeGen\StringEnumTemplate.cs" />
-    <Compile Include="CodeGen\VersionStringExtensions.cs" />
-    <Compile Include="CodeGen\ProxyBuilder.cs" />
-    <Compile Include="CodeGen\TypeDefinitionCloner.cs" />
-    <Compile Include="CodeGen\WrappedPropertyProxyBuilder.cs" />
-    <Compile Include="DefaultTypeMappingFilter.cs" />
-    <Compile Include="Documentation\IDocumentationProvider.cs" />
-    <Compile Include="Documentation\Nodes\DocContainerNode.cs" />
-    <Compile Include="Documentation\Nodes\DocNode.cs" />
-    <Compile Include="Documentation\Nodes\IDocContainerNode.cs" />
-    <Compile Include="Documentation\Nodes\IDocNode.cs" />
-    <Compile Include="Documentation\Nodes\ISeeNode.cs" />
-    <Compile Include="Documentation\Nodes\ITextNode.cs" />
-    <Compile Include="Documentation\Nodes\SeeNode.cs" />
-    <Compile Include="Documentation\Nodes\TextNode.cs" />
-    <Compile Include="Documentation\Nodes\UnresolvedSeeNode.cs" />
-    <Compile Include="Documentation\XmlDocumentationProvider.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocAssembly.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocContentContainer.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocContentElement.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocContentNode.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocElement.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocMember.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocMemberCollection.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocNode.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocSee.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDocText.cs" />
-    <Compile Include="Documentation\Xml\Serialization\XDoc.cs" />
-    <Compile Include="Documentation\Xml\XmlDocMapper.cs" />
-    <Compile Include="FluentMapping\DefaultPropertyInclusionMode.cs" />
-    <Compile Include="FluentMapping\FluentRuleMethod.cs" />
-    <Compile Include="FluentMapping\FluentRuleMethodScanner.cs" />
-    <Compile Include="FluentMapping\FluentTypeMappingFilter.cs" />
-    <Compile Include="FluentMapping\IPropertyOptionsBuilder.cs" />
-    <Compile Include="FluentMapping\ITypeMappingConfigurator.cs" />
-    <Compile Include="FluentMapping\NestedTypeMappingConfigurator.cs" />
-    <Compile Include="FluentMapping\PropertyInclusionMode.cs" />
-    <Compile Include="FluentMapping\PropertyMappingOptions.cs" />
-    <Compile Include="FluentMapping\PropertyOptionsBuilder.cs" />
-    <Compile Include="FluentMapping\PropertyOptionsBuilderBase.cs" />
-    <Compile Include="FluentMapping\PropertyOptionsBuilderExtensions.cs" />
-    <Compile Include="FluentMapping\TypeMappingConfiguratorBase.cs" />
-    <Compile Include="FluentMapping\TypeMappingOptions.cs" />
-    <Compile Include="FluentMapping\WrappingTypeMappingFilter.cs" />
-    <Compile Include="IBaseUriProvider.cs" />
-    <Compile Include="Ioc\RuntimeContainerWrapper.cs" />
-    <Compile Include="IO\PathHelper.cs" />
-    <Compile Include="IPomonaDataSource.cs" />
-    <Compile Include="IPomonaErrorHandler.cs" />
-    <Compile Include="IPomonaRequestProcessor.cs" />
-    <Compile Include="IPomonaSessionFactory.cs" />
-    <Compile Include="IUriResolver.cs" />
-    <Compile Include="IResourceResolver.cs" />
-    <Compile Include="ITypeMappingFilter.cs" />
-    <Compile Include="IWrappableTypeMappingFilter.cs" />
-    <Compile Include="MappedTypeExtensions.cs" />
-    <Compile Include="Mapping\IPropertyConventions.cs" />
-    <Compile Include="Mapping\IResourceConventions.cs" />
-    <Compile Include="Mapping\ITypeConventions.cs" />
-    <Compile Include="PomonaConfigurationAttribute.cs" />
-    <Compile Include="PathNodeType.cs" />
-    <Compile Include="PomonaConfigurationBase.cs" />
-    <Compile Include="PomonaDataSourceExtensions.cs" />
-    <Compile Include="PomonaError.cs" />
-    <Compile Include="PomonaErrorHandler.cs" />
-    <Compile Include="PomonaRequest.cs" />
-    <Compile Include="PomonaServerException.cs" />
-    <Compile Include="PomonaExpressionSyntaxException.cs" />
-    <Compile Include="PomonaContext.cs" />
-    <Compile Include="PomonaResponse.cs" />
-    <Compile Include="PomonaSession.cs" />
-    <Compile Include="PomonaSessionExtensions.cs" />
-    <Compile Include="PomonaSessionFactory.cs" />
-    <Compile Include="Queries\DateTimeOffsetNode.cs" />
-    <Compile Include="Queries\DefaultQueryExecutor.cs" />
-    <Compile Include="Queries\IQueryExecutor.cs" />
-    <Compile Include="Queries\PomonaQueryLexer.cs" />
-    <Compile Include="Queries\PomonaQueryParser.cs" />
-    <Compile Include="Queries\QueryParseErrorReason.cs" />
-    <Compile Include="RequestProcessing\DefaultHandlerMethodInvoker.cs" />
-    <Compile Include="RequestProcessing\HandlerMethodInvocationException.cs" />
-    <Compile Include="RequestProcessing\HandlerMethodInvoker.cs" />
-    <Compile Include="RequestProcessing\HandlerMethodTakingExistingResource.cs" />
-    <Compile Include="RequestProcessing\HandlerMethodTakingFormInvoker.cs" />
-    <Compile Include="RequestProcessing\HandlerMethodTakingPatchedResource.cs" />
-    <Compile Include="RequestProcessing\HandlerMethodTakingResourceId.cs" />
-    <Compile Include="RequestProcessing\IActionResult.cs" />
-    <Compile Include="RequestProcessing\IHandlerMethodInvoker.cs" />
-    <Compile Include="RequestProcessing\HandlerParameter.cs" />
-    <Compile Include="RequestProcessing\HandlerMethod.cs" />
-    <Compile Include="RequestProcessing\IQueryableActionResult.cs" />
-    <Compile Include="RequestProcessing\QueryableActionResult.cs" />
-    <Compile Include="RequestProcessing\QueryableActionResultExtensions.cs" />
-    <Compile Include="ReferencedResourceNotFoundException.cs" />
-    <Compile Include="RequestProcessing\DefaultRequestProcessorPipeline.cs" />
-    <Compile Include="RequestProcessing\HandlerRequestProcessor.cs" />
-    <Compile Include="RequestProcessing\IRequestProcessorPipeline.cs" />
-    <Compile Include="RequestProcessing\ValidateEtagProcessor.cs" />
-    <Compile Include="Queries\ArrayNode.cs" />
-    <Compile Include="Queries\IndexerAccessNode.cs" />
-    <Compile Include="Queries\LambdaNode.cs" />
-    <Compile Include="Queries\MethodCallNode.cs" />
-    <Compile Include="Queries\NotNode.cs" />
-    <Compile Include="Queries\QueryParseException.cs" />
-    <Compile Include="Queries\TypeNameNode.cs" />
-    <Compile Include="ResourceNotFoundException.cs" />
-    <Compile Include="PomonaMappingException.cs" />
-    <Compile Include="PomonaQuery.cs" />
-    <Compile Include="PomonaHttpQueryTransformer.cs" />
-    <Compile Include="IPomonaSession.cs" />
-    <Compile Include="Queries\BinaryOperatorNode.cs" />
-    <Compile Include="Queries\DateTimeNode.cs" />
-    <Compile Include="Queries\GuidNode.cs" />
-    <Compile Include="Queries\NumberNode.cs" />
-    <Compile Include="Queries\IQueryTypeResolver.cs" />
-    <Compile Include="Queries\LiteralNode.cs" />
-    <Compile Include="Queries\NodeBase.cs" />
-    <Compile Include="Queries\NodeTreeToExpressionConverter.cs" />
-    <Compile Include="Queries\NodeType.cs" />
-    <Compile Include="Queries\QueryTypeResolver.cs" />
-    <Compile Include="Queries\QueryExpressionParser.cs" />
-    <Compile Include="Queries\PomonaQueryTreeParser.cs" />
-    <Compile Include="Queries\StringNode.cs" />
-    <Compile Include="Queries\SymbolNode.cs" />
-    <Compile Include="Queries\UnhandledNode.cs" />
-    <Compile Include="ResourcePreconditionFailedException.cs" />
-    <Compile Include="ResourceValidationException.cs" />
-    <Compile Include="Routing\AsyncDelegateRouteAction.cs" />
-    <Compile Include="Routing\DataSourceCollectionRoute.cs" />
-    <Compile Include="Routing\DataSourceRouteActionResolver.cs" />
-    <Compile Include="Routing\DataSourceRootRoute.cs" />
-    <Compile Include="Routing\DefaultQueryProviderCapabilityResolver.cs" />
-    <Compile Include="Routing\IQueryProviderCapabilityResolver.cs" />
-    <Compile Include="Routing\InternalRouteActionResolver.cs" />
-    <Compile Include="Routing\GetByIdRoute.cs" />
-    <Compile Include="Routing\ILiteralRoute.cs" />
-    <Compile Include="Routing\IRouteActionResolver.cs" />
-    <Compile Include="Routing\DelegateRouteAction.cs" />
-    <Compile Include="Routing\PomonaRouteMetadata.cs" />
-    <Compile Include="Routing\PomonaRouteResolver.cs" />
-    <Compile Include="Routing\QueryGetActionResolver.cs" />
-    <Compile Include="Routing\RequestHandlerActionResolver.cs" />
-    <Compile Include="Routing\ResourcePropertyRoute.cs" />
-    <Compile Include="Routing\ResourceTypeExtensions.cs" />
-    <Compile Include="Routing\RootRoute.cs" />
-    <Compile Include="Routing\Route.cs" />
-    <Compile Include="Routing\RouteAction.cs" />
-    <Compile Include="Routing\RouteMatchTree.cs" />
-    <Compile Include="Routing\UrlSegment.cs" />
-    <Compile Include="Schemas\SchemaGenerator.cs" />
-    <Compile Include="Schemas\Schema.cs" />
-    <Compile Include="Schemas\SchemaArrayItem.cs" />
-    <Compile Include="Schemas\SchemaPropertyEntry.cs" />
-    <Compile Include="Schemas\SchemaTypeEntry.cs" />
-    <Compile Include="ServerDeserializationContext.cs" />
-    <Compile Include="ServerSerializationContextProvider.cs" />
-    <Compile Include="SingularToPluralTranslator.cs" />
-    <Compile Include="TypeMapper.cs" />
-    <Compile Include="ExpandPathsUtils.cs" />
-    <Compile Include="ServerSerializationContext.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TypeMappingFilterBase.cs" />
-    <Compile Include="TypeSystem\SubclassComparer.cs" />
-    <Compile Include="UnknownTypeException.cs" />
-    <Compile Include="UriResolver.cs" />
-  </ItemGroup>
+  
+  <!-- TODO: Get Antlr build task working again -->
+  <!--<PropertyGroup Condition=" '$(OS)' != 'Unix' ">
+    --><!-- Folder containing AntlrBuildTask.dll --><!--
+    <AntlrOutputPath>$(MSBuildProjectDirectory)\Queries</AntlrOutputPath>
+    <AntlrBuildTaskPath>$(SolutionDir)\tools\AntlrDotnet</AntlrBuildTaskPath>
+    --><!-- Path to the ANTLR Tool itself. --><!--
+    <AntlrToolPath>$(SolutionDir)\tools\AntlrDotnet\Antlr3.exe</AntlrToolPath>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\tools\AntlrDotnet\Antlr3.targets" Condition=" '$(OS)' != 'Unix' " />
   <ItemGroup>
     <Antlr3 Include="Queries\PomonaQuery.g">
       <Generator>MSBuild:Compile</Generator>
     </Antlr3>
-    <None Include="packages.config" />
-    <None Include="Pomona.nuspec" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Pomona.Common\Pomona.Common.csproj">
-      <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
-      <Name>Pomona.Common</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup Condition=" '$(OS)' != 'Unix' ">
-    <!-- Folder containing AntlrBuildTask.dll -->
-    <AntlrOutputPath>$(MSBuildProjectDirectory)\Queries</AntlrOutputPath>
-    <AntlrBuildTaskPath>$(SolutionDir)\tools\AntlrDotnet</AntlrBuildTaskPath>
-    <!-- Path to the ANTLR Tool itself. -->
-    <AntlrToolPath>$(SolutionDir)\tools\AntlrDotnet\Antlr3.exe</AntlrToolPath>
-  </PropertyGroup>
-  <Import Project="$(SolutionDir)\tools\AntlrDotnet\Antlr3.targets" Condition=" '$(OS)' != 'Unix' " />
-  <Import Project="..\..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets" Condition="Exists('..\..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\GitVersionTask.3.6.5\build\dotnet\GitVersionTask.targets'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  </ItemGroup>-->
 </Project>

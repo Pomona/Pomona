@@ -6,7 +6,8 @@ branches:
   master:
     # If a branch is tagged, don't allow it to affect the version number of master
     prevent-increment-of-merged-branch-version: true
-  feature[/-]:
+  features:
+    regex: (feature)[/-]
     # Feature branches should have their version number incremented on each build, so produced NuGet packages don't end up with the same version number.
     mode: ContinuousDeployment
     # Only increment patch (minor is default) so it's easy to only increment patch in master without an older build from a feature branch being considered newer.
@@ -14,6 +15,7 @@ branches:
     # When minting version number for feature branches, track the merge target branch (effectively master), so its tags will be considered for the versioning of the feature branch.
     track-merge-target: true
   future:
+    regex: future
     # Only increment patch (minor is default) so it's easy to only increment patch in master without an older build from a feature branch being considered newer.
     mode: ContinuousDeployment
     increment: Patch
