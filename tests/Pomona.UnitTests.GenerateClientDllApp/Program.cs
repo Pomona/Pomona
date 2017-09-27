@@ -30,7 +30,15 @@ namespace Pomona.UnitTests.GenerateClientDllApp
             // Modify property Protected of class Critter to not be protected in client dll.
             // This is to test setting a protected property will throw exception on server.
 
-            var libDirectory = GetLibDirectory(args);
+            var solutionDir = args.FirstOrDefault();
+
+            if (solutionDir != null && solutionDir.StartsWith("\\\\"))
+            {
+                Console.WriteLine("File shares are not supported");
+                return;
+            }
+
+            var libDirectory = GetLibDirectory(solutionDir);
             int result;
 
             if (libDirectory == null)
@@ -52,11 +60,10 @@ namespace Pomona.UnitTests.GenerateClientDllApp
         }
 
 
-        private static string GetLibDirectory(string[] args)
+        private static string GetLibDirectory(string solutionDir)
         {
             try
             {
-                var solutionDir = args.FirstOrDefault();
                 if (solutionDir == null || !Directory.Exists(solutionDir))
                     throw new DirectoryNotFoundException($"Solution directory '{solutionDir}' not found");
 

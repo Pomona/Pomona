@@ -6,7 +6,7 @@ branches:
   master:
     # If a branch is tagged, don't allow it to affect the version number of master
     prevent-increment-of-merged-branch-version: true
-  (feature|future)[/-]:
+  feature[/-]:
     # Feature branches should have their version number incremented on each build, so produced NuGet packages don't end up with the same version number.
     mode: ContinuousDeployment
     # Only increment patch (minor is default) so it's easy to only increment patch in master without an older build from a feature branch being considered newer.
