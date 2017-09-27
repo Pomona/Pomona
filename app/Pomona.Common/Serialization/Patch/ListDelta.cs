@@ -53,7 +53,18 @@ namespace Pomona.Common.Serialization.Patch
 
         public TElement this[int index]
         {
-            get { return this.Skip(index).First(); }
+            get
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                foreach (var item in this)
+                {
+                    if (index == 0)
+                        return item;
+                    index--;
+                }
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
             set { throw new NotImplementedException(); }
         }
 
