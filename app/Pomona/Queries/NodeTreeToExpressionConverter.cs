@@ -675,7 +675,7 @@ namespace Pomona.Queries
 
                         bool typeArgsWasResolved;
                         if (
-                            !TypeExtensions.TryFillGenericTypeParameters(param.ParameterType, argExpr.Type, methodTypeArgs,
+                            !Pomona.Common.TypeExtensions.TryFillGenericTypeParameters(param.ParameterType, argExpr.Type, methodTypeArgs,
                                                                          out typeArgsWasResolved))
                             return false;
 

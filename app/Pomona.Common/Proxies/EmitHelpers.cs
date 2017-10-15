@@ -80,8 +80,9 @@ namespace Pomona.Common.Proxies
 
         internal static ModuleBuilder CreateRuntimeModule(AssemblyName assemblyName, out AssemblyBuilder asmBuilder)
         {
-            asmBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-            var modBuilder = asmBuilder.DefineDynamicModule(assemblyName.Name + ".dll", true);
+            // RunAndSave is not currently supported in .NET Core, and it's not on the roadmap.
+            asmBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
+            var modBuilder = asmBuilder.DefineDynamicModule(assemblyName.Name + ".dll");
             return modBuilder;
         }
 
