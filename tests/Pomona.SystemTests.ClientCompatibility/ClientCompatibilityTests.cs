@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Critters.Client;
@@ -36,16 +37,25 @@ namespace Pomona.SystemTests.ClientCompatibility
             try
             {
                 const string pomonaCommonAssemblyName = "Pomona.Common";
-                var clientAssembly = AssemblyDefinition.ReadAssembly(typeof(CritterClient).Assembly.GetPhysicalLocation());
-                var pomonaCommonModule = AssemblyDefinition.ReadAssembly(typeof(IPomonaClient).Assembly.GetPhysicalLocation()).MainModule;
 
-                var typeReferences = clientAssembly.MainModule
-                                                   .GetTypeReferences()
-                                                   .Where(x => x.Scope.Name == pomonaCommonAssemblyName);
+                var critterAssemblyLocation = typeof(CritterClient).Assembly.GetPhysicalLocation();
+                var pomonaCommonAssemblyLocation = typeof(IPomonaClient).Assembly.GetPhysicalLocation();
 
-                var memberReferences = clientAssembly.MainModule
-                                                     .GetMemberReferences()
-                                                     .Where(x => x.DeclaringType.Scope.Name == pomonaCommonAssemblyName);
+				// We need to add the directories for the assemblies to the assembly resolver
+				// to support running with the R# test runner with shadow copy enabled.
+                var assemblyResolver = new DefaultAssemblyResolver();
+                assemblyResolver.AddSearchDirectory(Path.GetDirectoryName(critterAssemblyLocation));
+                assemblyResolver.AddSearchDirectory(Path.GetDirectoryName(pomonaCommonAssemblyLocation));
+                var readerParameters = new ReaderParameters() { AssemblyResolver = assemblyResolver };
+
+                var clientModule = AssemblyDefinition.ReadAssembly(critterAssemblyLocation, readerParameters).MainModule;
+                var pomonaCommonModule = AssemblyDefinition.ReadAssembly(pomonaCommonAssemblyLocation, readerParameters).MainModule;
+
+                var typeReferences =
+                    clientModule.GetTypeReferences().Where(x => x.Scope.Name == pomonaCommonAssemblyName);
+
+                var memberReferences =
+                    clientModule.GetMemberReferences().Where(x => x.DeclaringType.Scope.Name == pomonaCommonAssemblyName);
 
                 foreach (var typeReference in typeReferences)
                 {
