@@ -21,8 +21,6 @@ namespace Pomona
 
         public virtual IEnumerable<object> FluentRuleObjects => Enumerable.Empty<object>();
 
-        public virtual IEnumerable<Type> HandlerTypes => Enumerable.Empty<Type>();
-
         public virtual IEnumerable<IRouteActionResolver> RouteActionResolvers
         {
             get
@@ -42,7 +40,10 @@ namespace Pomona
 
         protected virtual Type DataSource => typeof(IPomonaDataSource);
 
-        protected virtual IRouteActionResolver DataSourceRouteActionResolver => new DataSourceRouteActionResolver();
+        protected virtual IRouteActionResolver DataSourceRouteActionResolver
+        {
+            get { return new DataSourceRouteActionResolver(DataSource); }
+        }
 
         protected virtual IRouteActionResolver QueryGetActionResolver => new QueryGetActionResolver(new DefaultQueryProviderCapabilityResolver());
 

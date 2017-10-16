@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Nancy.Validation;
 
@@ -27,7 +28,7 @@ namespace Pomona.Example
         }
 
 
-        public PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery query)
+        public Task<PomonaResponse> ApplyAndExecute(IQueryable queryable, PomonaQuery query)
         {
             return this.store.ApplyAndExecute(queryable, query);
         }

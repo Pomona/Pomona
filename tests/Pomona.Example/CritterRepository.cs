@@ -12,10 +12,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 using Pomona.Example.Models;
+using Pomona.Queries;
 
 namespace Pomona.Example
 {
@@ -400,7 +402,7 @@ namespace Pomona.Example
 
         #region IPomonaDataSource Members
 
-        public PomonaResponse ApplyAndExecute(IQueryable queryable, PomonaQuery pq)
+        public Task<PomonaResponse> ApplyAndExecute(IQueryable queryable, PomonaQuery pq)
         {
             lock (this.syncLock)
             {
@@ -412,7 +414,7 @@ namespace Pomona.Example
                 var throwOnCalculatedPropertyVisitor = new ThrowOnCalculatedPropertyVisitor();
                 throwOnCalculatedPropertyVisitor.Visit(pq.FilterExpression);
 
-                return pq.ApplyAndExecute(queryable);
+                return new DefaultQueryExecutor().ApplyAndExecute(queryable, pq);
             }
         }
 

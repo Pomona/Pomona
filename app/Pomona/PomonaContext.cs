@@ -6,9 +6,10 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
-
-using Nancy;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -45,32 +46,30 @@ namespace Pomona
 
         public bool ExecuteQueryable { get; }
 
-        // TODO: Clean up this constructor!!
-
         public string ExpandedPaths { get; }
 
         public bool HandleException { get; }
 
-        public RequestHeaders Headers => Request.Headers;
+        public IDictionary<string, IEnumerable<string>> RequestHeaders => Request.Headers;
 
         public HttpMethod Method => Request.Method;
 
-        public UrlSegment Node { get; set; }
+        public UrlSegment Node { get; }
 
-        public dynamic Query => Request.Query;
+        public IDictionary<string, string> Query => Request.Query;
 
-        public PomonaRequest Request { get; private set; }
+        public PomonaRequest Request { get; }
 
         public Route Route => Node.Route;
 
         public IPomonaSession Session => Node.Session;
 
-        public TypeMapper TypeMapper => Node.Session.TypeMapper;
+        public TypeMapper TypeMapper => Node.Session.TypeResolver;
 
         public string Url => Request.Url;
 
 
-        public object Bind(TypeSpec type = null, object patchedObject = null)
+        public async Task<object> Bind(TypeSpec type = null, object patchedObject = null)
         {
             if (this.deserializedBody == null)
             {
@@ -79,9 +78,10 @@ namespace Pomona
 
                 if (Method == HttpMethod.Patch)
                 {
+                    // TODO: spread async further out
+                    var response = await Node.Session.Dispatch(new PomonaContext(Node, executeQueryable : true));
                     patchedObject = patchedObject
-                                    ?? Node.Session.Dispatch(new PomonaContext(Node, executeQueryable : true))
-                                           .Entity;
+                                    ?? response.Entity;
                     if (patchedObject != null)
                         type = TypeMapper.FromType(patchedObject.GetType());
                 }
@@ -120,7 +120,7 @@ namespace Pomona
 
             using (var textReader = new StreamReader(Request.Body))
             {
-                var deserializer = Session.GetInstance<ITextDeserializer>();
+                ITextDeserializer deserializer = Session.Deserializer;
                 var options = new DeserializeOptions()
                 {
                     Target = patchedObject,
@@ -132,11 +132,12 @@ namespace Pomona
         }
 
 
-        private static string GetExpandedPathsFromRequest(RequestHeaders requestHeaders, DynamicDictionary query)
+        private static string GetExpandedPathsFromRequest(IDictionary<string, IEnumerable<string>> requestHeaders, IDictionary<string, string> query)
         {
-            var expansions = requestHeaders["X-Pomona-Expand"];
-            if (query["$expand"].HasValue)
-                expansions = expansions.Append((string)query["$expand"]);
+            var expansions = requestHeaders.SafeGet("X-Pomona-Expand").EmptyIfNull();
+            string queryExpandValue;
+            if (query.TryGetValue("$expand", out queryExpandValue))
+                expansions = expansions.Append(queryExpandValue);
             var expandedPathsTemp = string.Join(",", expansions);
             return expandedPathsTemp;
         }

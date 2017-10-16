@@ -19,6 +19,6 @@ namespace Pomona
         Route Routes { get; }
         ITextSerializerFactory SerializerFactory { get; }
         TypeMapper TypeMapper { get; }
-        IPomonaSession CreateSession(IContainer container);
+        IPomonaSession CreateSession(IContainer container, IUriResolver uriResolver);
     }
 }

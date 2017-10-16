@@ -15,6 +15,7 @@ using Nancy.Testing;
 using NUnit.Framework;
 
 using Pomona.FluentMapping;
+using Pomona.Nancy;
 
 namespace Pomona.UnitTests
 {

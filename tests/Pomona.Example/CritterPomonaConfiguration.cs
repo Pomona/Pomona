@@ -23,12 +23,8 @@ namespace Pomona.Example
                 yield return new CritterFluentRules();
                 yield return new GalaxyRules();
                 yield return new GuidThingFluentRules();
+                yield return new HandledThingRules();
             }
-        }
-
-        public override IEnumerable<Type> HandlerTypes
-        {
-            get { yield return typeof(CritterDataSource); }
         }
 
         public override IEnumerable<Type> SourceTypes => CritterRepository.GetEntityTypes().Concat(new[] { typeof(GenericBaseClass<int>) });

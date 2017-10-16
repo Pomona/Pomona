@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.Routing
 {
@@ -20,6 +21,22 @@ namespace Pomona.Routing
             return new DelegateRouteAction(func, condition);
         }
 
+
+        public static RouteAction Create(Func<PomonaContext, Task<PomonaResponse>> func,
+                                         Func<PomonaContext, bool> condition = null)
+        {
+            return new AsyncDelegateRouteAction(func, condition);
+        }
+
+
+        public abstract Task<PomonaResponse> Process(PomonaContext context);
+
+
+        Task<PomonaResponse> IPomonaRequestProcessor.Process(PomonaContext context)
+        {
+            return Process(context);
+        }
+
         #region Operators
 
         public static implicit operator RouteAction(Func<PomonaContext, PomonaResponse> func)
@@ -29,8 +46,14 @@ namespace Pomona.Routing
             return Create(func);
         }
 
-        #endregion
 
-        public abstract PomonaResponse Process(PomonaContext context);
+        public static implicit operator RouteAction(Func<PomonaContext, Task<PomonaResponse>> func)
+        {
+            if (func == null)
+                return null;
+            return Create(func);
+        }
+
+        #endregion
     }
 }

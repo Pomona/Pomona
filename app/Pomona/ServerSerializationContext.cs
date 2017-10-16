@@ -20,22 +20,22 @@ namespace Pomona
 
 
         public ServerSerializationContext(
-            ITypeResolver typeMapper,
+            ITypeResolver typeResolver,
             string expandedPaths,
             bool debugMode,
             IUriResolver uriResolver,
             IContainer container
             )
         {
-            if (typeMapper == null)
-                throw new ArgumentNullException(nameof(typeMapper));
+            if (typeResolver == null)
+                throw new ArgumentNullException(nameof(typeResolver));
             if (expandedPaths == null)
                 throw new ArgumentNullException(nameof(expandedPaths));
             if (uriResolver == null)
                 throw new ArgumentNullException(nameof(uriResolver));
             if (container == null)
                 throw new ArgumentNullException(nameof(container));
-            TypeMapper = typeMapper;
+            TypeResolver = typeResolver;
             DebugMode = debugMode;
             this.uriResolver = uriResolver;
             this.container = container;
@@ -45,7 +45,7 @@ namespace Pomona
 
         public bool DebugMode { get; }
 
-        public ITypeResolver TypeMapper { get; }
+        public ITypeResolver TypeResolver { get; }
 
         internal HashSet<string> ExpandedPaths { get; }
 
@@ -68,7 +68,7 @@ namespace Pomona
 
         public TypeSpec GetClassMapping(Type type)
         {
-            return TypeMapper.FromType(type);
+            return TypeResolver.FromType(type);
         }
 
 

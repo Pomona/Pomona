@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.Serialization;
@@ -59,25 +60,6 @@ namespace Pomona.Routing
         }
 
 
-        /// <summary>
-        /// The actual result type, not only the expected one.
-        /// </summary>
-        public TypeSpec ActualResultType
-        {
-            get
-            {
-                if (this.actualResultType == null)
-                {
-                    this.actualResultType = ResultItemType
-                        .Maybe()
-                        .Switch(x => x.Case<ResourceType>(y => !y.MergedTypes.Any()).Then(y => (TypeSpec)y))
-                        .OrDefault(
-                            () => Value != null ? Session.TypeMapper.FromType(Value.GetType()) : ResultType);
-                }
-                return this.actualResultType;
-            }
-        }
-
         public ICollection<UrlSegment> Children
         {
             get
@@ -89,8 +71,6 @@ namespace Pomona.Routing
         }
 
         public string Description => ToString();
-
-        public bool Exists => Value != null;
 
         public IEnumerable<UrlSegment> FinalMatchCandidates
         {
@@ -147,15 +127,14 @@ namespace Pomona.Routing
         public IPomonaSession Session => this.tree.Session;
 
 
-        public object Get()
+        public async Task<object> GetValueAsync()
         {
-            return Session.Get(this);
-        }
-
-
-        public IQueryable Query()
-        {
-            return Session.Query(this);
+            if (!this.valueIsLoaded)
+            {
+                this.value = await Session.Get(this);
+                this.valueIsLoaded = true;
+            }
+            return this.value;
         }
 
 
@@ -165,6 +144,41 @@ namespace Pomona.Routing
                                this.AscendantsAndSelf().Select(
                                    x =>
                                        $"{x.GetPrefix()}{x.PathSegment}({x.GetTypeStringOfRoute()})").Reverse());
+        }
+
+
+        internal async Task<bool> ExistsAsync()
+        {
+            return await GetValueAsync() != null;
+        }
+
+
+        /// <summary>
+        /// The actual result type, not only the expected one.
+        /// </summary>
+        internal async Task<TypeSpec> GetActualResultTypeAsync()
+        {
+            if (this.actualResultType == null)
+            {
+                var resultItemTypeAsResourceType = ResultItemType as ResourceType;
+                if (resultItemTypeAsResourceType != null && !resultItemTypeAsResourceType.MergedTypes.Any())
+                {
+                    this.actualResultType = ResultItemType;
+                }
+                else
+                {
+                    var val = await GetValueAsync();
+                    this.actualResultType = val != null ? Session.TypeResolver.FromType(val.GetType()) : ResultType;
+                }
+            }
+            return this.actualResultType;
+        }
+
+
+        internal Task<IQueryable> QueryAsync()
+        {
+            // TODO: Spread out async, return Task<IQueryable> instead
+            return Session.Query(this);
         }
 
 
@@ -210,7 +224,7 @@ namespace Pomona.Routing
             {
                 if (!this.valueIsLoaded)
                 {
-                    this.value = Get();
+                    this.value = Task.Run(() => Session.Get(this)).Result;
                     this.valueIsLoaded = true;
                 }
                 return this.value;

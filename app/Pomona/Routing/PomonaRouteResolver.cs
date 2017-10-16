@@ -6,6 +6,10 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+using Pomona.Common.Internals;
 
 namespace Pomona.Routing
 {
@@ -24,7 +28,7 @@ namespace Pomona.Routing
         }
 
 
-        public RouteMatchTree Resolve(IPomonaSession session, string path)
+        public RouteMatchTree GetMatch(IPomonaSession session, string path)
         {
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
@@ -34,6 +38,36 @@ namespace Pomona.Routing
             var match = new RouteMatchTree(this.rootRoute, path, session);
 
             return match.MatchCount > 0 ? match : null;
+        }
+
+
+        public async Task<UrlSegment> Resolve(IPomonaSession session, PomonaRequest request)
+        {
+            var match = GetMatch(session, request.RelativePath);
+
+            if (match == null)
+                throw new ResourceNotFoundException("Resource not found.");
+
+            var finalSegmentMatch = match.Root.SelectedFinalMatch;
+            if (finalSegmentMatch == null)
+            {
+                // Route conflict resolution:
+                var node = match.Root.NextConflict;
+                while (node != null)
+                {
+                    var actualResultType = await node.GetActualResultTypeAsync();
+                    // Reduce using input type difference
+                    var validSelection =
+                        node.Children.Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
+                            .SingleOrDefaultIfMultiple();
+                    if (validSelection == null)
+                        throw new ResourceNotFoundException("No route alternative found due to conflict.");
+                    node.SelectedChild = validSelection;
+                    node = node.NextConflict;
+                }
+                finalSegmentMatch = match.Root.SelectedFinalMatch;
+            }
+            return finalSegmentMatch;
         }
     }
 }

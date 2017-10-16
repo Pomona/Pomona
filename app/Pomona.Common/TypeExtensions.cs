@@ -794,6 +794,16 @@ namespace Pomona.Common
         }
 
 
+        public static bool IsCollection(this Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+
+            Type[] _;
+            return type.TryExtractTypeArguments(typeof(ICollection<>), out _);
+        }
+
+
         private static bool ConstructorMatchesArguments(ConstructorInfo constructor, Type[] parameterTypes)
         {
             if (constructor == null)

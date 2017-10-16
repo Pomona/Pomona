@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -17,18 +18,25 @@ namespace Pomona.Routing
 {
     public class DataSourceRouteActionResolver : IRouteActionResolver
     {
-        private static IPomonaDataSource GetDataSource(IPomonaSession session)
+        private readonly Type dataSourceType;
+
+
+        public DataSourceRouteActionResolver(Type dataSourceType)
         {
-            var dataSourceType = session.Routes
-                .MaybeAs<DataSourceRootRoute>()
-                .Select(x => x.DataSource)
-                .OrDefault(typeof(IPomonaDataSource));
-            var dataSource = (IPomonaDataSource)session.GetInstance(dataSourceType);
+            if (dataSourceType == null)
+                throw new ArgumentNullException(nameof(dataSourceType));
+            this.dataSourceType = dataSourceType;
+        }
+
+
+        private IPomonaDataSource GetDataSource(IPomonaSession session)
+        {
+            var dataSource = (IPomonaDataSource)session.GetInstance(this.dataSourceType);
             return dataSource;
         }
 
 
-        private static Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
+        private Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
         {
             if (route.ResultType.IsCollection)
                 return ResolveGetCollection(route, resourceType);
@@ -36,7 +44,7 @@ namespace Pomona.Routing
         }
 
 
-        private static Func<PomonaContext, PomonaResponse> ResolveGetCollection(Route route, ResourceType resourceType)
+        private Func<PomonaContext, PomonaResponse> ResolveGetCollection(Route route, ResourceType resourceType)
         {
             var dataSourceCollectionRoute = route as DataSourceCollectionRoute;
             if (dataSourceCollectionRoute != null)
@@ -63,7 +71,7 @@ namespace Pomona.Routing
             return pr =>
             {
                 var request = pr;
-                var uriResolver = request.Session.GetInstance<IUriResolver>();
+                var uriResolver = request.Session.UriResolver;
                 var dictionary = route.Children.OfType<ILiteralRoute>()
                                       .ToDictionary(x => x.MatchValue, x => uriResolver.RelativeToAbsoluteUri(x.MatchValue));
                 var repos = new SortedDictionary<string, string>(dictionary);
@@ -73,13 +81,13 @@ namespace Pomona.Routing
         }
 
 
-        private static Func<PomonaContext, PomonaResponse> ResolvePatch(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, Task<PomonaResponse>> ResolvePatch(Route route, ResourceType resourceItemType)
         {
             if (route.IsSingle)
             {
-                return pr =>
+                return async pr =>
                 {
-                    var patchedObject = pr.Bind();
+                    var patchedObject = await pr.Bind();
                     var dataSource = GetDataSource(pr.Session);
                     var patchedType = patchedObject.GetType();
                     return new PomonaResponse(pr, dataSource.Patch(patchedType, patchedObject));
@@ -89,7 +97,7 @@ namespace Pomona.Routing
         }
 
 
-        private static Func<PomonaContext, PomonaResponse> ResolvePost(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, Task<PomonaResponse>> ResolvePost(Route route, ResourceType resourceItemType)
         {
             if (route.NodeType == PathNodeType.Collection)
                 return ResolvePostToCollection(route, resourceItemType);
@@ -97,15 +105,15 @@ namespace Pomona.Routing
         }
 
 
-        private static Func<PomonaContext, PomonaResponse> ResolvePostToCollection(Route route, ResourceType resourceItemType)
+        private Func<PomonaContext, Task<PomonaResponse>> ResolvePostToCollection(Route route, ResourceType resourceItemType)
         {
             if (route.ResultItemType is ResourceType
                 && route.ResultType.IsCollection
                 && route.Root() is DataSourceRootRoute)
             {
-                return pr =>
+                return async pr =>
                 {
-                    var form = pr.Bind(resourceItemType);
+                    var form = await pr.Bind(resourceItemType);
                     var dataSource = GetDataSource(pr.Session);
                     var entity = dataSource.Post(form.GetType(), form);
                     return new PomonaResponse(pr, entity);

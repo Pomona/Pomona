@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Pomona.RequestProcessing
 {
@@ -23,15 +24,21 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public virtual PomonaResponse Process(PomonaContext context)
+        public virtual async Task<PomonaResponse> Process(PomonaContext context)
         {
             var routeActions = context.Session.GetRouteActions(context).ToList();
-            return Before
+            var chain = Before
                 .Concat(routeActions.Where(x => x.CanProcess(context)))
                 .Concat(After)
-                .Where(x => x != null)
-                .Select(x => x.Process(context))
-                .FirstOrDefault(response => response != null);
+                .Where(x => x != null);
+
+            foreach (var processor in chain)
+            {
+                var response = await processor.Process(context);
+                if (response != null)
+                    return response;
+            }
+            return null;
         }
     }
 }

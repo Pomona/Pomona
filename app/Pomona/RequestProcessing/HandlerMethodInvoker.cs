@@ -8,8 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Nancy;
+using System.Net;
+using System.Threading.Tasks;
 
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
@@ -20,6 +20,13 @@ namespace Pomona.RequestProcessing
     public abstract class HandlerMethodInvoker<TInvokeState> : RouteAction, IHandlerMethodInvoker
         where TInvokeState : class, new()
     {
+        private static readonly Func<Type, HandlerMethodInvoker<TInvokeState>, Task, Task<object>>
+            castToObjectTask =
+                GenericInvoker.Instance<HandlerMethodInvoker<TInvokeState>>()
+                              .CreateFunc1<Task, Task<object>>(
+                                  x => x.CastToObjectTask<object>(null));
+
+
         protected HandlerMethodInvoker(HandlerMethod method)
         {
             if (method == null)
@@ -39,13 +46,13 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public override PomonaResponse Process(PomonaContext context)
+        public override Task<PomonaResponse> Process(PomonaContext context)
         {
             return InvokeAndWrap(context);
         }
 
 
-        protected virtual object OnGetArgument(HandlerParameter parameter, PomonaContext context, TInvokeState state)
+        protected virtual async Task<object> OnGetArgument(HandlerParameter parameter, PomonaContext context, TInvokeState state)
         {
             if (parameter.IsResource)
             {
@@ -54,7 +61,7 @@ namespace Pomona.RequestProcessing
                     .Ascendants()
                     .FirstOrDefault(x => x.ResultType == parameter.TypeSpec);
                 if (parentNode != null)
-                    return parentNode.Value;
+                    return await parentNode.GetValueAsync();
             }
 
             if (parameter.Type == typeof(PomonaContext))
@@ -78,7 +85,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected virtual object OnInvoke(object target, PomonaContext context, TInvokeState state)
+        protected virtual async Task<object> OnInvoke(object target, PomonaContext context, TInvokeState state)
         {
             var args = new object[Parameters.Count];
 
@@ -87,18 +94,35 @@ namespace Pomona.RequestProcessing
                 //else if (resourceIdArg != null && p.Type == resourceIdArg.GetType())
                 //    args[i] = resourceIdArg;
                 //else
-                args[i] = OnGetArgument(Parameters[i], context, state);
+                args[i] = await OnGetArgument(Parameters[i], context, state);
             }
 
-            return Method.MethodInfo.Invoke(target, args);
+            var result = Method.MethodInfo.Invoke(target, args);
+
+            if (Method.IsAsync)
+            {
+                if (Method.UnwrappedReturnType == typeof(void))
+                {
+                    return await ((Task)result).ContinueWith(x => PomonaResponse.NoBodyEntity);
+                }
+                return await castToObjectTask(Method.UnwrappedReturnType, this, (Task)result);
+            }
+            return result;
         }
 
 
-        private PomonaResponse InvokeAndWrap(PomonaContext context,
-                                             HttpStatusCode? statusCode = null)
+        private async Task<object> CastToObjectTask<TResult>(Task<TResult> task)
+        {
+            return await task;
+        }
+
+
+        private async Task<PomonaResponse> InvokeAndWrap(PomonaContext context,
+                                                         HttpStatusCode? statusCode = null)
         {
             var handler = context.Session.GetInstance(Method.MethodInfo.ReflectedType);
-            var result = Invoke(handler, context);
+            var result = await Invoke(handler, context);
+
             var resultAsResponse = result as PomonaResponse;
             if (resultAsResponse != null)
                 return resultAsResponse;
@@ -114,7 +138,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        public virtual object Invoke(object target, PomonaContext context)
+        public virtual Task<object> Invoke(object target, PomonaContext context)
         {
             return OnInvoke(target, context, new TInvokeState());
         }

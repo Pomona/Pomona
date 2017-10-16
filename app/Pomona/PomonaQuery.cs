@@ -12,8 +12,7 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-
-using Nancy;
+using System.Net;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -57,7 +56,6 @@ namespace Pomona
 
         public int Top { get; set; }
         public string Url { get; set; }
-
 
         public IQueryable ApplyExpressions(IQueryable queryable)
         {
