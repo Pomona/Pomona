@@ -51,7 +51,7 @@ namespace Pomona.UnitTests
             Assert.That(errorCount, Is.EqualTo(0));
         }
 
-
+        [Ignore("Not applicable with new csproj format (as all files are included by default)")]
         [Test]
         public void AllCsFilesAreIncludedInProjects()
         {
