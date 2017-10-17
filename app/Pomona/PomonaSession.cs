@@ -29,6 +29,7 @@ namespace Pomona
         {
             if (factory == null)
                 throw new ArgumentNullException(nameof(factory));
+
             Factory = factory;
             this.container = container;
         }
@@ -41,7 +42,7 @@ namespace Pomona
 
             if (context.Session != this)
                 throw new ArgumentException("Request session is not same as this.");
-            
+
             var savedOuterContext = CurrentContext;
             try
             {
@@ -117,8 +118,8 @@ namespace Pomona
                     var actualResultType = node.ActualResultType;
                     // Reduce using input type difference
                     var validSelection = node.Children
-                            .Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
-                            .SingleOrDefaultIfMultiple();
+                                             .Where(x => x.Route.InputType.IsAssignableFrom(actualResultType))
+                                             .SingleOrDefaultIfMultiple();
                     if (validSelection == null)
                         throw new ResourceNotFoundException("No route alternative found due to conflict.");
                     node.SelectedChild = validSelection;
@@ -132,11 +133,8 @@ namespace Pomona
 
         private PomonaQuery ParseQuery(PomonaContext context, Type rootType, int? defaultPageSize = null)
         {
-            var queryPropertyResolver = new QueryTypeResolver(TypeMapper);
-            var queryExpressionParser = new QueryExpressionParser(queryPropertyResolver);
-            var queryTransformer = new PomonaHttpQueryTransformer(TypeMapper, queryExpressionParser);
             var structuredType = (ResourceType)TypeMapper.FromType(rootType);
-            return queryTransformer.TransformRequest(context, structuredType, defaultPageSize);
+            return this.GetQueryTransformer().TransformRequest(context, structuredType, defaultPageSize);
         }
 
 

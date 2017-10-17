@@ -11,14 +11,29 @@ using System.Linq;
 using Nancy;
 using Nancy.Extensions;
 
+using Pomona.Queries;
 using Pomona.Routing;
 
 namespace Pomona
 {
+    /// <summary>
+    /// Extension methods for <see cref="IPomonaSession"/>
+    /// </summary>
     public static class PomonaSessionExtensions
     {
+        /// <summary>
+        /// Gets a <see cref="PomonaResponse"/> for the given <paramref name="url"/>.
+        /// </summary>
+        /// <param name="session">The <see cref="IPomonaSession"/> instance.</param>
+        /// <param name="url">The URL to create a <see cref="PomonaResponse"/> for.</param>
+        /// <returns>
+        /// A <see cref="PomonaResponse"/> for the given <paramref name="url"/>.
+        /// </returns>
         public static PomonaResponse Get(this IPomonaSession session, string url)
         {
+            if (session == null)
+                throw new ArgumentNullException(nameof(session));
+
             // TODO: Move this to some other class.
 
             string urlWithoutQueryPart = url;
@@ -33,6 +48,25 @@ namespace Pomona
             var relativePath = session.GetInstance<IUriResolver>().ToRelativePath(urlWithoutQueryPart);
             var req = new PomonaRequest(url, relativePath, query : query);
             return session.Dispatch(req);
+        }
+
+
+        /// <summary>
+        /// Gets a <see cref="PomonaHttpQueryTransformer"/> from the <paramref name="session"/>.
+        /// </summary>
+        /// <param name="session">The <see cref="IPomonaSession"/> from which to get a <see cref="PomonaHttpQueryTransformer"/>.</param>
+        /// <returns>
+        /// A <see cref="PomonaHttpQueryTransformer"/> from the <paramref name="session"/>.
+        /// </returns>
+        public static PomonaHttpQueryTransformer GetQueryTransformer(this IPomonaSession session)
+        {
+            if (session == null)
+                throw new ArgumentNullException(nameof(session));
+
+            var typeMapper = session.Factory.TypeMapper;
+            var queryPropertyResolver = new QueryTypeResolver(typeMapper);
+            var queryExpressionParser = new QueryExpressionParser(queryPropertyResolver);
+            return new PomonaHttpQueryTransformer(typeMapper, queryExpressionParser);
         }
 
 
