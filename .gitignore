@@ -134,3 +134,10 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# Vagrant
+.vagrant
+
+# Test results
+TestResult.*.xml
+
