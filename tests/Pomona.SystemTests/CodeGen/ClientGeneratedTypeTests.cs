@@ -381,6 +381,13 @@ namespace Pomona.SystemTests.CodeGen
             Assert.That(ClientAssembly.GetTypes().Any(x => x.FullName == "Donkey.Kong"), Is.True);
         }
 
+        
+        [Test]
+        [Category("TODO")]
+        public void ThingWithInterfaceOnServerHasInterfaceOnClient()
+        {
+            Assert.That(typeof(IIInterfaceOfThings).IsAssignableFrom(typeof(IThingWithInterface)));
+        }
 
         protected bool IsAllowedType(Type t)
         {
