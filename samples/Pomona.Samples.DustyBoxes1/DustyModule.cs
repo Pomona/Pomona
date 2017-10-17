@@ -5,6 +5,8 @@
 
 #endregion
 
+using Pomona.Nancy;
+
 namespace Pomona.Samples.DustyBoxes
 {
     // SAMPLE: dusty-module

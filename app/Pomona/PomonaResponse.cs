@@ -8,45 +8,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
-using Nancy;
-
+using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
 namespace Pomona
 {
-    public class PomonaResponse<T> : PomonaResponse
-    {
-        public PomonaResponse(T entity,
-                              HttpStatusCode statusCode = HttpStatusCode.OK,
-                              string expandedPaths = "",
-                              TypeSpec resultType = null,
-                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
-            : base(entity, statusCode, expandedPaths, resultType, responseHeaders)
-        {
-        }
-
-
-        public PomonaResponse(PomonaQuery query, T entity)
-            : base(query, entity)
-        {
-        }
-
-
-        public PomonaResponse(PomonaQuery query, T entity, HttpStatusCode statusCode)
-            : base(query, entity, statusCode)
-        {
-        }
-
-
-        public new T Entity => (T)base.Entity;
-    }
-
     public class PomonaResponse
     {
-        internal static readonly object NoBodyEntity;
-
-
         static PomonaResponse()
         {
             NoBodyEntity = new object();
@@ -58,7 +28,7 @@ namespace Pomona
                               HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               TypeSpec resultType = null,
-                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+                              IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders = null)
             : this(entity, statusCode, GetExpandedPaths(context, expandedPaths), resultType, responseHeaders)
         {
         }
@@ -74,15 +44,13 @@ namespace Pomona
                               HttpStatusCode statusCode = HttpStatusCode.OK,
                               string expandedPaths = "",
                               TypeSpec resultType = null,
-                              IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+                              IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders = null)
         {
             Entity = entity;
             StatusCode = statusCode;
             ExpandedPaths = expandedPaths;
             ResultType = resultType;
-
-            if (responseHeaders != null)
-                ResponseHeaders = responseHeaders.ToList();
+            Headers = responseHeaders.EmptyIfNull().ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
         }
 
 
@@ -102,7 +70,8 @@ namespace Pomona
 
         public string ExpandedPaths { get; }
 
-        public List<KeyValuePair<string, string>> ResponseHeaders { get; }
+        public IDictionary<string, IEnumerable<string>> Headers { get; }
+        public static object NoBodyEntity { get; }
 
         public TypeSpec ResultType { get; }
 

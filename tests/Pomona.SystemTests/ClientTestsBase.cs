@@ -25,7 +25,12 @@ using Pomona.UnitTests.Client;
 
 namespace Pomona.SystemTests
 {
-    public class ClientTestsBase : CritterServiceTestsBase<CritterClient>
+    public class ClientTestsBase : ClientTestsBase<CritterBootstrapper>
+    {
+    }
+
+    public class ClientTestsBase<TBootstrapper> : CritterServiceTestsBase<CritterClient, TBootstrapper>
+        where TBootstrapper : CritterBootstrapper, new()
     {
         protected List<ClientRequestLogEventArgs> RequestLog { get; } = new List<ClientRequestLogEventArgs>();
 

@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 
-namespace Pomona
+namespace Pomona.Nancy
 {
     /// <summary>
     /// Class responsible for keeping a map of session factories related to modules.

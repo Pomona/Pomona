@@ -13,6 +13,13 @@ branches:
     increment: Patch
     # When minting version number for feature branches, track the merge target branch (effectively master), so its tags will be considered for the versioning of the feature branch.
     track-merge-target: true
+  future:
+    # Only increment patch (minor is default) so it's easy to only increment patch in master without an older build from a feature branch being considered newer.
+    mode: ContinuousDeployment
+    increment: Patch
+    # When minting version number for feature branches, track the merge target branch (effectively master), so its tags will be considered for the versioning of the feature branch.
+    track-merge-target: true
+    tag: 'future'
   develop:
     # Only increment patch (minor is default) so it's easy to only increment patch in master without an older build from develop being considered newer.
     increment: Patch

@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
 // project's repository, or alternatively at http://pomona.io/
@@ -6,12 +6,16 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Nancy;
 
 using Pomona.Common;
 
-namespace Pomona.Routing
+namespace Pomona.Nancy
 {
     internal class PomonaEngine
     {
@@ -27,7 +31,7 @@ namespace Pomona.Routing
         }
 
 
-        public PomonaResponse Handle(NancyContext context, string modulePath)
+        public async Task<PomonaResponse> Handle(NancyContext context, string modulePath, CancellationToken cancellationToken)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
@@ -41,9 +45,10 @@ namespace Pomona.Routing
                                             httpMethod,
                                             context.Request.Headers,
                                             context.Request.Body,
-                                            context.Request.Query);
+                                            ((IDictionary<string, object>)context.Request.Query).ToDictionary(x => x.Key,
+                                                                                                              x => x.Value.ToString()));
 
-            return this.session.Dispatch(request);
+            return await this.session.Dispatch(request);
         }
     }
 }

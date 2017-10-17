@@ -7,6 +7,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common.TypeSystem;
 
@@ -31,11 +32,11 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnGetArgument(HandlerParameter parameter, PomonaContext context, object state)
+        protected override async Task<object> OnGetArgument(HandlerParameter parameter, PomonaContext context, object state)
         {
             if (parameter == this.resourceParameter)
-                return context.Node.Value;
-            return base.OnGetArgument(parameter, context, state);
+                return await context.Node.GetValueAsync();
+            return await base.OnGetArgument(parameter, context, state);
         }
     }
 }

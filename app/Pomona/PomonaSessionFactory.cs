@@ -32,9 +32,9 @@ namespace Pomona
         public IRouteActionResolver ActionResolver { get; }
 
 
-        public IPomonaSession CreateSession(IContainer container)
+        public IPomonaSession CreateSession(IContainer container, IUriResolver uriResolver)
         {
-            return new PomonaSession(this, container);
+            return new PomonaSession(this, container, uriResolver);
         }
 
 

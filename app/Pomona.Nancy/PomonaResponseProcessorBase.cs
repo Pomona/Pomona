@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
 // project's repository, or alternatively at http://pomona.io/
@@ -18,7 +18,9 @@ using Pomona.Common.Serialization;
 using Pomona.Common.TypeSystem;
 using Pomona.Routing;
 
-namespace Pomona
+using NancyHttpStatusCode = Nancy.HttpStatusCode;
+
+namespace Pomona.Nancy
 {
     /// <summary>
     /// Default response processor base class for Pomona.
@@ -95,7 +97,7 @@ namespace Pomona
         private ITextSerializer GetSerializer(NancyContext context)
         {
             return GetSerializerFactory(context)
-                .GetSerializer(context.GetPomonaSession().GetInstance<ISerializationContextProvider>());
+                .GetSerializer(context.GetPomonaSession().SerializationContextProvider);
         }
 
 
@@ -128,7 +130,7 @@ namespace Pomona
             var pomonaResponse = (PomonaResponse)model;
 
             if (pomonaResponse.Entity == PomonaResponse.NoBodyEntity)
-                return new Response { StatusCode = pomonaResponse.StatusCode };
+                return new Response { StatusCode = (HttpStatusCode)pomonaResponse.StatusCode };
 
             var serializer = GetSerializer(context);
             var serializeOptions = new SerializeOptions
@@ -163,13 +165,16 @@ namespace Pomona
                         }
                     },
                     ContentType = ContentType,
-                    StatusCode = pomonaResponse.StatusCode
+                    StatusCode = (NancyHttpStatusCode)pomonaResponse.StatusCode
                 };
 
-                if (pomonaResponse.ResponseHeaders != null)
+                if (pomonaResponse.Headers != null)
                 {
-                    foreach (var kvp in pomonaResponse.ResponseHeaders)
-                        response.Headers.Add(kvp);
+                    foreach (var kvp in pomonaResponse.Headers)
+                    {
+                        foreach (var headerValue in kvp.Value)
+                            response.Headers.Add(kvp.Key, headerValue);
+                    }
                 }
 
                 // Add etag header

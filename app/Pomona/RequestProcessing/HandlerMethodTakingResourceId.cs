@@ -5,6 +5,8 @@
 
 #endregion
 
+using System.Threading.Tasks;
+
 using Pomona.Common.Internals;
 using Pomona.Common.TypeSystem;
 
@@ -18,7 +20,7 @@ namespace Pomona.RequestProcessing
         }
 
 
-        protected override object OnGetArgument(HandlerParameter parameter, PomonaContext context, object state)
+        protected override Task<object> OnGetArgument(HandlerParameter parameter, PomonaContext context, object state)
         {
             var node = context.Node;
             var resourceResultType = node.Route.ResultItemType as ResourceType;
@@ -30,7 +32,7 @@ namespace Pomona.RequestProcessing
                     object parsedId;
                     if (!node.PathSegment.TryParse(primaryIdType, out parsedId))
                         throw new HandlerMethodInvocationException(context, this, "Unable to parse id from url segment");
-                    return parsedId;
+                    return Task.FromResult(parsedId);
                 }
             }
             return base.OnGetArgument(parameter, context, state);

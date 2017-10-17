@@ -112,6 +112,7 @@
     <Compile Include="ExtraDataTests.cs" />
     <Compile Include="GetFromUriTests.cs" />
     <Compile Include="GetHtmlFormattedJsonTests.cs" />
+    <Compile Include="Handlers\AsyncResourceHandlerTests.cs" />
     <Compile Include="Handlers\ResourceHandlerTests.cs" />
     <Compile Include="HttpWebRequestClientTests.cs" />
     <Compile Include="ClientTestsBase.cs" />
@@ -131,7 +132,6 @@
     <Compile Include="RootResourceTests.cs" />
     <Compile Include="Serialization\JsonSerializationTests.cs" />
     <Compile Include="Serialization\JsonServerSerializationTests.cs" />
-    <Compile Include="TestingClient\TestingClientTests.cs" />
     <Compile Include="TypeSystem\ClientTypeMapperTests.cs" />
     <Compile Include="VirtualPropertyTests.cs" />
   </ItemGroup>
@@ -139,6 +139,10 @@
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona.Nancy\Pomona.Nancy.csproj">
+      <Project>{ca7980dc-54a7-4b8b-840c-54c56cf5d9c8}</Project>
+      <Name>Pomona.Nancy</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pomona.Example\Pomona.Example.csproj">
       <Project>{2C37DEDE-F3CF-4CF2-BC9A-84FBD7EB39A0}</Project>
@@ -151,10 +155,6 @@
     <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
       <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>
       <Name>Pomona</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Pomona.TestingClient\Pomona.TestingClient.csproj">
-      <Project>{1b2e04f3-434d-41d5-98f3-d4c8dd95ac12}</Project>
-      <Name>Pomona.TestingClient</Name>
     </ProjectReference>
     <ProjectReference Include="..\Pomona.UnitTests\Pomona.UnitTests.csproj">
       <Project>{093DC2AB-B78C-481F-970E-2857338541B1}</Project>

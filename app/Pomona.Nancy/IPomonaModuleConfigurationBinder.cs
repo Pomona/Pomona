@@ -5,7 +5,7 @@
 
 #endregion
 
-namespace Pomona
+namespace Pomona.Nancy
 {
     /// <summary>
     /// Interface responsible for keeping a map of session factories related to modules.

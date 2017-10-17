@@ -67,7 +67,9 @@
     <Compile Include="..\..\app\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AsyncHandledThingsHandler.cs" />
     <Compile Include="CritterBootstrapper.cs" />
+    <Compile Include="CritterErrorHandler.cs" />
     <Compile Include="CritterRepository.cs" />
     <Compile Include="CritterHost.cs" />
     <Compile Include="CritterModule.cs" />
@@ -178,8 +180,10 @@
     <Compile Include="Models\WebColor.cs" />
     <Compile Include="NotKnownToDataSourceAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rules\AsyncHandledThingRules.cs" />
     <Compile Include="Rules\CritterFluentRules.cs" />
     <Compile Include="Rules\GalaxyRules.cs" />
+    <Compile Include="Rules\HandledThingRules.cs" />
     <Compile Include="SimpleExtraSite\SimpleDataSource.cs" />
     <Compile Include="SimpleExtraSite\SimpleExtraData.cs" />
     <Compile Include="SimpleExtraSite\SimpleExtraModule.cs" />
@@ -193,6 +197,10 @@
     <ProjectReference Include="..\..\app\Pomona.Common\Pomona.Common.csproj">
       <Project>{94E7B042-6595-46F8-9400-897058E76E91}</Project>
       <Name>Pomona.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\app\Pomona.Nancy\Pomona.Nancy.csproj">
+      <Project>{ca7980dc-54a7-4b8b-840c-54c56cf5d9c8}</Project>
+      <Name>Pomona.Nancy</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
       <Project>{EE396A59-956E-4DEE-B222-991F2274ED67}</Project>

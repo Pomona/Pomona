@@ -5,6 +5,8 @@
 
 #endregion
 
+using Pomona.Nancy;
+
 namespace Pomona.Example.SimpleExtraSite
 {
     [PomonaConfiguration(typeof(SimplePomonaConfiguration))]

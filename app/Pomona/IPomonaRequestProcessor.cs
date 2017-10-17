@@ -5,10 +5,12 @@
 
 #endregion
 
+using System.Threading.Tasks;
+
 namespace Pomona
 {
     public interface IPomonaRequestProcessor
     {
-        PomonaResponse Process(PomonaContext context);
+        Task<PomonaResponse> Process(PomonaContext context);
     }
 }

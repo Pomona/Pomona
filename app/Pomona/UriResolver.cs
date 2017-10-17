@@ -15,16 +15,18 @@ namespace Pomona
     public class UriResolver : IUriResolver
     {
         private readonly IBaseUriProvider baseUriProvider;
-        private readonly ITypeResolver typeMapper;
+        private readonly ITypeResolver typeResolver;
 
 
-        public UriResolver(ITypeResolver typeMapper, IBaseUriProvider baseUriProvider)
+        public UriResolver(ITypeResolver typeResolver, IBaseUriProvider baseUriProvider)
         {
-            if (typeMapper == null)
-                throw new ArgumentNullException(nameof(typeMapper));
+            if (typeResolver == null)
+                throw new ArgumentNullException(nameof(typeResolver));
+
             if (baseUriProvider == null)
                 throw new ArgumentNullException(nameof(baseUriProvider));
-            this.typeMapper = typeMapper;
+
+            this.typeResolver = typeResolver;
             this.baseUriProvider = baseUriProvider;
         }
 
@@ -40,7 +42,7 @@ namespace Pomona
         private void BuildRelativeUri(object entity, PropertySpec property, StringBuilder sb)
         {
             var entityType = entity.GetType();
-            var type = this.typeMapper.FromType(entityType) as ResourceType;
+            var type = this.typeResolver.FromType(entityType) as ResourceType;
             if (type == null)
                 throw new InvalidOperationException($"Can't get URI for {entityType}; can only get Uri for a ResourceType.");
 
@@ -69,19 +71,29 @@ namespace Pomona
 
         public virtual string RelativeToAbsoluteUri(string path)
         {
-            var baseUri = this.baseUriProvider.BaseUri.ToString();
-            return $"{baseUri}{((baseUri.EndsWith("/") || path == string.Empty) ? string.Empty : "/")}{path}";
+            var baseUrl = GetBaseUrl();
+            return $"{baseUrl}{((baseUrl.EndsWith("/") || path == string.Empty) ? string.Empty : "/")}{path}";
         }
 
 
         public string ToRelativePath(string url)
         {
-            var baseUrl = this.baseUriProvider.BaseUri.ToString().TrimEnd('/');
-            if (
-                !(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase)
+            var baseUrl = GetBaseUrl().TrimEnd('/');
+            if (!(url.StartsWith(baseUrl, StringComparison.OrdinalIgnoreCase)
                   && (baseUrl.Length == url.Length || url[baseUrl.Length] == '/')))
                 throw new ArgumentException("Url does not have the correct base url.", nameof(url));
             return url.Substring(baseUrl.Length);
+        }
+
+
+        private string GetBaseUrl()
+        {
+            var baseUri = this.baseUriProvider.BaseUri;
+
+            if (baseUri == null)
+                throw new InvalidOperationException($"{this.baseUriProvider.GetType()}.BaseUri is null.");
+
+            return baseUri.ToString();
         }
     }
 }

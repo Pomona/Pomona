@@ -7,8 +7,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
-using Nancy;
 
 namespace Pomona
 {
@@ -22,7 +22,7 @@ namespace Pomona
 
         public PomonaError(HttpStatusCode statusCode,
                            object entity,
-                           IEnumerable<KeyValuePair<string, string>> responseHeaders = null)
+                           IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseHeaders = null)
         {
             StatusCode = statusCode;
             Entity = entity;
@@ -33,7 +33,7 @@ namespace Pomona
 
         public object Entity { get; }
 
-        public List<KeyValuePair<string, string>> ResponseHeaders { get; }
+        public IEnumerable<KeyValuePair<string, IEnumerable<string>>> ResponseHeaders { get; }
 
         public HttpStatusCode StatusCode { get; }
     }

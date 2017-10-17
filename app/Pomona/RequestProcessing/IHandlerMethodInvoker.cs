@@ -6,12 +6,13 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace Pomona.RequestProcessing
 {
     public interface IHandlerMethodInvoker
     {
         Type ReturnType { get; }
-        object Invoke(object target, PomonaContext context);
+        Task<object> Invoke(object target, PomonaContext context);
     }
 }

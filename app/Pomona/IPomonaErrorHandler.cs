@@ -9,7 +9,7 @@ using System;
 
 namespace Pomona
 {
-    internal interface IPomonaErrorHandler
+    public interface IPomonaErrorHandler
     {
         PomonaError HandleException(Exception exception);
     }

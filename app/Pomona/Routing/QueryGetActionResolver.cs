@@ -9,6 +9,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Pomona.Common;
 using Pomona.Common.Expressions;
@@ -32,7 +33,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaContext, PomonaResponse> ResolveGet(Route route, ResourceType resourceType)
+        protected virtual Func<PomonaContext, Task<PomonaResponse>> ResolveGet(Route route, ResourceType resourceType)
         {
             if (route.ResultType.IsCollection)
                 return ResolveGetCollection(route, resourceType);
@@ -40,25 +41,25 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetById(GetByIdRoute route,
+        protected virtual Func<PomonaContext, Task<PomonaResponse>> ResolveGetById(GetByIdRoute route,
                                                                              ResourceType resourceType)
         {
             var idProp = route.IdProperty;
             var idType = idProp.PropertyType;
-            return pr =>
+
+            return async pr =>
             {
                 var segmentValue = pr.Node.PathSegment.Parse(idType);
                 var segmentExpression = Ex.Const(segmentValue, idType);
-                var whereExpression = pr.Node.Parent
-                                        .Query()
-                                        .WhereEx(ex => ex.Apply(idProp.CreateGetterExpression) == segmentExpression);
+                var queryable = await pr.Node.Parent.QueryAsync();
+                var whereExpression = queryable.WhereEx(ex => ex.Apply(idProp.CreateGetterExpression) == segmentExpression);
                 var queryableResult = whereExpression.WrapActionResult(QueryProjection.FirstOrDefault);
                 return new PomonaResponse(pr, queryableResult);
             };
         }
 
 
-        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetCollection(Route route,
+        protected virtual Func<PomonaContext, Task<PomonaResponse>> ResolveGetCollection(Route route,
                                                                                    ResourceType resourceType)
         {
             var propertyRoute = route as ResourcePropertyRoute;
@@ -68,26 +69,25 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetCollectionProperty(ResourcePropertyRoute route,
+        protected virtual Func<PomonaContext, Task<PomonaResponse>> ResolveGetCollectionProperty(ResourcePropertyRoute route,
                                                                                            ResourceProperty property,
                                                                                            ResourceType resourceItemType)
         {
             if (this.capabilityResolver.PropertyIsMapped(property.PropertyInfo) || property.GetPropertyFormula() != null)
             {
                 return
-                    pr =>
+                    async pr =>
                     {
                         // Check existance of parent here, cannot differentiate between an empty collection and not found.
                         var parent = pr.Node.Parent;
                         if (parent.Route.IsSingle)
                         {
-                            if (!parent.Exists)
+                            if (!await parent.ExistsAsync())
                                 throw new ResourceNotFoundException("Resource not found.");
                         }
 
                         return new PomonaResponse(
-                            parent
-                                .Query()
+                            (await parent.QueryAsync())
                                 .OfTypeIfRequired(pr.Node.Route.InputType)
                                 .SelectManyEx(x => x.Apply(property.CreateGetterExpression))
                                 .WrapActionResult(defaultPageSize : property.ExposedAsRepository ? (int?)null : int.MaxValue));
@@ -96,14 +96,13 @@ namespace Pomona.Routing
             else
             {
                 return
-                    pr =>
+                    async pr =>
                     {
                         var parentNode = pr.Node.Parent;
                         if (parentNode.Route.IsSingle)
-                            return new PomonaResponse(((IEnumerable)property.GetValue(parentNode.Get())).AsQueryable());
+                            return new PomonaResponse(((IEnumerable)property.GetValue(await parentNode.GetValueAsync())).AsQueryable());
                         return new PomonaResponse(
-                            pr.Node.Parent
-                              .Query()
+                            (await pr.Node.Parent.QueryAsync())
                               .OfTypeIfRequired(pr.Node.Route.InputType)
                               .ToListDetectType()
                               .AsQueryable()
@@ -114,7 +113,7 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetSingle(Route route, ResourceType resourceType)
+        protected virtual Func<PomonaContext, Task<PomonaResponse>> ResolveGetSingle(Route route, ResourceType resourceType)
         {
             var getByIdRoute = route as GetByIdRoute;
             if (getByIdRoute != null && !getByIdRoute.IsRoot)
@@ -128,14 +127,14 @@ namespace Pomona.Routing
         }
 
 
-        protected virtual Func<PomonaContext, PomonaResponse> ResolveGetSingleProperty(ResourcePropertyRoute route,
+        protected virtual Func<PomonaContext, Task<PomonaResponse>> ResolveGetSingleProperty(ResourcePropertyRoute route,
                                                                                        StructuredProperty property,
                                                                                        ResourceType resourceType)
         {
             return
-                pr =>
+                async pr =>
                     new PomonaResponse(pr,
-                                       pr.Node.Parent.Query()
+                                       (await pr.Node.Parent.QueryAsync())
                                          .SelectEx(x => x.Apply(property.CreateGetterExpression))
                                          .WrapActionResult(QueryProjection.FirstOrDefault));
         }

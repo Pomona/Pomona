@@ -9,20 +9,20 @@ using System;
 
 using Nancy;
 
-namespace Pomona
+namespace Pomona.Nancy
 {
     public class BaseUriProvider : IBaseUriProvider
     {
         private readonly NancyContext context;
-        private readonly string pomonaroot;
+        private readonly string modulePath;
 
 
-        public BaseUriProvider(NancyContext context, string pomonaRoot)
+        public BaseUriProvider(NancyContext context, string modulePath)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
             this.context = context;
-            this.pomonaroot = pomonaRoot;
+            this.modulePath = modulePath;
         }
 
 
@@ -32,7 +32,7 @@ namespace Pomona
             {
                 var request = this.context.Request;
                 var appUrl = request.Url.BasePath ?? string.Empty;
-                var uriString = $"{request.Url.Scheme}://{request.Url.HostName}:{request.Url.Port}{appUrl}{this.pomonaroot}";
+                var uriString = $"{request.Url.Scheme}://{request.Url.HostName}:{request.Url.Port}{appUrl}{this.modulePath}";
 
                 return new Uri(uriString);
             }

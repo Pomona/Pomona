@@ -7,9 +7,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Runtime.Serialization;
-
-using Nancy;
 
 namespace Pomona
 {

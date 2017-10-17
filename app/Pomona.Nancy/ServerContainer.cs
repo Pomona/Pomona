@@ -11,7 +11,7 @@ using Nancy;
 
 using Pomona.Common.TypeSystem;
 
-namespace Pomona
+namespace Pomona.Nancy
 {
     internal class ServerContainer : IContainer
     {

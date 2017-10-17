@@ -10,8 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-
-using Nancy;
+using System.Net;
 
 using Pomona.Common;
 using Pomona.Common.Internals;
@@ -45,7 +44,7 @@ namespace Pomona.Routing
             if (!route.AllowedMethods.HasFlag(method))
             {
                 return
-                    RouteAction.Create(pr => ThrowMethodNotAllowedForType(method, route.AllowedMethods)).WrapAsArray();
+                    ((RouteAction)new DelegateRouteAction(pr => ThrowMethodNotAllowedForType(method, route.AllowedMethods), null)).WrapAsArray();
             }
 
             var routeActions = this.nestedActionResolvers
@@ -53,12 +52,12 @@ namespace Pomona.Routing
             if (routeActions.Count > 0)
                 return routeActions;
 
-            return RouteAction.Create(x =>
+            return ((RouteAction)new DelegateRouteAction(x =>
             {
                 throw new PomonaServerException("Unable to resolve action for route.",
                                                 null,
                                                 statusCode : HttpStatusCode.Forbidden);
-            }).WrapAsArray();
+            }, null)).WrapAsArray();
         }
 
 

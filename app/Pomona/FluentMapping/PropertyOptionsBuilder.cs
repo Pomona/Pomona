@@ -8,8 +8,6 @@
 using System;
 using System.Linq.Expressions;
 
-using Nancy.Extensions;
-
 using Pomona.Common;
 using Pomona.Common.TypeSystem;
 
