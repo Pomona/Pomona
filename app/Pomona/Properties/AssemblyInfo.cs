@@ -12,9 +12,8 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("Pomona")]
-[assembly : AssemblyDescription("Core library for exposing a web service through Pomona.")]
-
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
 [assembly : Guid("62597328-c749-46fe-8029-e508e0030034")]
+
+[assembly: System.CLSCompliant(false)]

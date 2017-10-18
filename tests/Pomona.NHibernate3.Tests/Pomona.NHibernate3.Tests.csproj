@@ -93,10 +93,6 @@
       <Project>{94e7b042-6595-46f8-9400-897058e76e91}</Project>
       <Name>Pomona.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\app\Pomona.NHibernate3\Pomona.NHibernate3.csproj">
-      <Project>{7820ed76-df9e-47e3-b122-d2d286603762}</Project>
-      <Name>Pomona.NHibernate3</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\app\Pomona\Pomona.csproj">
       <Project>{ee396a59-956e-4dee-b222-991f2274ed67}</Project>
       <Name>Pomona</Name>
