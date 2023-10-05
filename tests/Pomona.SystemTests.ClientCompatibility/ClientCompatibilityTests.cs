@@ -1,7 +1,7 @@
 ﻿#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -23,7 +23,7 @@ namespace Pomona.SystemTests.ClientCompatibility
 {
     /// <summary>
     /// These tests checks client compatibility with old generated clients.
-    /// 
+    ///
     /// This was introduced during transition to the async HttpClient.
     /// </summary>
     [TestFixture]
@@ -112,3 +112,4 @@ namespace Pomona.SystemTests.ClientCompatibility
         }
     }
 }
+

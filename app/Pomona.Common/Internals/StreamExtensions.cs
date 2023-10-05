@@ -1,7 +1,7 @@
-﻿#region License
+#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -16,7 +16,7 @@ namespace Pomona.Common.Internals
         /// Reads the contents of the stream into a byte array.
         /// data is returned as a byte array. An IOException is
         /// thrown if any of the underlying IO calls fail.
-        /// 
+        ///
         /// (this method was taken from http://geekswithblogs.net/sdorman/archive/2009/01/10/reading-all-bytes-from-a-stream.aspx)
         /// </summary>
         /// <param name="source">The stream to read.</param>

@@ -1,7 +1,7 @@
 #region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -207,7 +207,7 @@ namespace Pomona.UnitTests.FluentMapping
                 "TODO: Test that explicit inclusion mode throws exception if not all properties are accounted for.");
         }
 
-        
+
 
         [Test]
         public void WithPluralName_OverridesDefaultNameOfType()

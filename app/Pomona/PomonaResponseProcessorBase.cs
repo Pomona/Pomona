@@ -1,7 +1,7 @@
 ﻿#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -75,7 +75,7 @@ namespace Pomona
             foreach (var route in routesWithMetadata)
             {
                 var metadata = route.Metadata.Retrieve<PomonaRouteMetadata>();
-                var rel = String.Concat("http://pomona.io/rel/", metadata.Relation);
+                var rel = String.Concat("https://pomona.rest/rel/", metadata.Relation);
                 var contentType = metadata.ContentType;
                 var methods = metadata.Method.ToString().ToUpperInvariant();
                 var href = context.Request.Url.BasePath + route.Path;
@@ -193,3 +193,4 @@ namespace Pomona
         }
     }
 }
+

@@ -1,7 +1,7 @@
 ﻿#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -56,7 +56,7 @@ namespace Pomona.TestHelpers
         public NetworkCredential Credentials { get; set; }
 
 
-        
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var nancyRequest = await MapNancyRequest(request);
@@ -117,3 +117,4 @@ namespace Pomona.TestHelpers
         }
     }
 }
+

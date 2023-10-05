@@ -1,4 +1,4 @@
-![Pōmōna](http://pomona.io/content/images/pomona-icon-210.png)
+![Pōmōna](https://pomona.rest/content/images/pomona-icon-210.png)
 
 # Pomona
 
@@ -57,7 +57,7 @@ does, only in a statically typed way tailored for .NET instead of a
 
 ## Documentation
 
-To get started with Pomona [please read the documentation](http://pomona.io).
+To get started with Pomona [please read the documentation](https://pomona.rest).
 
 ## Contributing
 
@@ -69,7 +69,7 @@ before submitting a pull request.
 ## Get in touch
 
 * [![Join the chat at https://gitter.im/Pomona/Pomona](https://badges.gitter.im/Pomona/Pomona.svg)](https://gitter.im/Pomona/Pomona?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-* [Homepage](http://pomona.io)
+* [Homepage](https://pomona.rest)
 * [GitHub page](https://github.com/Pomona/Pomona)
 * [Bug reporting](https://github.com/Pomona/Pomona/issues)
 
@@ -115,3 +115,4 @@ Thanks to:
 [22]: https://www.codefactor.io/repository/github/pomona/pomona/overview/develop
 [23]: https://www.codefactor.io/repository/github/pomona/pomona/badge/future
 [24]: https://www.codefactor.io/repository/github/pomona/pomona/overview/future
+

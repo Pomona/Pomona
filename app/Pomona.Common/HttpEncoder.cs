@@ -1,7 +1,7 @@
 #region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -72,7 +72,7 @@ namespace Pomona.Common
         }
 
 
-#if NET_4_0	
+#if NET_4_0
 		protected internal virtual
 #else
         internal static
@@ -124,7 +124,7 @@ namespace Pomona.Common
         }
 
 
-#if NET_4_0		
+#if NET_4_0
 		protected internal virtual void HtmlAttributeEncode (string value, TextWriter output)
 		{
 
@@ -165,11 +165,11 @@ namespace Pomona.Common
 
 			if (String.Compare (typeName, "System.Web.Util.HttpEncoder", StringComparison.OrdinalIgnoreCase) == 0)
 				return Default;
-			
+
 			Type t = Type.GetType (typeName, false);
 			if (t == null)
 				throw new ConfigurationErrorsException (String.Format ("Could not load type '{0}'.", typeName));
-			
+
 			if (!typeof (HttpEncoder).IsAssignableFrom (t))
 				throw new ConfigurationErrorsException (
 					String.Format ("'{0}' is not allowed here because it does not extend class 'System.Web.Util.HttpEncoder'.", typeName)
