@@ -1,7 +1,7 @@
 ﻿#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -1539,7 +1539,7 @@ desk
 dime
 dirt
 dress
-fang 
+fang
 field
 flag
 flower
@@ -1708,7 +1708,7 @@ birthday
 boy
 brush
 bushes
-butter 
+butter
 cast
 cave
 cent
@@ -1965,7 +1965,7 @@ Cataract
 ";
 
         private const string weaponsRawText =
-            @"gun bazooka rocket-launcher knife spear axe dagger sickle 
+            @"gun bazooka rocket-launcher knife spear axe dagger sickle
 sword switchblade barong bat baton boomerang dart dirk bombs rifle";
 
         private static readonly List<string> instruments;
@@ -2054,3 +2054,4 @@ sword switchblade barong bat baton boomerang dart dirk bombs rifle";
         }
     }
 }
+

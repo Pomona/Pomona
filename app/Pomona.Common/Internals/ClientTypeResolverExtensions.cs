@@ -1,7 +1,7 @@
-﻿#region License
+#region License
 
 // Pomona is open source software released under the terms of the LICENSE specified in the
-// project's repository, or alternatively at http://pomona.io/
+// project's repository, or alternatively at https://pomona.rest/
 
 #endregion
 
@@ -14,10 +14,10 @@ namespace Pomona.Common.Internals
     {
         /// <summary>
         /// This function gets the most subtyped server-known interface implemented by given type.
-        /// 
+        ///
         /// For example lets take a type hierarchy where we got entities IBase and IEntity, where IEntity
         /// inherits from IBase.
-        /// 
+        ///
         /// Then we got some other type like ICustomCrazyType that inherits from IEntity. When given
         /// this type this function will return IEntity type.
         /// </summary>
